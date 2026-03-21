@@ -1,0 +1,91 @@
+---
+description: YoiYoi iOS app development rules
+globs: ["**/*.swift", "**/*.xcstrings"]
+---
+
+You are an expert iOS developer building "YoiYoi", a playful drinking tracker.
+
+# Tech Stack
+- iOS 17+, Swift 5.9+, SwiftUI, SwiftData (local), Firebase Firestore + Anonymous Auth (remote)
+- Architecture: Feature-based MVVM with @Observable (iOS 17+)
+- No UIKit, no Storyboard, no third-party UI libraries except Firebase SDK
+- Localization: JA (default), EN via String Catalogs (.xcstrings) — designed for easy language addition
+
+# Project documentation (repo root)
+- Design system: `docs/DESIGN.md` — in Cursor use `@docs/DESIGN.md`
+- Product spec & models: `docs/SPEC.md` — `@docs/SPEC.md`
+- Implementation phases: `docs/IMPLEMENTATION_PLAN.md` — `@docs/IMPLEMENTATION_PLAN.md`
+
+# Visual Design System (CRITICAL — follow docs/DESIGN.md; `@docs/DESIGN.md` in Cursor)
+The app follows a professional design pattern inspired by modern card-based mobile UIs.
+
+## Screen Structure (every screen follows this pattern):
+1. **Wave Hero Area** (top ~35%): theme-color gradient clipped with WaveShape
+   - Contains screen title (28pt Bold white) + primary content (meter, badges, etc.)
+   - Home: coralRed hero with alcohol meter ring
+   - Calendar: mintGreen hero with monthly summary badges
+   - Feed: sunnyYellow hero (use charcoal text on yellow, NOT white)
+   - Settings: lavender hero with profile card
+2. **Content Area** (bottom ~65%): cream background with white ContentCards
+   - First card overlaps the hero by -24px for visual connection
+   - Cards use themed shadows (NEVER grey shadows)
+
+## Card Types (use exactly these 3 types):
+- **ContentCard**: white bg + themed shadow + radius 24 — for most information
+- **GradientAccentCard**: horizontal gradient + radius 20 — for highlighted actions
+- **FrostCard**: ultraThinMaterial + white overlay — only for overlays on hero areas
+
+## Key Visual Rules:
+- Shadows are ALWAYS tinted to match section theme color (opacity 0.10)
+- Numbers use 28-48pt Heavy SF Pro Rounded for visual hierarchy
+- Emoji (not SF Symbols) for all icons — keeps the playful tone
+- No flat backgrounds — always use Wave Hero + cream content area
+- Puffy buttons: top-light gradient + colored shadow + scale animation
+- Cards appear with staggered opacity + offset(y:20) animation
+
+# Multi-language Design
+- MVP supports JA and EN only
+- All language logic driven by `SupportedLanguage` enum
+- Adding language: (1) enum case, (2) .xcstrings, (3) nickname JSONs, (4) font definition
+- NO hardcoded language checks — always use SupportedLanguage
+
+# Type-safe Alcohol Calculation
+- ALWAYS use AlcoholByVolume type — NEVER pass raw Double for ABV
+- UI percentage → AlcoholByVolume.fromPercentage()
+- Code fraction → AlcoholByVolume.fromFraction()
+- DrinkRecord init accepts AlcoholByVolume only
+- Formula: volumeML × abv.fraction × 0.8 × numberOfDrinks
+
+# Key Architecture Rules
+- @Observable macro, not ObservableObject
+- async/await, not Combine
+- private(set) on all state
+- Guard clauses over nested if-else
+- MARK comments: State, Dependencies, Methods
+- Max ~200 lines per file (split into sub-services if exceeding)
+- All colors via AppColors enum — NEVER hardcode hex
+- WaveHeroView is reusable — pass gradientColors + content via @ViewBuilder
+
+# EULA
+- Required before any onboarding step
+- UserProfile stores eulaAccepted + eulaAcceptedAt
+- EULA text from Resources/EULA/eula_{lang}.md
+
+# Firebase Security
+- Reactions: FieldValue.increment(1) + FieldValue.arrayUnion([uid])
+- Rules enforce: add-only reacted_uids, +1 only reaction counts
+- No Cloud Functions — all validation via security rules
+- One reaction per user per post (rule + UI level)
+
+# Business Rules
+- Pure alcohol: volume(ml) × ABV(fraction) × 0.8
+- Goals: men 40g/day 280g/week, women 20g/day 140g/week (MHLW Japan)
+- No ads v1.0 (FeatureFlags.isAdsEnabled = false)
+- No HealthKit, no IAP
+- Feed posts are AUTO-GENERATED — zero free text
+- Nicknames are PRESET-ONLY — zero free text
+- Emoji reactions only: 👏🔥💪🫂🍀🍻, one per user per post
+
+# Testing
+- Test: AlcoholByVolume, DrinkRecord, AlcoholCalculator, FeedGenerator, Firestore rules
+- NO: UI tests, ViewModel tests, performance tests in MVP
