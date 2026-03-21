@@ -198,6 +198,7 @@ LinearGradient(
 ```
 
 - フロスト背景（`.ultraThinMaterial`）
+- **実装メモ:** システム `TabView` の `tabItem` は `Label("タイトル", systemImage:)` を使う（ヒット領域・Dynamic Type との整合）。ASCII 図の 🏠📅 等は情報設計の示意であり、コード上のアイコンと同一である必要はない。
 - 中央の＋ボタンは **56pt 円形**、coralRed グラデーション、タブバーから **上に 16pt** 浮かせる
 - 選択中タブ: `coralRed`、非選択: `greyText`
 - ラベル: 10pt、SF Pro Rounded

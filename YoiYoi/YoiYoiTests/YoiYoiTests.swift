@@ -10,8 +10,14 @@ import Testing
 
 struct YoiYoiTests {
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
+    @Test func alcoholByVolumeFromPercentage() {
+        let abv = AlcoholByVolume.fromPercentage(5.0)
+        #expect(abv.fraction == 0.05)
+        #expect(abv.percentage == 5.0)
     }
 
+    @Test func alcoholByVolumeFromFraction() {
+        let abv = AlcoholByVolume.fromFraction(0.12)
+        #expect(abv.percentage == 12.0)
+    }
 }

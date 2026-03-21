@@ -1,18 +1,14 @@
-//
-//  YoiYoiApp.swift
-//  YoiYoi
-//
-//  Created by Nozomu Kitamura on 3/22/26.
-//
-
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct YoiYoiApp: App {
+    @State private var appState = AppState()
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            DrinkRecord.self,
+            UserProfile.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -23,9 +19,20 @@ struct YoiYoiApp: App {
         }
     }()
 
+    init() {
+        FirebaseBootstrap.configureIfNeeded()
+    }
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            Group {
+                if appState.onboardingCompleted {
+                    ContentView()
+                } else {
+                    OnboardingContainerView()
+                }
+            }
+            .environment(appState)
         }
         .modelContainer(sharedModelContainer)
     }

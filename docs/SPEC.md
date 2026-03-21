@@ -41,7 +41,8 @@ YoiYoi/
 │   ├── YoiYoiApp.swift
 │   ├── AppState.swift
 │   ├── ContentView.swift          # TabView ルート
-│   └── FeatureFlags.swift
+│   ├── FeatureFlags.swift
+│   └── FirebaseBootstrap.swift    # FirebaseCore 条件付き configure（plist なしでもビルド可）
 ├── Features/
 │   ├── Onboarding/
 │   │   ├── Views/
@@ -153,7 +154,7 @@ YoiYoi/
 ```swift
 /// UI では 0-100 のパーセント表示、内部計算では 0.0-1.0 の小数を使う。
 /// この型で変換ミスによる100倍ズレを防止する。
-struct AlcoholByVolume: Codable, Hashable {
+struct AlcoholByVolume: Codable, Hashable, Sendable {
     /// 内部値は常に小数（0.0〜1.0）。例: 5% → 0.05
     let fraction: Double
 
@@ -178,7 +179,7 @@ struct AlcoholByVolume: Codable, Hashable {
 ```swift
 @Model
 final class DrinkRecord {
-    var id: UUID = UUID()
+    @Attribute(.unique) var id: UUID = UUID()
     var drinkType: String        // "beer","wine","sake","whisky","cocktail","sour"
     var volumeML: Double
     var abvFraction: Double      // 0.0-1.0（AlcoholByVolume.fraction から取得）
@@ -194,17 +195,18 @@ final class DrinkRecord {
         self.abvFraction = abv.fraction
         self.numberOfDrinks = numberOfDrinks
         self.pureAlcoholGrams = volumeML * abv.fraction * 0.8 * Double(numberOfDrinks)
-        self.loggedAt = Date()
+        let now = Date()
+        self.loggedAt = now
         let cal = Calendar.current
-        self.weekNumber = cal.component(.weekOfYear, from: Date())
-        self.yearNumber = cal.component(.year, from: Date())
+        self.weekNumber = cal.component(.weekOfYear, from: now)
+        self.yearNumber = cal.component(.yearForWeekOfYear, from: now)
     }
 }
 ```
 
 ### SupportedLanguage（言語拡張用 enum）
 ```swift
-enum SupportedLanguage: String, CaseIterable, Codable, Identifiable {
+enum SupportedLanguage: String, CaseIterable, Codable, Identifiable, Sendable {
     case ja = "ja"
     case en = "en"
     // 将来追加: case ko = "ko"
@@ -238,7 +240,7 @@ enum SupportedLanguage: String, CaseIterable, Codable, Identifiable {
 ```swift
 @Model
 final class UserProfile {
-    var id: UUID = UUID()
+    @Attribute(.unique) var id: UUID = UUID()
     var firebaseUID: String = ""
     var nicknameFlag: String = "🇯🇵"
     var nicknameEmoji: String = "🌙"
@@ -255,6 +257,13 @@ final class UserProfile {
     var blockedUIDs: [String] = []
 }
 ```
+
+### オンボーディング状態の二重管理（Phase 4 までの暫定）
+
+- **`AppState.onboardingCompleted`**（UserDefaults）: アプリ起動時に `ContentView` / `OnboardingContainerView` を切り替えるための軽量フラグ。
+- **`UserProfile.onboardingCompleted`**（SwiftData）: 永続プロフィールとしての完了状態。
+
+Phase 0〜3 では UserDefaults のみ更新してもよいが、**Phase 4 でオンボーディング完了フローを実装する際は**、`completeOnboarding()` 等で **両方を同じ値に更新する**、または **UserProfile を真実源**として `AppState` がモデルコンテキストから読み取る形に整理すること（ずれによるバグ防止）。
 
 ### Firestore コレクション
 
