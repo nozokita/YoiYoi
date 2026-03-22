@@ -1,8 +1,8 @@
 import Foundation
 
 /// Firestore `feed/{id}` のクライアント側表現（Codable）。`created_at` はエンコード層で Timestamp に載せ替え想定。
-struct FeedPost: Codable, Equatable, Sendable {
-    enum Kind: String, Codable, Sendable {
+struct FeedPost: Codable, Equatable, Identifiable, Sendable {
+    enum Kind: String, Codable, Hashable, Sendable {
         case goalMet = "goal_met"
         case restDay = "rest_day"
         case overGoal = "over_goal"
@@ -19,6 +19,11 @@ struct FeedPost: Codable, Equatable, Sendable {
 
         static let zero = ReactionCounts(clap: 0, fire: 0, muscle: 0, hug: 0, clover: 0, cheers: 0)
     }
+
+    /// Firestore ドキュメントパス（デコード後にサービス層で設定）。`CodingKeys` から除外。
+    var documentID: String = UUID().uuidString
+
+    var id: String { documentID }
 
     var uid: String
     var type: Kind
