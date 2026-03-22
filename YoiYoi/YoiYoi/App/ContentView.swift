@@ -28,7 +28,7 @@ struct ContentView: View {
                     .tag(settingsTabTag)
             }
 
-            // 中央 FAB（DESIGN: 56pt、タブバー上に 16pt）。bottom は暫定オフセット — Phase 1 で safeAreaInsets / AppSpacing に寄せる。
+            // 中央 FAB（DESIGN: 56pt）。bottom はタブバー上の暫定オフセット（後続で safeArea 連動）。
             VStack {
                 Spacer()
                 HStack {
@@ -56,7 +56,7 @@ struct ContentView: View {
                     .accessibilityLabel("飲酒を記録")
                     Spacer()
                 }
-                .padding(.bottom, 28)
+                .padding(.bottom, AppSpacing.xl - AppSpacing.xs)
             }
             .allowsHitTesting(true)
         }
