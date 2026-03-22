@@ -6,6 +6,7 @@ struct StatCard: View {
     let value: String
     let emoji: String
     let backgroundColor: Color
+    var language: SupportedLanguage = .ja
 
     var body: some View {
         HStack(alignment: .center, spacing: AppSpacing.md) {
@@ -15,7 +16,7 @@ struct StatCard: View {
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text(title)
-                    .font(AppFonts.body(for: .ja, size: 15))
+                    .font(AppFonts.body(for: language, size: 15))
                     .foregroundStyle(AppColors.charcoal)
                 Text(value)
                     .font(AppFonts.statCardValue())

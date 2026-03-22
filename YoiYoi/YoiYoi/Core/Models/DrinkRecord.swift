@@ -13,17 +13,25 @@ final class DrinkRecord {
     var weekNumber: Int
     var yearNumber: Int
 
-    init(drinkType: String, volumeML: Double, abv: AlcoholByVolume, numberOfDrinks: Int) {
+    /// - Parameters:
+    ///   - loggedAt: `nil` のときは現在時刻（本番）。テストでは固定日時を渡す。
+    ///   - calendar: 週番号・年の算出に使用（`loggedAt` と同一カレンダーにすること）。
+    init(
+        drinkType: String,
+        volumeML: Double,
+        abv: AlcoholByVolume,
+        numberOfDrinks: Int,
+        loggedAt: Date? = nil,
+        calendar: Calendar = .current
+    ) {
         self.drinkType = drinkType
         self.volumeML = volumeML
         self.abvFraction = abv.fraction
         self.numberOfDrinks = numberOfDrinks
         self.pureAlcoholGrams = volumeML * abv.fraction * 0.8 * Double(numberOfDrinks)
-        let now = Date()
-        self.loggedAt = now
-        let cal = Calendar.current
-        self.weekNumber = cal.component(.weekOfYear, from: now)
-        // ISO 週番号と整合する年（年末が翌週第1週に入るケースで .year とずれないようにする）
-        self.yearNumber = cal.component(.yearForWeekOfYear, from: now)
+        let at = loggedAt ?? Date()
+        self.loggedAt = at
+        self.weekNumber = calendar.component(.weekOfYear, from: at)
+        self.yearNumber = calendar.component(.yearForWeekOfYear, from: at)
     }
 }
