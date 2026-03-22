@@ -1,5 +1,10 @@
 import SwiftUI
 
+extension Notification.Name {
+    /// 記録シートを閉じたあとホーム等が SwiftData を取り直すためのフック（Phase 6 保存後も利用）。
+    static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
+}
+
 struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showDrinkLog = false
@@ -60,7 +65,9 @@ struct ContentView: View {
             }
             .allowsHitTesting(true)
         }
-        .sheet(isPresented: $showDrinkLog) {
+        .sheet(isPresented: $showDrinkLog, onDismiss: {
+            NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
+        }) {
             DrinkLogSheet()
                 .presentationDetents([.large])
         }

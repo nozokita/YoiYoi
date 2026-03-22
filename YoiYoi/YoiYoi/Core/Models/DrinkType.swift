@@ -20,6 +20,22 @@ enum DrinkType: String, CaseIterable, Codable, Sendable {
         }
     }
 
+    /// ホーム等の短い表示名（MVP は日本語固定。将来は言語連動）。
+    var shortLabelJA: String {
+        switch self {
+        case .beer: return "ビール"
+        case .wine: return "ワイン"
+        case .sake: return "日本酒"
+        case .whisky: return "ウイスキー"
+        case .cocktail: return "カクテル"
+        case .sour: return "サワー"
+        }
+    }
+
+    static func shortLabelJA(forRawType raw: String) -> String {
+        DrinkType(rawValue: raw)?.shortLabelJA ?? raw
+    }
+
     /// 1杯あたりの初期容量（ml）。
     var defaultVolumeML: Double {
         switch self {

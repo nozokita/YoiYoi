@@ -55,4 +55,19 @@ enum AlcoholCalculator {
         }
         return streak
     }
+
+    /// 指定週（`date` が属する `weekOfYear`）の暦日のうち、純アルコール合計が 0g の日数。
+    static func restDaysInWeek(gramsFrom records: [DrinkRecord], containing date: Date, calendar: Calendar) -> Int {
+        guard let interval = calendar.dateInterval(of: .weekOfYear, for: date) else { return 0 }
+        var rest = 0
+        var cursor = interval.start
+        while cursor < interval.end {
+            if dailyTotal(gramsFrom: records, on: cursor, calendar: calendar) == 0 {
+                rest += 1
+            }
+            guard let next = calendar.date(byAdding: .day, value: 1, to: cursor) else { break }
+            cursor = calendar.startOfDay(for: next)
+        }
+        return rest
+    }
 }
