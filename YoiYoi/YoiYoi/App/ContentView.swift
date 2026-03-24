@@ -7,34 +7,37 @@ extension Notification.Name {
 }
 
 /// **段階実装** — タブ0 のみ `HomeView`、タブ1 はプレースホルダーのまま。
+///
+/// タブバーを `VStack` の下に兄弟で置くと、`HomeView` 内の `ScrollView` に **縦 0 が渡り真っ白**になることがある。
+/// タブは **`safeAreaInset(edge: .bottom)`** に載せる。
 struct ContentView: View {
     @State private var selectedTab = 0
 
     private let otherTabSampleTitles = ["項目 A", "項目 B", "項目 C"]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Group {
-                switch selectedTab {
-                case 0:
-                    HomeView()
-                case 1:
-                    tabTwoPlaceholder
-                default:
-                    HomeView()
-                }
+        Group {
+            switch selectedTab {
+            case 0:
+                HomeView()
+            case 1:
+                tabTwoPlaceholder
+            default:
+                HomeView()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            Divider()
-                .background(AppColors.greyText.opacity(0.25))
-
-            bottomBar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 0) {
+                Divider()
+                    .background(AppColors.greyText.opacity(0.25))
+                bottomBar
+            }
+            .background(AppColors.cream)
+        }
         .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（段階実装: tab0=HomeView） selectedTab=\(selectedTab)")
+            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeView + safeAreaInset） selectedTab=\(selectedTab)")
         }
     }
 

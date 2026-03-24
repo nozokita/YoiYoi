@@ -55,9 +55,8 @@ struct HomeView: View {
         }
         .background(AppColors.cream)
         .scrollIndicators(.hidden)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColors.cream)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // 親が可変高のとき ScrollView が縦提案を取りこぼすのを防ぐ（タブシェル内で真っ白になる対策）
+        .frame(minHeight: 0, maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
         .onAppear {
             viewModel.refresh(modelContext: modelContext)
