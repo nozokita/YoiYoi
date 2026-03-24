@@ -1,17 +1,20 @@
 import Foundation
-import Observation
+import SwiftUI
 
 /// 起動直後のルーティング用。`UserProfile.onboardingCompleted` とは二重管理になるため、
 /// Phase 4 オンボーディング完了時に **両方** を同じ値に更新する（または Profile を真実源に移行する）。
-@Observable
-final class AppState {
+///
+/// **Note:** `@Observable` + `@Environment(AppState.self)` は `App` / `Scene` 直下で更新が伝わらず
+/// 真っ白なウィンドウになる事例があるため、`ObservableObject` + `@EnvironmentObject` を採用する。
+@MainActor
+final class AppState: ObservableObject {
     private enum Keys {
         static let onboarding = "app.onboardingCompleted"
         static let language = "app.currentLanguage"
     }
 
-    private(set) var onboardingCompleted: Bool
-    var currentLanguage: SupportedLanguage {
+    @Published private(set) var onboardingCompleted: Bool
+    @Published var currentLanguage: SupportedLanguage {
         didSet {
             UserDefaults.standard.set(currentLanguage.rawValue, forKey: Keys.language)
         }
@@ -24,6 +27,7 @@ final class AppState {
     }
 
     func completeOnboarding() {
+        objectWillChange.send()
         onboardingCompleted = true
         UserDefaults.standard.set(true, forKey: Keys.onboarding)
     }

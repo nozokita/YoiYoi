@@ -28,3 +28,6 @@ fastlane/test_output
 
 # Firebase (add locally; do not commit secrets)
 # GoogleService-Info.plist
+
+# Node (Firestore rules tests — run npm install locally)
+FirestoreRulesTests/node_modules/

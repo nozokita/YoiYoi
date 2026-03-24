@@ -18,7 +18,13 @@ final class UserProfile {
     var eulaAccepted: Bool = false
     var eulaAcceptedAt: Date? = nil
     var createdAt: Date = Date()
-    var blockedUIDs: [String] = []
+    /// `[String]` を素で持つと Core Data 層で型解決に失敗することがあるため JSON で保持する。
+    var blockedUIDsData: Data = Data()
+
+    var blockedUIDs: [String] {
+        get { (try? JSONDecoder().decode([String].self, from: blockedUIDsData)) ?? [] }
+        set { blockedUIDsData = (try? JSONEncoder().encode(newValue)) ?? Data() }
+    }
 
     init() {}
 }

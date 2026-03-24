@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		FE01A0032F6F46F5008984E3 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = FE01A0022F6F46F5008984E2 /* FirebaseCore */; };
+		FE01A00C2F6F46F5008984EC /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = FE01A00A2F6F46F5008984EA /* FirebaseAuth */; };
+		FE01A00D2F6F46F5008984ED /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = FE01A00B2F6F46F5008984EB /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +59,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				FE01A0032F6F46F5008984E3 /* FirebaseCore in Frameworks */,
+				FE01A00C2F6F46F5008984EC /* FirebaseAuth in Frameworks */,
+				FE01A00D2F6F46F5008984ED /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -118,6 +122,8 @@
 			name = YoiYoi;
 			packageProductDependencies = (
 				FE01A0022F6F46F5008984E2 /* FirebaseCore */,
+				FE01A00A2F6F46F5008984EA /* FirebaseAuth */,
+				FE01A00B2F6F46F5008984EB /* FirebaseFirestore */,
 			);
 			productName = YoiYoi;
 			productReference = BD4198472F6F46F5008984AD /* YoiYoi.app */;
@@ -409,6 +415,7 @@
 				DEVELOPMENT_TEAM = Q7MHDQD6L6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AppInfo.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -437,6 +444,7 @@
 				DEVELOPMENT_TEAM = Q7MHDQD6L6;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AppInfo.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -584,6 +592,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FE01A0012F6F46F5008984E1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		FE01A00A2F6F46F5008984EA /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FE01A0012F6F46F5008984E1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		FE01A00B2F6F46F5008984EB /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FE01A0012F6F46F5008984E1 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

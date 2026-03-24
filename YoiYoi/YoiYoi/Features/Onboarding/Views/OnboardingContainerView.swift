@@ -4,7 +4,7 @@ import SwiftUI
 /// SPEC「オンボーディング（5ステップ）」: EULA → 言語 → 性別・目標 → ニックネーム → ホーム。
 /// EULA はページインジケーターに含めない（言語 / 性別 / ニックネームの 3 ドット）。
 struct OnboardingContainerView: View {
-    @Environment(AppState.self) private var appState
+    @EnvironmentObject private var appState: AppState
     @Environment(\.modelContext) private var modelContext
 
     @State private var vm = OnboardingViewModel()
@@ -54,6 +54,10 @@ struct OnboardingContainerView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onAppear {
+            AppLaunchDiagnostics.log("OnboardingContainerView.onAppear step=\(currentStep)")
+        }
         .alert("保存エラー", isPresented: Binding(
             get: { saveErrorMessage != nil },
             set: { if !$0 { saveErrorMessage = nil } }
@@ -85,6 +89,6 @@ struct OnboardingContainerView: View {
 
 #Preview {
     OnboardingContainerView()
-        .environment(AppState())
+        .environmentObject(AppState())
         .modelContainer(for: UserProfile.self, inMemory: true)
 }

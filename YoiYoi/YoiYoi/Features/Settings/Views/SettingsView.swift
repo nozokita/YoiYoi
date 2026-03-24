@@ -6,6 +6,8 @@ struct SettingsView: View {
             Text("設定")
                 .navigationTitle("⚙️ 設定")
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColors.cream)
     }
 }
 

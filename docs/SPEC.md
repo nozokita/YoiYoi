@@ -39,6 +39,7 @@ MVP では JA / EN の2言語のみ対応するが、以下の設計で言語追
 YoiYoi/
 ├── App/
 │   ├── YoiYoiApp.swift
+│   ├── YoiYoiAppDelegate.swift
 │   ├── AppState.swift
 │   ├── ContentView.swift          # TabView ルート
 │   ├── FeatureFlags.swift

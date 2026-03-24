@@ -1,3 +1,5 @@
+import FirebaseAuth
+import FirebaseCore
 import SwiftData
 import SwiftUI
 
@@ -5,7 +7,7 @@ import SwiftUI
 struct DrinkLogSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Environment(AppState.self) private var appState
+    @EnvironmentObject private var appState: AppState
 
     @State private var viewModel = DrinkLogViewModel()
     @State private var saveError: String?
@@ -135,8 +137,12 @@ struct DrinkLogSheet: View {
             let dailyGoal = profile?.dailyGoalGrams ?? 40
             let weeklyGoal = profile?.weeklyGoalGrams ?? 280
             let uid: String
-            if let p = profile {
-                uid = p.firebaseUID.isEmpty ? p.id.uuidString : p.firebaseUID
+            if FirebaseApp.app() != nil, let authUid = Auth.auth().currentUser?.uid {
+                uid = authUid
+            } else if let p = profile, !p.firebaseUID.isEmpty {
+                uid = p.firebaseUID
+            } else if let p = profile {
+                uid = p.id.uuidString
             } else {
                 uid = "local"
             }
@@ -166,7 +172,10 @@ struct DrinkLogSheet: View {
                 streakDays: streak,
                 drinkTypesToday: drinkKeys
             )
-            _ = FeedGenerator.generatePost(context: ctx, calendar: cal)
+            let post = FeedGenerator.generatePost(context: ctx, calendar: cal)
+            if FeatureFlags.isFeedEnabled, FirebaseApp.app() != nil {
+                FeedFirestoreSync.publishIfPossible(post)
+            }
 
             dismiss()
         } catch {
@@ -177,6 +186,6 @@ struct DrinkLogSheet: View {
 
 #Preview {
     DrinkLogSheet()
-        .environment(AppState())
+        .environmentObject(AppState())
         .modelContainer(for: [DrinkRecord.self, UserProfile.self], inMemory: true)
 }

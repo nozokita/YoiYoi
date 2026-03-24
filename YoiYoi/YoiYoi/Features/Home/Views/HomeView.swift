@@ -5,15 +5,15 @@ import SwiftUI
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(AppState.self) private var appState
+    @EnvironmentObject private var appState: AppState
 
     @State private var viewModel = HomeViewModel()
 
+    private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
+
     var body: some View {
-        GeometryReader { geo in
-            let heroHeight = max(geo.size.height * 0.35, 260)
-            ScrollView {
-                VStack(spacing: 0) {
+        ScrollView {
+            VStack(spacing: 0) {
                     WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
                         VStack(spacing: AppSpacing.md) {
                             Text(viewModel.nicknameLine)
@@ -51,11 +51,13 @@ struct HomeView: View {
                     .padding(.bottom, AppSpacing.xxl)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(AppColors.cream)
-                }
             }
-            .background(AppColors.cream)
-            .scrollIndicators(.hidden)
         }
+        .background(AppColors.cream)
+        .scrollIndicators(.hidden)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColors.cream)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
         .onAppear {
             viewModel.refresh(modelContext: modelContext)
@@ -250,6 +252,6 @@ private struct FeedPreviewPlaceholderRow: View {
 
 #Preview {
     HomeView()
-        .environment(AppState())
+        .environmentObject(AppState())
         .modelContainer(for: [DrinkRecord.self, UserProfile.self], inMemory: true)
 }

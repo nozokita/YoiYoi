@@ -31,8 +31,8 @@
 
 以下をこの順番で作成して:
 
-1. YoiYoiApp.swift
-   - @main エントリーポイント
+1. YoiYoiApp.swift / YoiYoiAppDelegate.swift
+   - `@main` は `YoiYoiApp`（SwiftUI `App` / `WindowGroup`）。Firebase 等は `@UIApplicationDelegateAdaptor(YoiYoiAppDelegate.self)`。
    - SwiftData ModelContainer（DrinkRecord, UserProfile）
    - Firebase の初期化（FirebaseApp.configure()）
    - AppState を @Environment に注入
@@ -364,7 +364,7 @@ WaveHeroView を mintGreen テーマで再利用。
 **ステップ 8-1: Firebase セットアップ**（Opus）
 ```
 Core/Services/AuthService.swift — Anonymous Auth
-YoiYoiApp.swift の Firebase 初期化コード更新。
+`YoiYoiAppDelegate.didFinishLaunching` の Firebase 初期化コード更新。
 ```
 
 **ステップ 8-2: Firestore サービス**（Opus）

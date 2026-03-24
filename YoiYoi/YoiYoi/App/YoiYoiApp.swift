@@ -1,39 +1,101 @@
 import SwiftData
 import SwiftUI
 
+/// SwiftUI 標準の `WindowGroup` でウィンドウを構成する。
+/// `ModelContainer` は **`init()` で同期的に**用意する（`.task` + `ProgressView` だと完了前に UI がスピナーのまま止まる事例がある）。
 @main
 struct YoiYoiApp: App {
-    @State private var appState = AppState()
+    @UIApplicationDelegateAdaptor(YoiYoiAppDelegate.self) private var appDelegate
+    @StateObject private var appState = AppState()
 
-    var sharedModelContainer: ModelContainer = {
+    private let launchRoot: LaunchRoot
+
+    private enum LaunchRoot {
+        case minimal
+        case main(ModelContainer)
+        case storeFailed(Error)
+    }
+
+    init() {
+        AppLaunchDiagnostics.log("YoiYoiApp.init 開始")
+        if ProcessInfo.processInfo.arguments.contains("-YoiYoiMinimal") {
+            launchRoot = .minimal
+            AppLaunchDiagnostics.log("YoiYoiApp.init — YoiYoiMinimal（SwiftData なし）")
+            return
+        }
         let schema = Schema([
             DrinkRecord.self,
             UserProfile.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            AppLaunchDiagnostics.log("YoiYoiApp.init — ModelContainer 作成成功")
+            launchRoot = .main(container)
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            AppLaunchDiagnostics.log("YoiYoiApp.init — ModelContainer 失敗: \(error.localizedDescription)")
+            launchRoot = .storeFailed(error)
         }
-    }()
-
-    init() {
-        FirebaseBootstrap.configureIfNeeded()
     }
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if appState.onboardingCompleted {
-                    ContentView()
-                } else {
-                    OnboardingContainerView()
+            rootView
+                .onAppear {
+                    AppLaunchDiagnostics.log("WindowGroup ルート onAppear")
                 }
-            }
-            .environment(appState)
         }
-        .modelContainer(sharedModelContainer)
+    }
+
+    @ViewBuilder
+    private var rootView: some View {
+        switch launchRoot {
+        case .minimal:
+            YoiYoiMinimalLaunchView()
+        case .main(let container):
+            AppRootView()
+                .environmentObject(appState)
+                .modelContainer(container)
+        case .storeFailed(let error):
+            YoiYoiModelStoreErrorView(error: error)
+        }
+    }
+}
+
+// MARK: - 起動切り分け用
+
+private struct YoiYoiMinimalLaunchView: View {
+    var body: some View {
+        ZStack {
+            Color.red.ignoresSafeArea()
+            Text("YoiYoi MINIMAL\n(-YoiYoiMinimal)")
+                .multilineTextAlignment(.center)
+                .foregroundStyle(.white)
+                .font(.title.bold())
+        }
+    }
+}
+
+private struct YoiYoiModelStoreErrorView: View {
+    let error: Error
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("データを開けませんでした")
+                .font(.headline)
+            Text(error.localizedDescription)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+            Text(
+                "シミュレーターなら Device → Erase All Content and Settings、\n"
+                    + "実機ならアプリの削除と再インストールを試してください。"
+            )
+            .font(.subheadline)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColors.cream)
     }
 }

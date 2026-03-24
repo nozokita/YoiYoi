@@ -1,6 +1,22 @@
 import Foundation
 import Observation
 import SwiftData
+import SwiftUI
+
+/// オンボーディング完了処理が `guard` で打ち切られたときにユーザーへ理由を示す。
+enum OnboardingCompletionError: LocalizedError {
+    case eulaNotAccepted
+    case languageNotSelected
+
+    var errorDescription: String? {
+        switch self {
+        case .eulaNotAccepted:
+            return "利用規約への同意が記録されていません。最初の画面からやり直してください。"
+        case .languageNotSelected:
+            return "言語が選択されていません。言語選択の画面に戻って選んでください。"
+        }
+    }
+}
 
 enum OnboardingGender: String, CaseIterable, Sendable {
     case male
@@ -99,8 +115,8 @@ final class OnboardingViewModel {
 
     /// `UserProfile` を保存し、`AppState` と言語・オンボーディング完了を同期する。
     func completeOnboarding(modelContext: ModelContext, appState: AppState) throws {
-        guard eulaAccepted else { return }
-        guard let lang = selectedLanguage else { return }
+        guard eulaAccepted else { throw OnboardingCompletionError.eulaNotAccepted }
+        guard let lang = selectedLanguage else { throw OnboardingCompletionError.languageNotSelected }
 
         let descriptor = FetchDescriptor<UserProfile>()
         let profiles = try modelContext.fetch(descriptor)
@@ -126,7 +142,13 @@ final class OnboardingViewModel {
 
         try modelContext.save()
         appState.currentLanguage = lang
-        appState.completeOnboarding()
+        // SwiftData の保存コミットと SwiftUI の再描画が同フレームで競合すると分岐が更新されない環境があるため、
+        // 次のランループで完了フラグを立てる（「この相棒にする」後にホームへ切り替わらない」対策）。
+        DispatchQueue.main.async {
+            withAnimation(.easeInOut(duration: 0.25)) {
+                appState.completeOnboarding()
+            }
+        }
     }
 }
 

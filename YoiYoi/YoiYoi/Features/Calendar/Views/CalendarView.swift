@@ -9,11 +9,11 @@ struct CalendarView: View {
     @State private var records: [DrinkRecord] = []
     @State private var dailyGoal: Double = 40
 
+    private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
+
     var body: some View {
-        GeometryReader { geo in
-            let heroHeight = max(geo.size.height * 0.35, 260)
-            ScrollView {
-                VStack(spacing: 0) {
+        ScrollView {
+            VStack(spacing: 0) {
                     WaveHeroView(height: heroHeight, gradient: AppGradients.heroCalendar) {
                         VStack(spacing: AppSpacing.md) {
                             Text("📅 カレンダー")
@@ -48,10 +48,12 @@ struct CalendarView: View {
                     .padding(.bottom, AppSpacing.xxl)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(AppColors.cream)
-                }
             }
-            .scrollIndicators(.hidden)
         }
+        .scrollIndicators(.hidden)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColors.cream)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
         .onAppear { reload() }
         .onChange(of: scenePhase) { _, new in
