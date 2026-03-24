@@ -31,18 +31,9 @@ struct AlcoholMeterView: View {
     }
 
     var body: some View {
-        let ring = meterRing
-        Group {
-            if band == .over {
-                TimelineView(.animation(minimumInterval: 1 / 30, paused: false)) { context in
-                    let t = context.date.timeIntervalSinceReferenceDate
-                    let scale = 1.0 + 0.025 * sin(t * 4)
-                    ring.scaleEffect(scale)
-                }
-            } else {
-                ring
-            }
-        }
+        // `TimelineView` 常時更新はシミュレーター／タブ内ホストで描画が落ちる事例があるため、
+        // オーバー時もリングのみ表示（パルスは将来 `phaseAnimator` 等で再検討）。
+        meterRing
         .onAppear {
             withAnimation(.easeOut(duration: 1.2)) {
                 animatedTrim = progress

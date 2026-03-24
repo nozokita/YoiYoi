@@ -11,52 +11,55 @@ struct HomeView: View {
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
+    /// ヒーロー（グラデ＋Wave クリップ）を `ScrollView` の内側に置くと、タブシェル等の親によっては
+    /// **全体が真っ白で描画されない**環境がある。ヒーローは固定高で外に出し、下段だけ `ScrollView` にする。
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                    WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
-                        VStack(spacing: AppSpacing.md) {
-                            Text(viewModel.nicknameLine)
-                                .font(AppFonts.heroSubtitle())
-                                .foregroundStyle(AppColors.pureWhite.opacity(0.85))
-                                .multilineTextAlignment(.center)
+        VStack(spacing: 0) {
+            WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
+                VStack(spacing: AppSpacing.md) {
+                    Text(viewModel.nicknameLine)
+                        .font(AppFonts.heroSubtitle())
+                        .foregroundStyle(AppColors.pureWhite.opacity(0.85))
+                        .multilineTextAlignment(.center)
 
-                            Text("おつかれさま！🍺")
-                                .font(AppFonts.heroTitle())
-                                .foregroundStyle(AppColors.pureWhite)
-                                .multilineTextAlignment(.center)
+                    Text("おつかれさま！🍺")
+                        .font(AppFonts.heroTitle())
+                        .foregroundStyle(AppColors.pureWhite)
+                        .multilineTextAlignment(.center)
 
-                            AlcoholMeterView(
-                                consumed: viewModel.todayConsumed,
-                                dailyGoal: viewModel.dailyGoal
-                            )
+                    AlcoholMeterView(
+                        consumed: viewModel.todayConsumed,
+                        dailyGoal: viewModel.dailyGoal
+                    )
 
-                            Text(viewModel.meterSubtext)
-                                .font(AppFonts.heroSubtitle())
-                                .foregroundStyle(AppColors.pureWhite.opacity(0.85))
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, AppSpacing.sm)
-                        }
-                        .padding(.bottom, AppSpacing.lg)
-                    }
-                    .frame(height: heroHeight)
-
-                    VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                        weeklySummarySection
-                        todayDrinksSection
-                        feedPreviewSection
-                    }
-                    .padding(.horizontal, AppSpacing.lg)
-                    .padding(.top, -AppSpacing.lg)
-                    .padding(.bottom, AppSpacing.xxl)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(AppColors.cream)
+                    Text(viewModel.meterSubtext)
+                        .font(AppFonts.heroSubtitle())
+                        .foregroundStyle(AppColors.pureWhite.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, AppSpacing.sm)
+                }
+                .padding(.bottom, AppSpacing.lg)
             }
+            .frame(height: heroHeight)
+            .frame(maxWidth: .infinity)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    weeklySummarySection
+                    todayDrinksSection
+                    feedPreviewSection
+                }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, -AppSpacing.lg)
+                .padding(.bottom, AppSpacing.xxl)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AppColors.cream)
+            }
+            .scrollIndicators(.hidden)
+            .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+            .background(AppColors.cream)
         }
-        .background(AppColors.cream)
-        .scrollIndicators(.hidden)
-        // 親が可変高のとき ScrollView が縦提案を取りこぼすのを防ぐ（タブシェル内で真っ白になる対策）
-        .frame(minHeight: 0, maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
         .onAppear {
             viewModel.refresh(modelContext: modelContext)
