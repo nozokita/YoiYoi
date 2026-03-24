@@ -26,11 +26,6 @@ struct AppRootView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .preferredColorScheme(.light)
-        #if DEBUG
-        .overlay(alignment: .top) {
-            DebugLaunchOverlay()
-        }
-        #endif
         .onAppear {
             AppLaunchDiagnostics.log(
                 "AppRootView.onAppear onboardingCompleted=\(appState.onboardingCompleted) → \(appState.onboardingCompleted ? "ContentView" : "Onboarding")"

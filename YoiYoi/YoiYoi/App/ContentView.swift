@@ -9,9 +9,11 @@ extension Notification.Name {
 /// - step1: クリーム + カウンタ
 /// - step2: 下の「タブ風」2択（`TabView` は使わない）
 /// - step3: タブ1に `NavigationStack` + リスト → 詳細（データは固定文字列のみ）
+/// - step4: タブ0から `.sheet` でモーダル（中身はプレースホルダー）
 struct ContentView: View {
     @State private var selectedTab = 0
     @State private var tapCount = 0
+    @State private var showPlaceholderSheet = false
 
     private let otherTabSampleTitles = ["項目 A", "項目 B", "項目 C"]
 
@@ -36,9 +38,41 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
-        .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（段階実装 step3: navigation in tab1） selectedTab=\(selectedTab)")
+        .sheet(isPresented: $showPlaceholderSheet, onDismiss: {
+            NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
+        }) {
+            placeholderSheet
         }
+        .onAppear {
+            AppLaunchDiagnostics.log("ContentView.onAppear（段階実装 step4: sheet placeholder） selectedTab=\(selectedTab)")
+        }
+    }
+
+    private var placeholderSheet: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("モーダル（プレースホルダー）")
+                    .font(.headline)
+                    .foregroundStyle(AppColors.charcoal)
+                Text("次の段階で飲酒記録などのフォームをここに載せる")
+                    .font(.subheadline)
+                    .foregroundStyle(AppColors.greyText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppColors.cream)
+            .navigationTitle("例: 記録")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("閉じる") {
+                        showPlaceholderSheet = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
 
     /// step1 の内容（そのまま残す）
@@ -52,11 +86,23 @@ struct ContentView: View {
                 .font(.system(size: 32, weight: .black, design: .rounded))
                 .foregroundStyle(AppColors.coralRed)
 
-            Text("ステップ3: 「その他」タブでリスト→詳細を試せる（ここはタブ0）")
+            Text("ステップ4: 「シートを開く」でモーダル。「その他」でリスト→詳細。")
                 .font(.subheadline)
                 .foregroundStyle(AppColors.greyText)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
+
+            Button {
+                showPlaceholderSheet = true
+            } label: {
+                Text("シートを開く（プレースホルダー）")
+                    .font(.headline)
+                    .foregroundStyle(AppColors.coralRed)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(AppColors.coralLight.opacity(0.35), in: Capsule())
+            }
+            .buttonStyle(.plain)
 
             Button {
                 tapCount += 1
