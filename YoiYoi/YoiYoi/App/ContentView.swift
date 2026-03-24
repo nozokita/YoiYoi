@@ -1,3 +1,4 @@
+import SwiftData
 import SwiftUI
 
 extension Notification.Name {
@@ -5,15 +6,9 @@ extension Notification.Name {
     static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
 }
 
-/// **段階実装** — 表示が確認できた最後のシェル（step4）に戻した状態。
-/// Phase 0 相当の「全タブで HomeView 等を一括接続」は、環境によって真っ白になるため **いったん差し戻し**。
-/// 次はタブ0だけ `HomeView` → 問題なければカレンダー…と1画面ずつ足す。
-///
-/// - step1–4: クリーム + カウンタ + 2タブ + タブ1ナビ + シート
+/// **段階実装** — タブ0 のみ `HomeView`、タブ1 はプレースホルダーのまま。
 struct ContentView: View {
     @State private var selectedTab = 0
-    @State private var tapCount = 0
-    @State private var showPlaceholderSheet = false
 
     private let otherTabSampleTitles = ["項目 A", "項目 B", "項目 C"]
 
@@ -22,11 +17,11 @@ struct ContentView: View {
             Group {
                 switch selectedTab {
                 case 0:
-                    stepOnePanel
+                    HomeView()
                 case 1:
                     tabTwoPlaceholder
                 default:
-                    stepOnePanel
+                    HomeView()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -38,84 +33,9 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
-        .sheet(isPresented: $showPlaceholderSheet, onDismiss: {
-            NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
-        }) {
-            placeholderSheet
-        }
         .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（段階実装 step4 シェル復帰） selectedTab=\(selectedTab)")
+            AppLaunchDiagnostics.log("ContentView.onAppear（段階実装: tab0=HomeView） selectedTab=\(selectedTab)")
         }
-    }
-
-    private var placeholderSheet: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("モーダル（プレースホルダー）")
-                    .font(.headline)
-                    .foregroundStyle(AppColors.charcoal)
-                Text("次の段階で飲酒記録などのフォームをここに載せる")
-                    .font(.subheadline)
-                    .foregroundStyle(AppColors.greyText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppColors.cream)
-            .navigationTitle("例: 記録")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") {
-                        showPlaceholderSheet = false
-                    }
-                }
-            }
-        }
-        .presentationDetents([.medium, .large])
-    }
-
-    private var stepOnePanel: some View {
-        VStack(spacing: 24) {
-            Text("YoiYoi")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.charcoal)
-
-            Text("HELLO WORLD")
-                .font(.system(size: 32, weight: .black, design: .rounded))
-                .foregroundStyle(AppColors.coralRed)
-
-            Text("step4 シェル（正常だった版）。ここから Home などを1つずつ接続する。")
-                .font(.subheadline)
-                .foregroundStyle(AppColors.greyText)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
-
-            Button {
-                showPlaceholderSheet = true
-            } label: {
-                Text("シートを開く（プレースホルダー）")
-                    .font(.headline)
-                    .foregroundStyle(AppColors.coralRed)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(AppColors.coralLight.opacity(0.35), in: Capsule())
-            }
-            .buttonStyle(.plain)
-
-            Button {
-                tapCount += 1
-            } label: {
-                Text("タップした回数: \(tapCount)")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 14)
-                    .background(AppColors.coralRed, in: Capsule())
-            }
-            .buttonStyle(.plain)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var tabTwoPlaceholder: some View {
@@ -186,4 +106,6 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environmentObject(AppState())
+        .modelContainer(for: [DrinkRecord.self, UserProfile.self], inMemory: true)
 }
