@@ -60,6 +60,7 @@ struct HomeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
         .onAppear {
+            AppLaunchDiagnostics.log("HomeView.onAppear")
             viewModel.refresh(modelContext: modelContext)
         }
         .onChange(of: appState.currentLanguage) { _, _ in

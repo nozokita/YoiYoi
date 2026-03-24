@@ -11,6 +11,9 @@ extension Notification.Name {
 /// - 下部の自前タブバー + 中央 **FAB** → `DrinkLogSheet`
 ///
 /// **実装メモ:** 計画文面は `TabView` だが、OS 差で中身が真っ白になる事例があるため **自前 `HStack` タブ**とする（仕様・画面構成は同じ）。
+///
+/// **レイアウト:** メインを `VStack { 可変 + 固定タブ }` だけにすると、上段の `ScrollView` に **縦 0 が渡り真っ白**になる環境がある。
+/// タブバーは **`safeAreaInset(edge: .bottom)`** に載せ、メイン領域に確実な高さを与える（`docs/DEBUG_WHITE_SCREEN.md` 参照）。
 struct ContentView: View {
     @EnvironmentObject private var appState: AppState
     @State private var selectedTab = 0
@@ -19,34 +22,34 @@ struct ContentView: View {
     private var showsFeedTab: Bool { FeatureFlags.isFeedEnabled }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Group {
-                switch selectedTab {
-                case 0:
-                    HomeView()
-                case 1:
-                    CalendarView()
-                case 2:
-                    if showsFeedTab {
-                        FeedView()
-                    } else {
-                        SettingsView()
-                    }
-                case 3:
+        Group {
+            switch selectedTab {
+            case 0:
+                HomeView()
+            case 1:
+                CalendarView()
+            case 2:
+                if showsFeedTab {
+                    FeedView()
+                } else {
                     SettingsView()
-                default:
-                    HomeView()
                 }
+            case 3:
+                SettingsView()
+            default:
+                HomeView()
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            Divider()
-                .background(AppColors.greyText.opacity(0.2))
-
-            customTabBar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            VStack(spacing: 0) {
+                Divider()
+                    .background(AppColors.greyText.opacity(0.2))
+                customTabBar
+            }
+            .background(AppColors.cream)
+        }
         .overlay(alignment: .bottom) {
             HStack {
                 Spacer()
@@ -85,7 +88,7 @@ struct ContentView: View {
         }
         .onAppear {
             AppLaunchDiagnostics.log(
-                "ContentView.onAppear（Phase0: tabs+FAB+DrinkLogSheet） selectedTab=\(selectedTab) feed=\(showsFeedTab)"
+                "ContentView.onAppear（Phase0: safeAreaInset tab bar） selectedTab=\(selectedTab) feed=\(showsFeedTab)"
             )
         }
     }
