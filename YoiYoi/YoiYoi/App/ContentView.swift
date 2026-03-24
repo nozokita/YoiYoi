@@ -1,4 +1,3 @@
-import SwiftData
 import SwiftUI
 
 extension Notification.Name {
@@ -6,110 +5,168 @@ extension Notification.Name {
     static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
 }
 
-/// `docs/IMPLEMENTATION_PLAN.md` **Phase 0** に相当するメインシェル。
-/// - Home / Calendar /（`FeatureFlags.isFeedEnabled` 時のみ Feed）/ Settings
-/// - 下部の自前タブバー + 中央 **FAB** → `DrinkLogSheet`
+/// **段階実装** — 表示が確認できた最後のシェル（step4）に戻した状態。
+/// Phase 0 相当の「全タブで HomeView 等を一括接続」は、環境によって真っ白になるため **いったん差し戻し**。
+/// 次はタブ0だけ `HomeView` → 問題なければカレンダー…と1画面ずつ足す。
 ///
-/// **実装メモ:** 計画文面は `TabView` だが、OS 差で中身が真っ白になる事例があるため **自前 `HStack` タブ**とする（仕様・画面構成は同じ）。
-///
-/// **レイアウト:** メインを `VStack { 可変 + 固定タブ }` だけにすると、上段の `ScrollView` に **縦 0 が渡り真っ白**になる環境がある。
-/// タブバーは **`safeAreaInset(edge: .bottom)`** に載せ、メイン領域に確実な高さを与える（`docs/DEBUG_WHITE_SCREEN.md` 参照）。
+/// - step1–4: クリーム + カウンタ + 2タブ + タブ1ナビ + シート
 struct ContentView: View {
-    @EnvironmentObject private var appState: AppState
     @State private var selectedTab = 0
-    @State private var showDrinkLog = false
+    @State private var tapCount = 0
+    @State private var showPlaceholderSheet = false
 
-    private var showsFeedTab: Bool { FeatureFlags.isFeedEnabled }
+    private let otherTabSampleTitles = ["項目 A", "項目 B", "項目 C"]
 
     var body: some View {
-        Group {
-            switch selectedTab {
-            case 0:
-                HomeView()
-            case 1:
-                CalendarView()
-            case 2:
-                if showsFeedTab {
-                    FeedView()
-                } else {
-                    SettingsView()
+        VStack(spacing: 0) {
+            Group {
+                switch selectedTab {
+                case 0:
+                    stepOnePanel
+                case 1:
+                    tabTwoPlaceholder
+                default:
+                    stepOnePanel
                 }
-            case 3:
-                SettingsView()
-            default:
-                HomeView()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            Divider()
+                .background(AppColors.greyText.opacity(0.25))
+
+            bottomBar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            VStack(spacing: 0) {
-                Divider()
-                    .background(AppColors.greyText.opacity(0.2))
-                customTabBar
-            }
-            .background(AppColors.cream)
-        }
-        .overlay(alignment: .bottom) {
-            HStack {
-                Spacer()
-                Button {
-                    showDrinkLog = true
-                } label: {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [AppColors.coralLight, AppColors.coralRed],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(width: 56, height: 56)
-                        .shadow(color: AppColors.coralDeep.opacity(0.3), radius: 12, y: 4)
-                        .overlay {
-                            Image(systemName: "plus")
-                                .font(.system(size: 24, weight: .bold))
-                                .foregroundStyle(.white)
-                        }
-                }
-                .buttonStyle(.plain)
-                .accessibilityLabel("飲酒を記録")
-                Spacer()
-            }
-            .padding(.bottom, 72)
-        }
-        .tint(AppColors.coralRed)
-        .sheet(isPresented: $showDrinkLog, onDismiss: {
+        .sheet(isPresented: $showPlaceholderSheet, onDismiss: {
             NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
         }) {
-            DrinkLogSheet()
-                .environmentObject(appState)
-                .presentationDetents([.large])
+            placeholderSheet
         }
         .onAppear {
-            AppLaunchDiagnostics.log(
-                "ContentView.onAppear（Phase0: safeAreaInset tab bar） selectedTab=\(selectedTab) feed=\(showsFeedTab)"
-            )
+            AppLaunchDiagnostics.log("ContentView.onAppear（段階実装 step4 シェル復帰） selectedTab=\(selectedTab)")
         }
     }
 
-    private var customTabBar: some View {
-        HStack(spacing: 0) {
-            tabItem(index: 0, title: "ホーム", systemImage: "house.fill")
-            tabItem(index: 1, title: "カレンダー", systemImage: "calendar")
-            if showsFeedTab {
-                tabItem(index: 2, title: "みんな", systemImage: "globe.asia.australia.fill")
-                tabItem(index: 3, title: "設定", systemImage: "gearshape.fill")
-            } else {
-                tabItem(index: 2, title: "設定", systemImage: "gearshape.fill")
+    private var placeholderSheet: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("モーダル（プレースホルダー）")
+                    .font(.headline)
+                    .foregroundStyle(AppColors.charcoal)
+                Text("次の段階で飲酒記録などのフォームをここに載せる")
+                    .font(.subheadline)
+                    .foregroundStyle(AppColors.greyText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppColors.cream)
+            .navigationTitle("例: 記録")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("閉じる") {
+                        showPlaceholderSheet = false
+                    }
+                }
             }
         }
-        .padding(.top, 8)
-        .padding(.bottom, 6)
+        .presentationDetents([.medium, .large])
+    }
+
+    private var stepOnePanel: some View {
+        VStack(spacing: 24) {
+            Text("YoiYoi")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.charcoal)
+
+            Text("HELLO WORLD")
+                .font(.system(size: 32, weight: .black, design: .rounded))
+                .foregroundStyle(AppColors.coralRed)
+
+            Text("step4 シェル（正常だった版）。ここから Home などを1つずつ接続する。")
+                .font(.subheadline)
+                .foregroundStyle(AppColors.greyText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+
+            Button {
+                showPlaceholderSheet = true
+            } label: {
+                Text("シートを開く（プレースホルダー）")
+                    .font(.headline)
+                    .foregroundStyle(AppColors.coralRed)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(AppColors.coralLight.opacity(0.35), in: Capsule())
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                tapCount += 1
+            } label: {
+                Text("タップした回数: \(tapCount)")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 14)
+                    .background(AppColors.coralRed, in: Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var tabTwoPlaceholder: some View {
+        NavigationStack {
+            List {
+                ForEach(otherTabSampleTitles, id: \.self) { title in
+                    NavigationLink {
+                        otherDetailPlaceholder(title: title)
+                    } label: {
+                        Text(title)
+                            .foregroundStyle(AppColors.charcoal)
+                    }
+                }
+            }
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .background(AppColors.cream)
+            .navigationTitle("その他")
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+
+    private func otherDetailPlaceholder(title: String) -> some View {
+        VStack(spacing: 16) {
+            Text("詳細（プレースホルダー）")
+                .font(.headline)
+                .foregroundStyle(AppColors.charcoal)
+            Text(title)
+                .font(.title2.bold())
+                .foregroundStyle(AppColors.coralRed)
+            Text("次の段階でここに実データや編集 UI を載せる")
+                .font(.subheadline)
+                .foregroundStyle(AppColors.greyText)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
     }
 
-    private func tabItem(index: Int, title: String, systemImage: String) -> some View {
+    private var bottomBar: some View {
+        HStack(spacing: 0) {
+            barItem(index: 0, title: "ホーム", systemImage: "house.fill")
+            barItem(index: 1, title: "その他", systemImage: "circle.grid.2x2.fill")
+        }
+        .padding(.top, 10)
+        .padding(.bottom, 8)
+        .background(AppColors.cream)
+    }
+
+    private func barItem(index: Int, title: String, systemImage: String) -> some View {
         let on = selectedTab == index
         return Button {
             selectedTab = index
@@ -118,7 +175,7 @@ struct ContentView: View {
                 Image(systemName: systemImage)
                     .font(.system(size: 20, weight: on ? .semibold : .regular))
                 Text(title)
-                    .font(.system(size: 10, weight: on ? .semibold : .regular))
+                    .font(.system(size: 11, weight: on ? .semibold : .regular))
             }
             .frame(maxWidth: .infinity)
             .foregroundStyle(on ? AppColors.coralRed : AppColors.greyText)
@@ -129,6 +186,4 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environmentObject(AppState())
-        .modelContainer(for: [DrinkRecord.self, UserProfile.self], inMemory: true)
 }

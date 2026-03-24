@@ -5,7 +5,8 @@
 - **システム `TabView` + `UITabBar.appearance()`** の組み合わせで **ログだけ出て中身が真っ白**になることがある → **`TabView` を廃止し自前タブ**（[`ContentView.swift`](../YoiYoi/YoiYoi/App/ContentView.swift)）に変更済み。
 - **起動は SwiftUI 標準** … **`@main` は [`YoiYoiApp.swift`](../YoiYoi/YoiYoi/App/YoiYoiApp.swift)** の `WindowGroup`。Firebase などは [`YoiYoiAppDelegate.swift`](../YoiYoi/YoiYoi/App/YoiYoiAppDelegate.swift) を **`@UIApplicationDelegateAdaptor`** で接続（手動 `UIWindow` / 専用 `SceneDelegate` は使わない。ログは出るのに真っ白になる事例の回避）。
 - **ルート直下の `GeometryReader` + `ScrollView`** … 親（例: `ContentView` の `VStack`）から **高さ 0** が提案されると **`ScrollView` ごと潰れ**、ログは出るのに真っ白になることがある。ホーム／カレンダー／フィードのヒーロー高は [`WaveHeroLayout.swift`](../YoiYoi/YoiYoi/Core/Utilities/WaveHeroLayout.swift) の **`UIScreen.main.bounds` ベース**で決め、`GeometryReader` は使わない。
-- **`VStack { ScrollView…; 固定タブバー }` のメインシェル** … 上段だけ `frame(maxHeight: .infinity)` でも、**タブバーを兄弟に置く**と環境によって **ScrollView に縦 0 が渡る**ことがある。対策: [`ContentView.swift`](../YoiYoi/YoiYoi/App/ContentView.swift) のように **タブバーを `safeAreaInset(edge: .bottom)`** に載せる。
+- **`VStack { ScrollView…; 固定タブバー }` のメインシェル** … 上段だけ `frame(maxHeight: .infinity)` でも、**タブバーを兄弟に置く**と環境によって **ScrollView に縦 0 が渡る**ことがある。対策のひとつ: メインに **`safeAreaInset(edge: .bottom)`** でタブを載せる。
+- **`onAppear` は出るのに真っ白** … シェルは生きているが **子画面（例: `HomeView`）の中身**が描画されていない可能性。グラデ＋`clipShape`、ネストした `ScrollView`、`TimelineView` などを **1ブロックずつ外して**切り分ける。
 - **背面のクリーム** … [`AppRootView`](../YoiYoi/YoiYoi/App/AppRootView.swift) の **最背面に `AppColors.cream.ignoresSafeArea()`** と **`preferredColorScheme(.light)`** を維持。
 - **起動引数**（Edit Scheme → Run → Arguments）  
   - **`-YoiYoiMinimal`** … SwiftData / `AppRootView` なしの **真っ赤 MINIMAL**（[`YoiYoiApp.swift`](../YoiYoi/YoiYoi/App/YoiYoiApp.swift) が分岐）。**SwiftUI のウィンドウが描画できるか**の切り分け用。

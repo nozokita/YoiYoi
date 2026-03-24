@@ -53,7 +53,7 @@
    - 中央の + ボタンは @docs/DESIGN.md「タブバー仕様」の通り
      56pt 円形、coralRed グラデ、タブバーから上に浮かせる
    - タップで DrinkLogSheet を .sheet 表示
-   - **実装メモ（YoiYoi 現行）:** システム `TabView` は環境によって **中身が真っ白のまま**になる事例があるため、**自前の下部タブ（`HStack` + ボタン）**で同じ4タブ構成にしている。`FeatureFlags.isFeedEnabled == false` のときは Feed タブを省略し 3 タブ。タブバーは **`VStack` の下に兄弟配置せず**、メインコンテンツに **`safeAreaInset(edge: .bottom)`** で載せる（`ScrollView` に縦 0 が渡り白画面になるのを防ぐ）。
+   - **実装メモ（YoiYoi 現行・段階実装）:** システム `TabView` は避け **自前タブ**を使う。`HomeView` 等を **一括で接続すると真っ白**になる環境があるため、**まずプレースホルダー付きシェルで表示確認**し、**タブ／画面を1つずつ**足す（ログでは `HomeView.onAppear` が出るのに白い事例あり → シェルではなく子画面側の描画経路を疑う）。
 
 5. Core/Models/SupportedLanguage.swift
    - @docs/SPEC.md の SupportedLanguage enum をそのまま実装
