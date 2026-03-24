@@ -6,12 +6,13 @@ extension Notification.Name {
     static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
 }
 
-/// **段階実装** — タブ0 のみ `HomeView`、タブ1 はプレースホルダーのまま。
+/// **段階実装** — タブ0 は `homeSmoke`（表示確認）、タブ1 はプレースホルダー。
 ///
-/// タブバーを `VStack` の下に兄弟で置くと、`HomeView` 内の `ScrollView` に **縦 0 が渡り真っ白**になることがある。
+/// タブバーを `VStack` の下に兄弟で置くと内側の `ScrollView` に縦 0 が渡ることがあるため、
 /// タブは **`safeAreaInset(edge: .bottom)`** に載せる。
 struct ContentView: View {
     @State private var selectedTab = 0
+    @State private var showPlaceholderSheet = false
 
     private let otherTabSampleTitles = ["項目 A", "項目 B", "項目 C"]
 
@@ -19,11 +20,11 @@ struct ContentView: View {
         Group {
             switch selectedTab {
             case 0:
-                HomeView()
+                homeSmoke
             case 1:
                 tabTwoPlaceholder
             default:
-                HomeView()
+                homeSmoke
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -36,9 +37,66 @@ struct ContentView: View {
             }
             .background(AppColors.cream)
         }
-        .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeView + safeAreaInset） selectedTab=\(selectedTab)")
+        .sheet(isPresented: $showPlaceholderSheet, onDismiss: {
+            NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
+        }) {
+            placeholderSheet
         }
+        .onAppear {
+            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=homeSmoke + safeAreaInset） selectedTab=\(selectedTab)")
+        }
+    }
+
+    private var placeholderSheet: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Text("モーダル（プレースホルダー）")
+                    .font(.headline)
+                    .foregroundStyle(AppColors.charcoal)
+                Text("次の段階で飲酒記録などのフォームをここに載せる")
+                    .font(.subheadline)
+                    .foregroundStyle(AppColors.greyText)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 24)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(AppColors.cream)
+            .navigationTitle("例: 記録")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("閉じる") {
+                        showPlaceholderSheet = false
+                    }
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
+    }
+
+    /// スモークテスト: HomeView 接続前に「タブ0 で色付きビューが見えるか」を確認するだけ。
+    private var homeSmoke: some View {
+        VStack(spacing: 20) {
+            Text("HOME SMOKE TEST")
+                .font(.system(size: 28, weight: .black, design: .rounded))
+                .foregroundStyle(.white)
+            Text("これが見えればタブ0は生きている")
+                .font(.subheadline)
+                .foregroundStyle(.white.opacity(0.8))
+            Button {
+                showPlaceholderSheet = true
+            } label: {
+                Text("シートを開く（プレースホルダー）")
+                    .font(.headline)
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(AppColors.coralLight, in: Capsule())
+            }
+            .buttonStyle(.plain)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(AppColors.coralRed)
     }
 
     private var tabTwoPlaceholder: some View {
