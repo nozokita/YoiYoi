@@ -20,11 +20,11 @@ struct ContentView: View {
         Group {
             switch selectedTab {
             case 0:
-                homeSmoke
+                HomeViewLite()
             case 1:
                 tabTwoPlaceholder
             default:
-                homeSmoke
+                HomeViewLite()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -43,7 +43,7 @@ struct ContentView: View {
             placeholderSheet
         }
         .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=homeSmoke + safeAreaInset） selectedTab=\(selectedTab)")
+            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeViewLite） selectedTab=\(selectedTab)")
         }
     }
 
