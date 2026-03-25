@@ -6,12 +6,15 @@ import SwiftUI
 /// Step 3: SwiftData（最小 fetch 件数表示）まで追加していく。
 /// Step 4: ScrollView + 静的カード（Text のみ）を追加する。
 /// Step 5: `WaveHeroView`（矩形 `.clipped()`、`WaveShape` は未使用）。
+/// Step 6: ヒーロー内に `AlcoholMeterView`（SwiftData の今日合計＋目標）。
 struct HomeViewLite: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.modelContext) private var modelContext
 
     @State private var drinkRecordCount: Int = 0
     @State private var profileCount: Int = 0
+    @State private var todayConsumed: Double = 0
+    @State private var dailyGoalGrams: Double = 40
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
@@ -20,14 +23,16 @@ struct HomeViewLite: View {
             VStack(spacing: 0) {
                 WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
                     VStack(spacing: AppSpacing.md) {
-                        Text("HomeViewLite — Step 5")
+                        Text("HomeViewLite — Step 6")
                             .font(AppFonts.heroTitle())
                             .foregroundStyle(AppColors.pureWhite)
                             .multilineTextAlignment(.center)
-                        Text("WaveHeroView（Rectangle.fill + .clipped()）")
+                        Text("WaveHeroView + AlcoholMeterView")
                             .font(AppFonts.heroSubtitle())
                             .foregroundStyle(AppColors.pureWhite.opacity(0.85))
                             .multilineTextAlignment(.center)
+
+                        AlcoholMeterView(consumed: todayConsumed, dailyGoal: dailyGoalGrams)
                     }
                     .padding(.bottom, AppSpacing.lg)
                 }
@@ -54,6 +59,12 @@ struct HomeViewLite: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, 16)
 
+                    Text("Step 6: メーター（今日 \(Int(todayConsumed))g / 目標 \(Int(dailyGoalGrams))g）")
+                        .font(.caption)
+                        .foregroundStyle(.white.opacity(0.65))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 16)
+
                     VStack(spacing: 12) {
                         TextCard(title: "カード1（週まとめ 風）", content: "静的テキストだけ")
                         TextCard(title: "カード2（今日ドリンク 風）", content: "SwiftData の件数: records=\(drinkRecordCount)")
@@ -71,9 +82,11 @@ struct HomeViewLite: View {
         .scrollIndicators(.hidden)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Step 5: WaveHeroView + ScrollView cards)")
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Step 6: WaveHero + AlcoholMeter)")
 
-            // 依存増加の影響を最小化するため、最小限の fetch 件数だけ表示する。
+            let calendar = Calendar.current
+            let now = Date()
+
             let drinkDescriptor = FetchDescriptor<DrinkRecord>()
             let drinks = (try? modelContext.fetch(drinkDescriptor)) ?? []
             let profileDescriptor = FetchDescriptor<UserProfile>()
@@ -81,6 +94,9 @@ struct HomeViewLite: View {
 
             drinkRecordCount = drinks.count
             profileCount = profiles.count
+
+            dailyGoalGrams = profiles.first?.dailyGoalGrams ?? 40
+            todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: drinks, on: now, calendar: calendar)
         }
     }
 
