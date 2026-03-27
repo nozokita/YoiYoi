@@ -5,11 +5,12 @@ import SwiftUI
 /// Step 2: EnvironmentObject（言語表示まで）。
 /// Step 3: SwiftData（最小 fetch 件数表示）まで追加していく。
 /// Step 4: ScrollView + 静的カード（Text のみ）を追加する。
-/// Step 5: `WaveHeroView`（矩形 `.clipped()`、`WaveShape` は未使用）。
+/// Step 5: `WaveHeroView`（矩形グラデ＋`.clipped()`）。
 /// Step 6: ヒーロー内に `AlcoholMeterView`（SwiftData の今日合計＋目標）。
 /// Step 7-1: 下段カード1枚目だけ「今週のまとめ（週合計）」を最小導入。
 /// Step 7-2: 下段カード2枚目だけ「今日のドリンク件数」を最小導入。
 /// Step 7-3: 下段カード3枚目だけ「みんなの様子（準備中）」へ最小導入。
+/// 週まとめカードは **週合計の単行のみ**（複行・WaveShape 等で白画面が出たため当面これに戻す）。
 ///
 /// **白画面対策**: ヒーローを **縦 `ScrollView` の内側**に置くとタブシェル環境でレイアウトが潰れることがあるため、
 /// **`VStack` で固定高ヒーロー + 下段だけ `ScrollView`** とする。
@@ -80,7 +81,7 @@ struct HomeViewLite: View {
                     }
                     .padding(.horizontal, 16)
 
-                    Spacer(minLength: 48)
+                    Color.clear.frame(height: 48)
                 }
                 .frame(maxWidth: .infinity)
                 .background(AppColors.coralRed)
@@ -92,7 +93,7 @@ struct HomeViewLite: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Step 7-3 minimal: +feed placeholder card)")
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (white-screen fix: weekly single line, no WaveShape clip, no ScrollView Spacer)")
 
             let calendar = Calendar.current
             let now = Date()

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// DESIGN.md「ウェーブヒーロー」— 共通再利用。高さは呼び出し側で指定（目安 画面の約35%）。
-/// 背景は `Rectangle().fill(gradient)`。下端は `WaveShape` でクリップ。
+/// 背景は `Rectangle().fill(gradient)`。クリップは `.clipped()`（`WaveShape` はレイアウト環境によって白画面になることがあるため段階導入で外す）。
 struct WaveHeroView<Content: View>: View {
     let height: CGFloat
     let gradient: LinearGradient
@@ -18,7 +18,7 @@ struct WaveHeroView<Content: View>: View {
         }
         .frame(height: height)
         .frame(maxWidth: .infinity)
-        .clipShape(WaveShape())
+        .clipped()
     }
 }
 
