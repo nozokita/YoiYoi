@@ -11,6 +11,7 @@ import SwiftUI
 /// Step 7-2: 下段カード2枚目だけ「今日のドリンク件数」を最小導入。
 /// Step 7-3: 下段カード3枚目だけ「みんなの様子（準備中）」へ最小導入。
 /// 週まとめカードは **週合計の単行のみ**（複行・WaveShape 等で白画面が出たため当面これに戻す）。
+/// Step Next-A: 「今日のドリンク」は件数0のときだけ空状態の2行文言へ（`HStack`・横Scroll・WaveShapeは触らない）。
 ///
 /// **白画面対策**: ヒーローを **縦 `ScrollView` の内側**に置くとタブシェル環境でレイアウトが潰れることがあるため、
 /// **`VStack` で固定高ヒーロー + 下段だけ `ScrollView`** とする。
@@ -76,7 +77,7 @@ struct HomeViewLite: View {
 
                     VStack(spacing: 12) {
                         TextCard(title: "今週のまとめ", content: "週合計: \(weeklyConsumedText)")
-                        TextCard(title: "今日のドリンク", content: "今日の記録: \(todaysDrinkCount)件")
+                        TextCard(title: "今日のドリンク", content: todayDrinksCardBody)
                         TextCard(title: "みんなの様子", content: "公開準備中（もっと見る →）")
                     }
                     .padding(.horizontal, 16)
@@ -93,7 +94,7 @@ struct HomeViewLite: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (white-screen fix: weekly single line, no WaveShape clip, no ScrollView Spacer)")
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Next-A: today drinks empty copy when 0; structure unchanged)")
 
             let calendar = Calendar.current
             let now = Date()
@@ -120,6 +121,14 @@ struct HomeViewLite: View {
         return String(format: "%.1fg", weeklyConsumed)
     }
 
+    private var todayDrinksCardBody: String {
+        if todaysDrinkCount == 0 {
+            "まだ記録がないよ。\n＋ボタンで記録してね！"
+        } else {
+            "今日の記録: \(todaysDrinkCount)件"
+        }
+    }
+
     private struct TextCard: View {
         let title: String
         let content: String
@@ -132,6 +141,7 @@ struct HomeViewLite: View {
                 Text(content)
                     .font(.subheadline)
                     .foregroundStyle(AppColors.greyText)
+                    .multilineTextAlignment(.leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(16)
