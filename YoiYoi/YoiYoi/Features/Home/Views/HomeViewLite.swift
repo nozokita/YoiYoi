@@ -76,7 +76,7 @@ struct HomeViewLite: View {
                     VStack(spacing: 12) {
                         TextCard(title: "今週のまとめ", content: "週合計: \(weeklyConsumedText)")
                         TextCard(title: "今日のドリンク", content: "今日の記録: \(todaysDrinkCount)件")
-                        TextCard(title: "カード3（みんなの様子・Step 7-3）", content: "公開準備中（profiles: \(profileCount)）")
+                        TextCard(title: "みんなの様子", content: "公開準備中（profiles: \(profileCount)）")
                     }
                     .padding(.horizontal, 16)
 
