@@ -8,6 +8,7 @@ import SwiftUI
 /// Step 5: `WaveHeroView`（矩形 `.clipped()`、`WaveShape` は未使用）。
 /// Step 6: ヒーロー内に `AlcoholMeterView`（SwiftData の今日合計＋目標）。
 /// Step 7-1: 下段カード1枚目だけ「今週のまとめ（週合計）」を最小導入。
+/// Step 7-2: 下段カード2枚目だけ「今日のドリンク件数」を最小導入。
 ///
 /// **白画面対策**: ヒーローを **縦 `ScrollView` の内側**に置くとタブシェル環境でレイアウトが潰れることがあるため、
 /// **`VStack` で固定高ヒーロー + 下段だけ `ScrollView`** とする。
@@ -17,6 +18,7 @@ struct HomeViewLite: View {
 
     @State private var drinkRecordCount: Int = 0
     @State private var profileCount: Int = 0
+    @State private var todaysDrinkCount: Int = 0
     @State private var todayConsumed: Double = 0
     @State private var weeklyConsumed: Double = 0
     @State private var dailyGoalGrams: Double = 40
@@ -72,7 +74,7 @@ struct HomeViewLite: View {
 
                     VStack(spacing: 12) {
                         TextCard(title: "カード1（今週のまとめ・Step 7-1）", content: "週合計: \(weeklyConsumedText)")
-                        TextCard(title: "カード2（今日ドリンク 風）", content: "SwiftData の件数: records=\(drinkRecordCount)")
+                        TextCard(title: "カード2（今日のドリンク・Step 7-2）", content: "今日の記録: \(todaysDrinkCount)件")
                         TextCard(title: "カード3（みんなの様子 風）", content: "profiles=\(profileCount)")
                     }
                     .padding(.horizontal, 16)
@@ -89,7 +91,7 @@ struct HomeViewLite: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Step 7-1 minimal: weekly total card only)")
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Step 7-2 minimal: +today drink count card)")
 
             let calendar = Calendar.current
             let now = Date()
@@ -101,6 +103,7 @@ struct HomeViewLite: View {
 
             drinkRecordCount = drinks.count
             profileCount = profiles.count
+            todaysDrinkCount = drinks.filter { calendar.isDate($0.loggedAt, inSameDayAs: now) }.count
 
             dailyGoalGrams = profiles.first?.dailyGoalGrams ?? 40
             todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: drinks, on: now, calendar: calendar)
