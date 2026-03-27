@@ -7,6 +7,7 @@ import SwiftUI
 /// Step 4: ScrollView + 静的カード（Text のみ）を追加する。
 /// Step 5: `WaveHeroView`（矩形 `.clipped()`、`WaveShape` は未使用）。
 /// Step 6: ヒーロー内に `AlcoholMeterView`（SwiftData の今日合計＋目標）。
+/// Step 7-1: 下段カード1枚目だけ「今週のまとめ（週合計）」を最小導入。
 ///
 /// **白画面対策**: ヒーローを **縦 `ScrollView` の内側**に置くとタブシェル環境でレイアウトが潰れることがあるため、
 /// **`VStack` で固定高ヒーロー + 下段だけ `ScrollView`** とする。
@@ -17,6 +18,7 @@ struct HomeViewLite: View {
     @State private var drinkRecordCount: Int = 0
     @State private var profileCount: Int = 0
     @State private var todayConsumed: Double = 0
+    @State private var weeklyConsumed: Double = 0
     @State private var dailyGoalGrams: Double = 40
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
@@ -69,7 +71,7 @@ struct HomeViewLite: View {
                         .padding(.horizontal, 16)
 
                     VStack(spacing: 12) {
-                        TextCard(title: "カード1（週まとめ 風）", content: "静的テキストだけ")
+                        TextCard(title: "カード1（今週のまとめ・Step 7-1）", content: "週合計: \(weeklyConsumedText)")
                         TextCard(title: "カード2（今日ドリンク 風）", content: "SwiftData の件数: records=\(drinkRecordCount)")
                         TextCard(title: "カード3（みんなの様子 風）", content: "profiles=\(profileCount)")
                     }
@@ -87,7 +89,7 @@ struct HomeViewLite: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Step 6: hero fixed + lower ScrollView)")
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Step 7-1 minimal: weekly total card only)")
 
             let calendar = Calendar.current
             let now = Date()
@@ -102,7 +104,15 @@ struct HomeViewLite: View {
 
             dailyGoalGrams = profiles.first?.dailyGoalGrams ?? 40
             todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: drinks, on: now, calendar: calendar)
+            weeklyConsumed = AlcoholCalculator.weeklyTotal(gramsFrom: drinks, inWeekOf: now, calendar: calendar)
         }
+    }
+
+    private var weeklyConsumedText: String {
+        if weeklyConsumed == floor(weeklyConsumed) {
+            return "\(Int(weeklyConsumed))g"
+        }
+        return String(format: "%.1fg", weeklyConsumed)
     }
 
     private struct TextCard: View {
