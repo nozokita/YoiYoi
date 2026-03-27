@@ -12,6 +12,7 @@ import SwiftUI
 /// Step 7-3: 下段カード3枚目だけ「みんなの様子（準備中）」へ最小導入。
 /// 週まとめカードは **週合計の単行のみ**（複行・WaveShape 等で白画面が出たため当面これに戻す）。
 /// Step Next-A: 「今日のドリンク」は件数0のときだけ空状態の2行文言へ（`HStack`・横Scroll・WaveShapeは触らない）。
+/// Step Next-B: 1件以上のとき **最新から最大3件**を改行テキストで列挙（4件目以降は「…他N件」。ピル・横Scrollはまだ入れない）。
 ///
 /// **白画面対策**: ヒーローを **縦 `ScrollView` の内側**に置くとタブシェル環境でレイアウトが潰れることがあるため、
 /// **`VStack` で固定高ヒーロー + 下段だけ `ScrollView`** とする。
@@ -22,6 +23,8 @@ struct HomeViewLite: View {
     @State private var drinkRecordCount: Int = 0
     @State private var profileCount: Int = 0
     @State private var todaysDrinkCount: Int = 0
+    /// `onAppear` でだけ更新。本文は改行区切り（`HStack` なしで `HomeView` のピルに寄せるための中間段階）。
+    @State private var todayDrinksListSnippet: String = ""
     @State private var todayConsumed: Double = 0
     @State private var weeklyConsumed: Double = 0
     @State private var dailyGoalGrams: Double = 40
@@ -82,6 +85,23 @@ struct HomeViewLite: View {
                     }
                     .padding(.horizontal, 16)
 
+                    Button {
+                        NotificationCenter.default.post(name: .openDrinkLogPlaceholder, object: nil)
+                    } label: {
+                        HStack(spacing: 8) {
+                            Image(systemName: "plus.circle.fill")
+                            Text("記録シートを開く（プレースホルダー）")
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .foregroundStyle(AppColors.coralRed)
+                        .background(AppColors.coralLight)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, 16)
+
                     Color.clear.frame(height: 48)
                 }
                 .frame(maxWidth: .infinity)
@@ -94,7 +114,7 @@ struct HomeViewLite: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Next-A: today drinks empty copy when 0; structure unchanged)")
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Next-B: today drinks up to 3 lines text, no pills)")
 
             let calendar = Calendar.current
             let now = Date()
@@ -106,7 +126,22 @@ struct HomeViewLite: View {
 
             drinkRecordCount = drinks.count
             profileCount = profiles.count
-            todaysDrinkCount = drinks.filter { calendar.isDate($0.loggedAt, inSameDayAs: now) }.count
+
+            let startOfToday = calendar.startOfDay(for: now)
+            let todaysDrinks = drinks
+                .filter { calendar.isDate($0.loggedAt, inSameDayAs: startOfToday) }
+                .sorted { $0.loggedAt > $1.loggedAt }
+            todaysDrinkCount = todaysDrinks.count
+            if todaysDrinks.isEmpty {
+                todayDrinksListSnippet = ""
+            } else {
+                let lines = todaysDrinks.prefix(3).map { Self.drinkLine(for: $0) }
+                var snippet = lines.joined(separator: "\n")
+                if todaysDrinks.count > 3 {
+                    snippet += "\n…他 \(todaysDrinks.count - 3)件"
+                }
+                todayDrinksListSnippet = snippet
+            }
 
             dailyGoalGrams = profiles.first?.dailyGoalGrams ?? 40
             todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: drinks, on: now, calendar: calendar)
@@ -124,9 +159,18 @@ struct HomeViewLite: View {
     private var todayDrinksCardBody: String {
         if todaysDrinkCount == 0 {
             "まだ記録がないよ。\n＋ボタンで記録してね！"
-        } else {
+        } else if todayDrinksListSnippet.isEmpty {
             "今日の記録: \(todaysDrinkCount)件"
+        } else {
+            "今日の記録: \(todaysDrinkCount)件\n\(todayDrinksListSnippet)"
         }
+    }
+
+    private static func drinkLine(for record: DrinkRecord) -> String {
+        let label = DrinkType.shortLabelJA(forRawType: record.drinkType)
+        let emoji = DrinkType(rawValue: record.drinkType)?.emoji ?? "🍺"
+        let grams = Int(round(record.pureAlcoholGrams))
+        return "\(emoji) \(label) \(grams)g"
     }
 
     private struct TextCard: View {

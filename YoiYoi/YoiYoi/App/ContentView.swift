@@ -4,6 +4,8 @@ import SwiftUI
 extension Notification.Name {
     /// 記録シートを閉じたあとホーム等が SwiftData を取り直すためのフック（Phase 6）。
     static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
+    /// `HomeViewLite` など子ビューからプレースホルダー記録シートを開く（段階実装用）。
+    static let openDrinkLogPlaceholder = Notification.Name("YoiYoi.openDrinkLogPlaceholder")
 }
 
 /// **段階実装** — タブ0 は `homeSmoke`（表示確認）、タブ1 はプレースホルダー。
@@ -44,6 +46,9 @@ struct ContentView: View {
         }
         .onAppear {
             AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeViewLite） selectedTab=\(selectedTab)")
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogPlaceholder)) { _ in
+            showPlaceholderSheet = true
         }
     }
 
