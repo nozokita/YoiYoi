@@ -16,6 +16,7 @@ struct AppRootView: View {
             Group {
                 if appState.onboardingCompleted {
                     ContentView()
+                        .environmentObject(appState)
                 } else {
                     OnboardingContainerView()
                 }

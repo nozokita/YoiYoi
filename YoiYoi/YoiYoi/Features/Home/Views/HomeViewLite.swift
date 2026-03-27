@@ -7,6 +7,9 @@ import SwiftUI
 /// Step 4: ScrollView + 静的カード（Text のみ）を追加する。
 /// Step 5: `WaveHeroView`（矩形 `.clipped()`、`WaveShape` は未使用）。
 /// Step 6: ヒーロー内に `AlcoholMeterView`（SwiftData の今日合計＋目標）。
+///
+/// **白画面対策**: ヒーローを **縦 `ScrollView` の内側**に置くとタブシェル環境でレイアウトが潰れることがあるため、
+/// **`VStack` で固定高ヒーロー + 下段だけ `ScrollView`** とする。
 struct HomeViewLite: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.modelContext) private var modelContext
@@ -19,26 +22,26 @@ struct HomeViewLite: View {
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
-                    VStack(spacing: AppSpacing.md) {
-                        Text("HomeViewLite — Step 6")
-                            .font(AppFonts.heroTitle())
-                            .foregroundStyle(AppColors.pureWhite)
-                            .multilineTextAlignment(.center)
-                        Text("WaveHeroView + AlcoholMeterView")
-                            .font(AppFonts.heroSubtitle())
-                            .foregroundStyle(AppColors.pureWhite.opacity(0.85))
-                            .multilineTextAlignment(.center)
+        VStack(spacing: 0) {
+            WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
+                VStack(spacing: AppSpacing.md) {
+                    Text("HomeViewLite — Step 6")
+                        .font(AppFonts.heroTitle())
+                        .foregroundStyle(AppColors.pureWhite)
+                        .multilineTextAlignment(.center)
+                    Text("WaveHeroView + AlcoholMeterView")
+                        .font(AppFonts.heroSubtitle())
+                        .foregroundStyle(AppColors.pureWhite.opacity(0.85))
+                        .multilineTextAlignment(.center)
 
-                        AlcoholMeterView(consumed: todayConsumed, dailyGoal: dailyGoalGrams)
-                    }
-                    .padding(.bottom, AppSpacing.lg)
+                    AlcoholMeterView(consumed: todayConsumed, dailyGoal: dailyGoalGrams)
                 }
-                .frame(height: heroHeight)
-                .frame(maxWidth: .infinity)
+                .padding(.bottom, AppSpacing.lg)
+            }
+            .frame(height: heroHeight)
+            .frame(maxWidth: .infinity)
 
+            ScrollView {
                 VStack(spacing: 16) {
                     Text("Step 2: EnvironmentObject（言語: \(appState.currentLanguage.displayName)）")
                         .font(.subheadline)
@@ -72,17 +75,19 @@ struct HomeViewLite: View {
                     }
                     .padding(.horizontal, 16)
 
-                    // ScrollView が「高さ 0」になって潰れるケースの回避のため最低高さっぽく確保
                     Spacer(minLength: 48)
                 }
                 .frame(maxWidth: .infinity)
                 .background(AppColors.coralRed)
             }
+            .scrollIndicators(.hidden)
+            .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+            .background(AppColors.coralRed)
         }
-        .scrollIndicators(.hidden)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Step 6: WaveHero + AlcoholMeter)")
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Step 6: hero fixed + lower ScrollView)")
 
             let calendar = Calendar.current
             let now = Date()
