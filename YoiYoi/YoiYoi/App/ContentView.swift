@@ -4,11 +4,11 @@ import SwiftUI
 extension Notification.Name {
     /// 記録シートを閉じたあとホーム等が SwiftData を取り直すためのフック（Phase 6）。
     static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
-    /// `HomeViewLite` など子ビューから飲酒記録シートを開く。
+    /// `HomeView` / `HomeViewLite` など子ビューから飲酒記録シートを開く。
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
 }
 
-/// **段階実装** — タブ0 は `homeSmoke`（表示確認）、タブ1 はプレースホルダー。
+/// **段階実装** — タブ0 は `HomeView`、タブ1 はプレースホルダー。
 ///
 /// タブバーを `VStack` の下に兄弟で置くと内側の `ScrollView` に縦 0 が渡ることがあるため、
 /// タブは **`safeAreaInset(edge: .bottom)`** に載せる。
@@ -23,11 +23,11 @@ struct ContentView: View {
         Group {
             switch selectedTab {
             case 0:
-                HomeViewLite()
+                HomeView()
             case 1:
                 tabTwoPlaceholder
             default:
-                HomeViewLite()
+                HomeView()
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -50,7 +50,7 @@ struct ContentView: View {
                 .presentationDetents([.large])
         }
         .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeViewLite） selectedTab=\(selectedTab)")
+            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeView） selectedTab=\(selectedTab)")
         }
         .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogSheet)) { _ in
             // 同一ランループで `sheet` を立ち上げるとメインスレッドで固まる事例への回避（次フレームで表示）。
