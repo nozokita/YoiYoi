@@ -2,7 +2,15 @@ import SwiftUI
 
 /// DESIGN.md「設定画面」テーマ（lavender）— `HomeView` と同型の固定ヒーロー + 下段スクロール。
 struct SettingsRootView: View {
+    @EnvironmentObject private var appState: AppState
+
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
+
+    private var appVersionLine: String {
+        let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
+        let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
+        return "\(v) (\(b))"
+    }
 
     var body: some View {
         NavigationStack {
@@ -25,7 +33,41 @@ struct SettingsRootView: View {
 
                 List {
                     Section {
-                        Text("目標・言語・通知などの項目は順次ここに追加します。")
+                        HStack {
+                            Text("アプリの言語")
+                                .foregroundStyle(AppColors.charcoal)
+                            Spacer()
+                            Text("\(appState.currentLanguage.flag) \(appState.currentLanguage.displayName)")
+                                .font(.subheadline)
+                                .foregroundStyle(AppColors.greyText)
+                        }
+                        .listRowBackground(AppColors.cream)
+                    } header: {
+                        Text("表示言語")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.greyText)
+                            .textCase(nil)
+                    }
+
+                    Section {
+                        HStack {
+                            Text("バージョン")
+                                .foregroundStyle(AppColors.charcoal)
+                            Spacer()
+                            Text(appVersionLine)
+                                .font(.subheadline.monospacedDigit())
+                                .foregroundStyle(AppColors.greyText)
+                        }
+                        .listRowBackground(AppColors.cream)
+                    } header: {
+                        Text("アプリ情報")
+                            .font(.caption)
+                            .foregroundStyle(AppColors.greyText)
+                            .textCase(nil)
+                    }
+
+                    Section {
+                        Text("飲酒目標・通知・データのエクスポートなどは、次の段階でここに追加します。")
                             .font(.subheadline)
                             .foregroundStyle(AppColors.greyText)
                             .listRowBackground(AppColors.cream)
@@ -45,4 +87,5 @@ struct SettingsRootView: View {
 
 #Preview {
     SettingsRootView()
+        .environmentObject(AppState())
 }
