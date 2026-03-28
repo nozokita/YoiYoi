@@ -48,22 +48,6 @@ struct HomeView: View {
                     weeklySummarySection
                     todayDrinksSection
                     feedPreviewSection
-
-                    Button {
-                        NotificationCenter.default.post(name: .openDrinkLogSheet, object: nil)
-                    } label: {
-                        HStack(spacing: 8) {
-                            Image(systemName: "plus.circle.fill")
-                            Text("＋ 飲み物を記録")
-                                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .foregroundStyle(AppColors.coralRed)
-                        .background(AppColors.coralLight)
-                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
                 }
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.top, -AppSpacing.lg)

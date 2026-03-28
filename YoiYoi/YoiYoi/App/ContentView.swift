@@ -8,7 +8,7 @@ extension Notification.Name {
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
 }
 
-/// **段階実装** — タブ0 は `HomeView`、タブ1 はプレースホルダー。
+/// **段階実装** — タブ0 は `HomeView`、タブ1 はプレースホルダー。下端は **タブバー + 記録 FAB**（DESIGN.md）。
 ///
 /// タブバーを `VStack` の下に兄弟で置くと内側の `ScrollView` に縦 0 が渡ることがあるため、
 /// タブは **`safeAreaInset(edge: .bottom)`** に載せる。
@@ -34,6 +34,13 @@ struct ContentView: View {
         .background(AppColors.cream)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
+                HStack {
+                    Spacer(minLength: 0)
+                    drinkLogFAB
+                    Spacer(minLength: 0)
+                }
+                .padding(.top, 8)
+                .padding(.bottom, 16)
                 Divider()
                     .background(AppColors.greyText.opacity(0.25))
                 bottomBar
@@ -50,7 +57,7 @@ struct ContentView: View {
                 .presentationDetents([.large])
         }
         .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeView） selectedTab=\(selectedTab)")
+            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeView FAB） selectedTab=\(selectedTab)")
         }
         .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogSheet)) { _ in
             // 同一ランループで `sheet` を立ち上げるとメインスレッドで固まる事例への回避（次フレームで表示）。
@@ -60,29 +67,31 @@ struct ContentView: View {
         }
     }
 
-    /// スモークテスト: HomeView 接続前に「タブ0 で色付きビューが見えるか」を確認するだけ。
-    private var homeSmoke: some View {
-        VStack(spacing: 20) {
-            Text("HOME SMOKE TEST")
-                .font(.system(size: 28, weight: .black, design: .rounded))
-                .foregroundStyle(.white)
-            Text("これが見えればタブ0は生きている")
-                .font(.subheadline)
-                .foregroundStyle(.white.opacity(0.8))
-            Button {
+    /// DESIGN.md「中央 FAB」— 記録シートを開く（`openDrinkLogSheet` と同じく次フレームで表示）。
+    private var drinkLogFAB: some View {
+        Button {
+            DispatchQueue.main.async {
                 showDrinkLogSheet = true
-            } label: {
-                Text("シートを開く（プレースホルダー）")
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(AppColors.coralLight, in: Capsule())
             }
-            .buttonStyle(.plain)
+        } label: {
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [AppColors.coralLight, AppColors.coralRed],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: 56, height: 56)
+                .shadow(color: AppColors.coralDeep.opacity(0.3), radius: 12, y: 4)
+                .overlay(
+                    Image(systemName: "plus")
+                        .font(.system(size: 24, weight: .bold))
+                        .foregroundStyle(.white)
+                )
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColors.coralRed)
+        .buttonStyle(.plain)
+        .accessibilityLabel("飲み物を記録")
     }
 
     private var tabTwoPlaceholder: some View {
