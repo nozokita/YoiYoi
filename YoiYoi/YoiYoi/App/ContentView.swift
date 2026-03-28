@@ -8,7 +8,7 @@ extension Notification.Name {
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
 }
 
-/// **段階実装** — タブ0〜3 は `HomeView` / `CalendarView` / `FeedView` / 設定プレースホルダー。下端は **4等分タブバー + 記録 FAB**。
+/// **段階実装** — タブ0〜3 は `HomeView` / `CalendarView` / `FeedView` / `SettingsRootView`。下端は **4等分タブバー + 記録 FAB**。
 /// FAB は **`safeAreaInset` 外の `overlay`**（インセット内は高さ確保用の `Color.clear` のみ）。`ZStack` 化した事例で `HomeView` の `ScrollView` が潰れたため。
 ///
 /// タブバーを `VStack` の下に兄弟で置くと内側の `ScrollView` に縦 0 が渡ることがあるため、
@@ -44,7 +44,7 @@ struct ContentView: View {
             case 2:
                 FeedView()
             case 3:
-                settingsTabRoot
+                SettingsRootView()
             default:
                 HomeView()
             }
@@ -121,24 +121,6 @@ struct ContentView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("飲み物を記録")
-    }
-
-    private var settingsTabRoot: some View {
-        NavigationStack {
-            List {
-                Section {
-                    Text("アプリ設定は順次追加予定です")
-                        .font(.subheadline)
-                        .foregroundStyle(AppColors.greyText)
-                        .listRowBackground(AppColors.cream)
-                }
-            }
-            .listStyle(.plain)
-            .scrollContentBackground(.hidden)
-            .background(AppColors.cream)
-            .navigationTitle("設定")
-            .navigationBarTitleDisplayMode(.inline)
-        }
     }
 
     private var bottomBar: some View {
