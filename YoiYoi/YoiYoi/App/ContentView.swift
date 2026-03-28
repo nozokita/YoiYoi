@@ -8,7 +8,7 @@ extension Notification.Name {
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
 }
 
-/// **段階実装** — タブ0 は `HomeView`、タブ1 はプレースホルダー。下端は **タブバー + 記録 FAB**（DESIGN.md）。
+/// **段階実装** — タブ0〜2 は `HomeView` / `CalendarView` / その他プレースホルダー。下端は **3等分タブバー + 記録 FAB**（中央スペーサーなし）。
 ///
 /// タブバーを `VStack` の下に兄弟で置くと内側の `ScrollView` に縦 0 が渡ることがあるため、
 /// タブは **`safeAreaInset(edge: .bottom)`** に載せる。
@@ -28,7 +28,9 @@ struct ContentView: View {
             case 0:
                 HomeView()
             case 1:
-                tabTwoPlaceholder
+                CalendarView()
+            case 2:
+                otherTabRoot
             default:
                 HomeView()
             }
@@ -60,7 +62,7 @@ struct ContentView: View {
                 .presentationDetents([.large])
         }
         .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeView FAB） selectedTab=\(selectedTab)")
+            AppLaunchDiagnostics.log("ContentView.onAppear（3tabs+FAB） selectedTab=\(selectedTab)")
         }
         .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogSheet)) { _ in
             // 同一ランループで `sheet` を立ち上げるとメインスレッドで固まる事例への回避（次フレームで表示）。
@@ -97,7 +99,7 @@ struct ContentView: View {
         .accessibilityLabel("飲み物を記録")
     }
 
-    private var tabTwoPlaceholder: some View {
+    private var otherTabRoot: some View {
         NavigationStack {
             List {
                 ForEach(otherTabSampleTitles, id: \.self) { title in
@@ -138,7 +140,8 @@ struct ContentView: View {
     private var bottomBar: some View {
         HStack(spacing: 0) {
             barItem(index: 0, title: "ホーム", systemImage: "house.fill")
-            barItem(index: 1, title: "その他", systemImage: "circle.grid.2x2.fill")
+            barItem(index: 1, title: "カレンダー", systemImage: "calendar")
+            barItem(index: 2, title: "その他", systemImage: "circle.grid.2x2.fill")
         }
         .padding(.top, 10)
         .padding(.bottom, 8)
