@@ -2,6 +2,7 @@ import SwiftData
 import SwiftUI
 
 /// DESIGN.md「フィード画面」— sunny ウェーブヒーロー + 言語 Pill + FeedCard。
+/// レイアウトは `HomeView` と同型（固定高ヒーロー + 下段 `ScrollView`）。
 struct FeedView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var appState: AppState
@@ -16,40 +17,43 @@ struct FeedView: View {
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
+    /// `HomeView` / `CalendarView` と同型。ヒーローを `ScrollView` の外に置く。
     var body: some View {
         NavigationStack {
-            ScrollView {
-                    VStack(spacing: 0) {
-                        WaveHeroView(height: heroHeight, gradient: AppGradients.heroFeed) {
-                            VStack(alignment: .leading, spacing: AppSpacing.md) {
-                                Text("🌍 みんなの記録")
-                                    .font(AppFonts.heroTitle())
-                                    .foregroundStyle(AppColors.charcoal)
-                                Text("世界中の仲間と励まし合おう！")
-                                    .font(AppFonts.heroSubtitle())
-                                    .foregroundStyle(AppColors.charcoal.opacity(0.7))
-                                    .fixedSize(horizontal: false, vertical: true)
-                            }
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.bottom, AppSpacing.sm)
-                        }
-                        .frame(height: heroHeight)
-
-                        VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                            languageFilterRow
-                            feedList
-                        }
-                        .padding(.horizontal, AppSpacing.lg)
-                        .padding(.top, -AppSpacing.lg)
-                        .padding(.bottom, AppSpacing.xxl)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(AppColors.cream)
+            VStack(spacing: 0) {
+                WaveHeroView(height: heroHeight, gradient: AppGradients.heroFeed) {
+                    VStack(alignment: .leading, spacing: AppSpacing.md) {
+                        Text("🌍 みんなの記録")
+                            .font(AppFonts.heroTitle())
+                            .foregroundStyle(AppColors.charcoal)
+                        Text("世界中の仲間と励まし合おう！")
+                            .font(AppFonts.heroSubtitle())
+                            .foregroundStyle(AppColors.charcoal.opacity(0.7))
+                            .fixedSize(horizontal: false, vertical: true)
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, AppSpacing.lg)
+                }
+                .frame(height: heroHeight)
+                .frame(maxWidth: .infinity)
+
+                ScrollView {
+                    VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                        languageFilterRow
+                        feedList
+                    }
+                    .padding(.horizontal, AppSpacing.lg)
+                    .padding(.top, -AppSpacing.lg)
+                    .padding(.bottom, AppSpacing.xxl)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(AppColors.cream)
+                }
+                .scrollIndicators(.hidden)
+                .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                .background(AppColors.cream)
             }
-            .scrollIndicators(.hidden)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.cream)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .navigationTitle("みんな")
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
