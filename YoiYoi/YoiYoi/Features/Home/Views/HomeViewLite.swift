@@ -14,6 +14,7 @@ import SwiftUI
 /// Step Next-A: 「今日のドリンク」は件数0のときだけ空状態の2行文言へ（`HStack`・横Scroll・WaveShapeは触らない）。
 /// Step Next-B: 1件以上のとき **最新から最大3件**を改行テキストで列挙（4件目以降は「…他N件」。ピル・横Scrollはまだ入れない）。
 /// Step Next-C: `ContentView` から本物の `DrinkLogSheet` を開き、閉じたあと `drinkLogSheetDismissed` で再読込。
+/// Step Next-D: 画面上の **Step 2〜6 診断テキスト**を削除（レイアウトはカード＋記録ボタンのまま）。
 ///
 /// **白画面対策**: ヒーローを **縦 `ScrollView` の内側**に置くとタブシェル環境でレイアウトが潰れることがあるため、
 /// **`VStack` で固定高ヒーロー + 下段だけ `ScrollView`** とする。
@@ -21,8 +22,6 @@ struct HomeViewLite: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.modelContext) private var modelContext
 
-    @State private var drinkRecordCount: Int = 0
-    @State private var profileCount: Int = 0
     @State private var todaysDrinkCount: Int = 0
     /// `onAppear` でだけ更新。本文は改行区切り（`HStack` なしで `HomeView` のピルに寄せるための中間段階）。
     @State private var todayDrinksListSnippet: String = ""
@@ -54,37 +53,13 @@ struct HomeViewLite: View {
 
             ScrollView {
                 VStack(spacing: 16) {
-                    Text("Step 2: EnvironmentObject（言語: \(appState.currentLanguage.displayName)）")
-                        .font(.subheadline)
-                        .foregroundStyle(.white.opacity(0.85))
-                        .padding(.top, AppSpacing.lg)
-
-                    Text("Step 3: SwiftData counts -> records=\(drinkRecordCount), profiles=\(profileCount)")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.75))
-
-                    Text("Step 4: ScrollView + 静的カード（Textのみ）")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.65))
-
-                    Text("Step 5: 上段に WaveHeroView を接続")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.65))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 16)
-
-                    Text("Step 6: メーター（今日 \(Int(todayConsumed))g / 目標 \(Int(dailyGoalGrams))g）")
-                        .font(.caption)
-                        .foregroundStyle(.white.opacity(0.65))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 16)
-
                     VStack(spacing: 12) {
                         TextCard(title: "今週のまとめ", content: "週合計: \(weeklyConsumedText)")
                         TextCard(title: "今日のドリンク", content: todayDrinksCardBody)
                         TextCard(title: "みんなの様子", content: "公開準備中（もっと見る →）")
                     }
                     .padding(.horizontal, 16)
+                    .padding(.top, AppSpacing.lg)
 
                     Button {
                         NotificationCenter.default.post(name: .openDrinkLogSheet, object: nil)
@@ -115,7 +90,7 @@ struct HomeViewLite: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Next-C: DrinkLogSheet + reload on dismiss)")
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Next-D: no step debug lines in scroll)")
             reloadFromStore()
         }
         .onReceive(NotificationCenter.default.publisher(for: .drinkLogSheetDismissed)) { _ in
@@ -133,9 +108,6 @@ struct HomeViewLite: View {
         let drinks = (try? modelContext.fetch(drinkDescriptor)) ?? []
         let profileDescriptor = FetchDescriptor<UserProfile>()
         let profiles = (try? modelContext.fetch(profileDescriptor)) ?? []
-
-        drinkRecordCount = drinks.count
-        profileCount = profiles.count
 
         let startOfToday = calendar.startOfDay(for: now)
         let todaysDrinks = drinks
