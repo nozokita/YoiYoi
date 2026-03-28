@@ -5,7 +5,7 @@ import SwiftUI
 /// Step 2: EnvironmentObject（言語表示まで）。
 /// Step 3: SwiftData（最小 fetch 件数表示）まで追加していく。
 /// Step 4: ScrollView + 静的カード（Text のみ）を追加する。
-/// Step 5: `WaveHeroView`（矩形グラデ＋`.clipped()`）。
+/// Step 5: `WaveHeroView`（グラデ＋`WaveShape` クリップ）。
 /// Step 6: ヒーロー内に `AlcoholMeterView`（SwiftData の今日合計＋目標）。
 /// Step 7-1: 下段カード1枚目だけ「今週のまとめ（週合計）」を最小導入。
 /// Step 7-2: 下段カード2枚目だけ「今日のドリンク件数」を最小導入。
