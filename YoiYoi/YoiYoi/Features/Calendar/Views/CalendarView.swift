@@ -11,48 +11,41 @@ struct CalendarView: View {
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
+    /// `HomeView` と同型。ヒーローを `ScrollView` の外に置き、タブシェル＋`safeAreaInset` 下でも潰れにくくする。
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                    WaveHeroView(height: heroHeight, gradient: AppGradients.heroCalendar) {
-                        VStack(spacing: AppSpacing.md) {
-                            Text("📅 カレンダー")
-                                .font(AppFonts.heroTitle())
-                                .foregroundStyle(AppColors.pureWhite)
+        VStack(spacing: 0) {
+            WaveHeroView(height: heroHeight, gradient: AppGradients.heroCalendar) {
+                VStack(spacing: AppSpacing.md) {
+                    Text("📅 カレンダー")
+                        .font(AppFonts.heroTitle())
+                        .foregroundStyle(AppColors.pureWhite)
 
-                            Text("\(viewModel.monthTitleString(for: viewModel.visibleMonth))のまとめ")
-                                .font(AppFonts.heroSubtitle())
-                                .foregroundStyle(AppColors.pureWhite.opacity(0.85))
+                    Text("\(viewModel.monthTitleString(for: viewModel.visibleMonth))のまとめ")
+                        .font(AppFonts.heroSubtitle())
+                        .foregroundStyle(AppColors.pureWhite.opacity(0.85))
 
-                            let counts = viewModel.monthSummaryCounts(
-                                records: records,
-                                dailyGoal: dailyGoal,
-                                today: Date()
-                            )
-                            HStack(spacing: AppSpacing.md) {
-                                heroBadge(emoji: "🍵", value: "\(counts.rest)日", label: "休肝日")
-                                heroBadge(emoji: "✅", value: "\(counts.inGoal)日", label: "目標内")
-                                heroBadge(emoji: "⚠️", value: "\(counts.over)日", label: "超過")
-                            }
-                            .padding(.bottom, AppSpacing.sm)
-                        }
-                    }
-                    .frame(height: heroHeight)
-
-                    VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                        monthCard
-                        weekChartCard
-                    }
-                    .padding(.horizontal, AppSpacing.lg)
-                    .padding(.top, -AppSpacing.lg)
-                    .padding(.bottom, AppSpacing.xxl)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(AppColors.cream)
+                    heroBadgesRow
+                }
+                .padding(.bottom, AppSpacing.lg)
             }
+            .frame(height: heroHeight)
+            .frame(maxWidth: .infinity)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    monthCard
+                    weekChartCard
+                }
+                .padding(.horizontal, AppSpacing.lg)
+                .padding(.top, -AppSpacing.lg)
+                .padding(.bottom, AppSpacing.xxl)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(AppColors.cream)
+            }
+            .scrollIndicators(.hidden)
+            .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+            .background(AppColors.cream)
         }
-        .scrollIndicators(.hidden)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColors.cream)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
         .onAppear { reload() }
@@ -62,6 +55,20 @@ struct CalendarView: View {
         .onReceive(NotificationCenter.default.publisher(for: .drinkLogSheetDismissed)) { _ in
             reload()
         }
+    }
+
+    private var heroBadgesRow: some View {
+        let counts = viewModel.monthSummaryCounts(
+            records: records,
+            dailyGoal: dailyGoal,
+            today: Date()
+        )
+        return HStack(spacing: AppSpacing.md) {
+            heroBadge(emoji: "🍵", value: "\(counts.rest)日", label: "休肝日")
+            heroBadge(emoji: "✅", value: "\(counts.inGoal)日", label: "目標内")
+            heroBadge(emoji: "⚠️", value: "\(counts.over)日", label: "超過")
+        }
+        .padding(.bottom, AppSpacing.sm)
     }
 
     private func heroBadge(emoji: String, value: String, label: String) -> some View {
