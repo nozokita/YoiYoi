@@ -8,7 +8,7 @@ extension Notification.Name {
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
 }
 
-/// **段階実装** — タブ0〜2 は `HomeView` / `CalendarView` / その他プレースホルダー。下端は **3等分タブバー + 記録 FAB**（中央スペーサーなし）。
+/// **段階実装** — タブ0〜3 は `HomeView` / `CalendarView` / `FeedView` / 設定プレースホルダー。下端は **4等分タブバー + 記録 FAB**（中央スペーサーなし）。
 ///
 /// タブバーを `VStack` の下に兄弟で置くと内側の `ScrollView` に縦 0 が渡ることがあるため、
 /// タブは **`safeAreaInset(edge: .bottom)`** に載せる。
@@ -20,8 +20,6 @@ struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showDrinkLogSheet = false
 
-    private let otherTabSampleTitles = ["項目 A", "項目 B", "項目 C"]
-
     var body: some View {
         Group {
             switch selectedTab {
@@ -30,7 +28,9 @@ struct ContentView: View {
             case 1:
                 CalendarView()
             case 2:
-                otherTabRoot
+                FeedView()
+            case 3:
+                settingsTabRoot
             default:
                 HomeView()
             }
@@ -62,7 +62,7 @@ struct ContentView: View {
                 .presentationDetents([.large])
         }
         .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（3tabs+FAB） selectedTab=\(selectedTab)")
+            AppLaunchDiagnostics.log("ContentView.onAppear（4tabs+FAB） selectedTab=\(selectedTab)")
         }
         .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogSheet)) { _ in
             // 同一ランループで `sheet` を立ち上げるとメインスレッドで固まる事例への回避（次フレームで表示）。
@@ -99,49 +99,30 @@ struct ContentView: View {
         .accessibilityLabel("飲み物を記録")
     }
 
-    private var otherTabRoot: some View {
+    private var settingsTabRoot: some View {
         NavigationStack {
             List {
-                ForEach(otherTabSampleTitles, id: \.self) { title in
-                    NavigationLink {
-                        otherDetailPlaceholder(title: title)
-                    } label: {
-                        Text(title)
-                            .foregroundStyle(AppColors.charcoal)
-                    }
+                Section {
+                    Text("アプリ設定は順次追加予定です")
+                        .font(.subheadline)
+                        .foregroundStyle(AppColors.greyText)
+                        .listRowBackground(AppColors.cream)
                 }
             }
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(AppColors.cream)
-            .navigationTitle("その他")
+            .navigationTitle("設定")
             .navigationBarTitleDisplayMode(.inline)
         }
-    }
-
-    private func otherDetailPlaceholder(title: String) -> some View {
-        VStack(spacing: 16) {
-            Text("詳細（プレースホルダー）")
-                .font(.headline)
-                .foregroundStyle(AppColors.charcoal)
-            Text(title)
-                .font(.title2.bold())
-                .foregroundStyle(AppColors.coralRed)
-            Text("次の段階でここに実データや編集 UI を載せる")
-                .font(.subheadline)
-                .foregroundStyle(AppColors.greyText)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 24)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(AppColors.cream)
     }
 
     private var bottomBar: some View {
         HStack(spacing: 0) {
             barItem(index: 0, title: "ホーム", systemImage: "house.fill")
             barItem(index: 1, title: "カレンダー", systemImage: "calendar")
-            barItem(index: 2, title: "その他", systemImage: "circle.grid.2x2.fill")
+            barItem(index: 2, title: "みんな", systemImage: "globe")
+            barItem(index: 3, title: "設定", systemImage: "gearshape.fill")
         }
         .padding(.top, 10)
         .padding(.bottom, 8)
