@@ -61,6 +61,7 @@ struct ContentView: View {
             }
             .background(AppColors.cream)
         }
+        /// `GeometryReader` が提案サイズを食い潰して子の `ScrollView` に縦 0 が渡る事例への対策で、オーバーレイ全体を親と同じ無限領域に固定する。
         .overlay {
             GeometryReader { geo in
                 let d = TabChrome.distanceFromBottomToFabBottom(safeBottom: geo.safeAreaInsets.bottom)
@@ -74,6 +75,7 @@ struct ContentView: View {
                 }
                 .frame(width: geo.size.width, height: geo.size.height)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .allowsHitTesting(true)
         }
         .sheet(isPresented: $showDrinkLogSheet, onDismiss: {
@@ -120,15 +122,15 @@ struct ContentView: View {
                 )
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("飲み物を記録")
+        .accessibilityLabel(AppCopy.fabLogDrink(appState.currentLanguage))
     }
 
     private var bottomBar: some View {
         HStack(spacing: 0) {
-            barItem(index: 0, title: "ホーム", systemImage: "house.fill")
-            barItem(index: 1, title: "カレンダー", systemImage: "calendar")
-            barItem(index: 2, title: "みんな", systemImage: "globe")
-            barItem(index: 3, title: "設定", systemImage: "gearshape.fill")
+            barItem(index: 0, title: AppCopy.tabHome(appState.currentLanguage), systemImage: "house.fill")
+            barItem(index: 1, title: AppCopy.tabCalendar(appState.currentLanguage), systemImage: "calendar")
+            barItem(index: 2, title: AppCopy.tabFeed(appState.currentLanguage), systemImage: "globe")
+            barItem(index: 3, title: AppCopy.tabSettings(appState.currentLanguage), systemImage: "gearshape.fill")
         }
         .padding(.top, 10)
         .padding(.bottom, 8)

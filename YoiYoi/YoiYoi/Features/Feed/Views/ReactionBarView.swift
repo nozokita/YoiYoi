@@ -20,6 +20,8 @@ struct ReactionBarView: View {
             }
             .padding(.vertical, 2)
         }
+        /// フィードの縦 `ScrollView` 内でネストするため高さを固定（未確定だとレイアウトが潰れることがある）。
+        .frame(height: 44)
     }
 
     private func reactionPill(_ kind: FeedReactionKind) -> some View {

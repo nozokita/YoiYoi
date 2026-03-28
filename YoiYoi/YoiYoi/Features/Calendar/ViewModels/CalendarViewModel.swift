@@ -121,8 +121,13 @@ final class CalendarViewModel {
     }
 
     /// 今週（`reference` の属する週）の棒グラフ用データ。月曜始まり 7 本。
-    func weekBarData(records: [DrinkRecord], dailyGoal: Double, reference: Date = Date()) -> [(label: String, grams: Double, over: Bool)] {
-        let labels = ["月", "火", "水", "木", "金", "土", "日"]
+    func weekBarData(
+        records: [DrinkRecord],
+        dailyGoal: Double,
+        reference: Date = Date(),
+        language: SupportedLanguage
+    ) -> [(label: String, grams: Double, over: Bool)] {
+        let labels = AppCopy.weekdayInitials(language)
         guard let interval = calendar.dateInterval(of: .weekOfYear, for: reference) else { return [] }
         var out: [(String, Double, Bool)] = []
         var d = interval.start
@@ -136,9 +141,18 @@ final class CalendarViewModel {
         return out
     }
 
-    func monthTitleString(for date: Date) -> String {
-        let y = calendar.component(.year, from: date)
-        let m = calendar.component(.month, from: date)
-        return "\(y)年\(m)月"
+    func monthTitleString(for date: Date, language: SupportedLanguage) -> String {
+        switch language {
+        case .ja:
+            let y = calendar.component(.year, from: date)
+            let m = calendar.component(.month, from: date)
+            return "\(y)年\(m)月"
+        case .en:
+            let monthStart = startOfMonth(containing: date)
+            let f = DateFormatter()
+            f.locale = Locale(identifier: "en_US")
+            f.dateFormat = "MMMM yyyy"
+            return f.string(from: monthStart)
+        }
     }
 }

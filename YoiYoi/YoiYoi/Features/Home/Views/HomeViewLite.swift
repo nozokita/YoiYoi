@@ -30,21 +30,25 @@ struct HomeViewLite: View {
     @State private var weeklyConsumed: Double = 0
     @State private var dailyGoalGrams: Double = 40
     /// `HomeView` と同形式。プロフィールが無いときは短いプレースホルダ。
-    @State private var nicknameLine: String = "今日の純アルコール"
+    @State private var nicknameLine: String = ""
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
-    /// `HomeViewModel.meterSubtext` と同じ分岐（Lite は ViewModel を増やさずローカルに保持）。
+    /// `HomeViewModel.meterSubtext(language:)` と同じ分岐（Lite は ViewModel を増やさずローカルに保持）。
     private var heroMeterSubtext: String {
         let p = AlcoholCalculator.percentage(consumed: todayConsumed, goal: dailyGoalGrams)
-        if p >= 100 {
-            return "今日はオーバー…でも大丈夫！"
+        switch appState.currentLanguage {
+        case .ja:
+            if p >= 100 { return "今日はオーバー…でも大丈夫！" }
+            if p >= 80 { return "そろそろ気をつけて！" }
+            let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoalGrams))
+            return "あと \(remaining)g 飲めるよ！"
+        case .en:
+            if p >= 100 { return "Past today's goal—you're OK!" }
+            if p >= 80 { return "Easy does it—you're close to the limit." }
+            let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoalGrams))
+            return "About \(remaining)g left today."
         }
-        if p >= 80 {
-            return "そろそろ気をつけて！"
-        }
-        let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoalGrams))
-        return "あと \(remaining)g 飲めるよ！"
     }
 
     var body: some View {
@@ -56,7 +60,7 @@ struct HomeViewLite: View {
                         .foregroundStyle(AppColors.pureWhite.opacity(0.85))
                         .multilineTextAlignment(.center)
 
-                    Text("おつかれさま！🍺")
+                    Text(AppCopy.homeGreeting(appState.currentLanguage))
                         .font(AppFonts.heroTitle())
                         .foregroundStyle(AppColors.pureWhite)
                         .multilineTextAlignment(.center)
@@ -77,9 +81,9 @@ struct HomeViewLite: View {
             ScrollView {
                 VStack(spacing: 16) {
                     VStack(spacing: 12) {
-                        TextCard(title: "今週のまとめ", content: "週合計: \(weeklyConsumedText)")
-                        TextCard(title: "今日のドリンク", content: todayDrinksCardBody)
-                        TextCard(title: "みんなの様子", content: "公開準備中（もっと見る →）")
+                        TextCard(title: AppCopy.homeWeeklySummary(appState.currentLanguage), content: "\(AppCopy.liteWeekTotalLabel(appState.currentLanguage)): \(weeklyConsumedText)")
+                        TextCard(title: AppCopy.homeTodayDrinks(appState.currentLanguage), content: todayDrinksCardBody)
+                        TextCard(title: AppCopy.homeFeedPreview(appState.currentLanguage), content: AppCopy.liteFeedPlaceholder(appState.currentLanguage))
                     }
                     .padding(.horizontal, 16)
                     .padding(.top, AppSpacing.lg)
@@ -89,7 +93,7 @@ struct HomeViewLite: View {
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "plus.circle.fill")
-                            Text("＋ 飲み物を記録")
+                            Text(AppCopy.liteLogButton(appState.currentLanguage))
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                         }
                         .frame(maxWidth: .infinity)
@@ -121,6 +125,9 @@ struct HomeViewLite: View {
                 reloadFromStore()
             }
         }
+        .onChange(of: appState.currentLanguage) { _, _ in
+            reloadFromStore()
+        }
     }
 
     private func reloadFromStore() {
@@ -140,20 +147,25 @@ struct HomeViewLite: View {
         if todaysDrinks.isEmpty {
             todayDrinksListSnippet = ""
         } else {
-            let lines = todaysDrinks.prefix(3).map { Self.drinkLine(for: $0) }
+            let lines = todaysDrinks.prefix(3).map { Self.drinkLine(for: $0, language: appState.currentLanguage) }
             var snippet = lines.joined(separator: "\n")
             if todaysDrinks.count > 3 {
-                snippet += "\n…他 \(todaysDrinks.count - 3)件"
+                snippet += "\n\(AppCopy.liteMoreCount(todaysDrinks.count - 3, appState.currentLanguage))"
             }
             todayDrinksListSnippet = snippet
         }
 
         if let p = profiles.first {
             dailyGoalGrams = p.dailyGoalGrams
-            nicknameLine = "\(p.nicknameFlag)\(p.nicknameEmoji) \(p.nicknameAdjective)\(p.nicknameNoun) さん"
+            switch appState.currentLanguage {
+            case .ja:
+                nicknameLine = "\(p.nicknameFlag)\(p.nicknameEmoji) \(p.nicknameAdjective)\(p.nicknameNoun) さん"
+            case .en:
+                nicknameLine = "\(p.nicknameFlag)\(p.nicknameEmoji) \(p.nicknameAdjective)\(p.nicknameNoun)"
+            }
         } else {
             dailyGoalGrams = 40
-            nicknameLine = "今日の純アルコール"
+            nicknameLine = AppCopy.homeNicknameFallback(appState.currentLanguage)
         }
         todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: drinks, on: now, calendar: calendar)
         weeklyConsumed = AlcoholCalculator.weeklyTotal(gramsFrom: drinks, inWeekOf: now, calendar: calendar)
@@ -167,17 +179,18 @@ struct HomeViewLite: View {
     }
 
     private var todayDrinksCardBody: String {
+        let lang = appState.currentLanguage
         if todaysDrinkCount == 0 {
-            "まだ記録がないよ。\n＋ボタンで記録してね！"
-        } else if todayDrinksListSnippet.isEmpty {
-            "今日の記録: \(todaysDrinkCount)件"
-        } else {
-            "今日の記録: \(todaysDrinkCount)件\n\(todayDrinksListSnippet)"
+            return AppCopy.homeNoDrinksYet(lang)
         }
+        if todayDrinksListSnippet.isEmpty {
+            return AppCopy.liteTodayRecordsLine(todaysDrinkCount, lang)
+        }
+        return "\(AppCopy.liteTodayRecordsLine(todaysDrinkCount, lang))\n\(todayDrinksListSnippet)"
     }
 
-    private static func drinkLine(for record: DrinkRecord) -> String {
-        let label = DrinkType.shortLabelJA(forRawType: record.drinkType)
+    private static func drinkLine(for record: DrinkRecord, language: SupportedLanguage) -> String {
+        let label = DrinkType.shortLabel(forRawType: record.drinkType, language: language)
         let emoji = DrinkType(rawValue: record.drinkType)?.emoji ?? "🍺"
         let grams = Int(round(record.pureAlcoholGrams))
         return "\(emoji) \(label) \(grams)g"

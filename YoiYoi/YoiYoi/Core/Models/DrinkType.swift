@@ -20,7 +20,7 @@ enum DrinkType: String, CaseIterable, Codable, Sendable {
         }
     }
 
-    /// ホーム等の短い表示名（MVP は日本語固定。将来は言語連動）。
+    /// ホーム等の短い表示名（日本語）。
     var shortLabelJA: String {
         switch self {
         case .beer: return "ビール"
@@ -32,8 +32,30 @@ enum DrinkType: String, CaseIterable, Codable, Sendable {
         }
     }
 
+    var shortLabelEN: String {
+        switch self {
+        case .beer: return "Beer"
+        case .wine: return "Wine"
+        case .sake: return "Sake"
+        case .whisky: return "Whisky"
+        case .cocktail: return "Cocktail"
+        case .sour: return "Sour"
+        }
+    }
+
+    func shortLabel(for language: SupportedLanguage) -> String {
+        switch language {
+        case .ja: shortLabelJA
+        case .en: shortLabelEN
+        }
+    }
+
     static func shortLabelJA(forRawType raw: String) -> String {
         DrinkType(rawValue: raw)?.shortLabelJA ?? raw
+    }
+
+    static func shortLabel(forRawType raw: String, language: SupportedLanguage) -> String {
+        DrinkType(rawValue: raw)?.shortLabel(for: language) ?? raw
     }
 
     /// 1杯あたりの初期容量（ml）。

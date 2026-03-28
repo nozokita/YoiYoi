@@ -23,10 +23,10 @@ struct FeedView: View {
             VStack(spacing: 0) {
                 WaveHeroView(height: heroHeight, gradient: AppGradients.heroFeed) {
                     VStack(alignment: .leading, spacing: AppSpacing.md) {
-                        Text("🌍 みんなの記録")
+                        Text(AppCopy.feedHeroTitle(appState.currentLanguage))
                             .font(AppFonts.heroTitle())
                             .foregroundStyle(AppColors.charcoal)
-                        Text("世界中の仲間と励まし合おう！")
+                        Text(AppCopy.feedHeroSubtitle(appState.currentLanguage))
                             .font(AppFonts.heroSubtitle())
                             .foregroundStyle(AppColors.charcoal.opacity(0.7))
                             .fixedSize(horizontal: false, vertical: true)
@@ -54,7 +54,7 @@ struct FeedView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.cream)
-            .navigationTitle("みんな")
+            .navigationTitle(AppCopy.feedNavTitle(appState.currentLanguage))
             .navigationBarTitleDisplayMode(.inline)
             .onAppear {
                 viewModel.startListening()
@@ -62,12 +62,12 @@ struct FeedView: View {
             .onDisappear {
                 viewModel.stopListening()
             }
-            .alert("ブロックしますか？", isPresented: Binding(
+            .alert(AppCopy.feedBlockAlertTitle(appState.currentLanguage), isPresented: Binding(
                 get: { blockConfirmUID != nil },
                 set: { if !$0 { blockConfirmUID = nil } }
             )) {
-                Button("キャンセル", role: .cancel) { blockConfirmUID = nil }
-                Button("ブロック", role: .destructive) {
+                Button(AppCopy.feedCancel(appState.currentLanguage), role: .cancel) { blockConfirmUID = nil }
+                Button(AppCopy.feedBlock(appState.currentLanguage), role: .destructive) {
                     if let uid = blockConfirmUID {
                         viewModel.blockUser(uid, modelContext: modelContext)
                     }
@@ -76,13 +76,13 @@ struct FeedView: View {
             } message: {
                 Text(blockConfirmName)
             }
-            .alert("リアクション", isPresented: Binding(
-                get: { viewModel.reactionErrorMessage != nil },
-                set: { if !$0 { viewModel.reactionErrorMessage = nil } }
+            .alert(AppCopy.feedReactionAlertTitle(appState.currentLanguage), isPresented: Binding(
+                get: { viewModel.reactionFailed },
+                set: { if !$0 { viewModel.reactionFailed = false } }
             )) {
-                Button("OK", role: .cancel) { viewModel.reactionErrorMessage = nil }
+                Button("OK", role: .cancel) { viewModel.reactionFailed = false }
             } message: {
-                Text(viewModel.reactionErrorMessage ?? "")
+                Text(AppCopy.feedReactionFailed(appState.currentLanguage))
             }
         }
     }
@@ -96,7 +96,7 @@ struct FeedView: View {
                         viewModel.languageFilter = filter
                     } label: {
                         PillTag(
-                            text: filter.pillLabel,
+                            text: filter.pillLabel(appLanguage: appState.currentLanguage),
                             bgColor: selected ? AppColors.charcoal : AppColors.pureWhite,
                             textColor: selected ? AppColors.pureWhite : AppColors.charcoal,
                             isSelected: selected
@@ -107,13 +107,15 @@ struct FeedView: View {
             }
             .padding(.vertical, AppSpacing.xs)
         }
+        /// 外側の縦 `ScrollView` とのネストで高さが 0 になり白画面になるのを防ぐ。
+        .frame(height: 48)
     }
 
     @ViewBuilder
     private var feedList: some View {
         let items = viewModel.visiblePosts(blockedUIDs: blockedUIDs)
         if items.isEmpty {
-            Text("まだ投稿がありません")
+            Text(AppCopy.feedEmpty(appState.currentLanguage))
                 .font(AppFonts.body(for: appState.currentLanguage, size: 15))
                 .foregroundStyle(AppColors.greyText)
                 .frame(maxWidth: .infinity)
@@ -133,9 +135,9 @@ struct FeedView: View {
                         onRequestBlock: {
                             blockConfirmUID = post.uid
                             if let n = viewModel.nicknameByUID[post.uid] {
-                                blockConfirmName = "\(n.compactDisplayName) をブロックします。フィードに表示されなくなります。"
+                                blockConfirmName = AppCopy.feedBlockConfirmNamed(n.compactDisplayName, appState.currentLanguage)
                             } else {
-                                blockConfirmName = "このユーザーをブロックします。フィードに表示されなくなります。"
+                                blockConfirmName = AppCopy.feedBlockConfirmAnonymous(appState.currentLanguage)
                             }
                         },
                         onReport: { reason in

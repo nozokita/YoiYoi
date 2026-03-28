@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct FeedCardView: View {
+    @EnvironmentObject private var appState: AppState
+
     let post: FeedPost
     let nickname: FeedUserNickname?
     let relativeTime: String
@@ -78,13 +80,13 @@ struct FeedCardView: View {
             }
             Spacer(minLength: AppSpacing.sm)
             Menu {
-                Button("このユーザーをブロック", role: .destructive) {
+                Button(AppCopy.feedCardBlockUser(appState.currentLanguage), role: .destructive) {
                     onRequestBlock()
                 }
-                Menu("この投稿を通報") {
-                    Button("不適切な内容") { onReport("inappropriate") }
-                    Button("スパム") { onReport("spam") }
-                    Button("ハラスメント") { onReport("harassment") }
+                Menu(AppCopy.feedCardReportPost(appState.currentLanguage)) {
+                    Button(AppCopy.feedReportInappropriate(appState.currentLanguage)) { onReport("inappropriate") }
+                    Button(AppCopy.feedReportSpam(appState.currentLanguage)) { onReport("spam") }
+                    Button(AppCopy.feedReportHarassment(appState.currentLanguage)) { onReport("harassment") }
                 }
             } label: {
                 Image(systemName: "ellipsis")

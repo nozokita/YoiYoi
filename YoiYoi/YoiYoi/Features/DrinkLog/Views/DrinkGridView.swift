@@ -3,6 +3,7 @@ import SwiftUI
 /// DESIGN.md 飲酒記録シート: 2×3 グリッド。選択時 coral 枠 2.5pt + 背景 + scale 1.03。
 struct DrinkGridView: View {
     @Binding var selection: DrinkType?
+    @EnvironmentObject private var appState: AppState
 
     private let columns = [
         GridItem(.flexible(), spacing: AppSpacing.md),
@@ -25,7 +26,7 @@ struct DrinkGridView: View {
             VStack(spacing: AppSpacing.sm) {
                 Text(type.emoji)
                     .font(.system(size: 40))
-                Text(type.shortLabelJA)
+                Text(type.shortLabel(for: appState.currentLanguage))
                     .font(.system(size: 14, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.charcoal)
                 Text("\(Int(type.defaultVolumeML))ml")
@@ -59,4 +60,5 @@ struct DrinkGridView: View {
         }
     }
     return Host()
+        .environmentObject(AppState())
 }

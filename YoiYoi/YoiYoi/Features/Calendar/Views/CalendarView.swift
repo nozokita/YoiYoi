@@ -5,22 +5,27 @@ import SwiftUI
 struct CalendarView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
+    @EnvironmentObject private var appState: AppState
     @State private var viewModel = CalendarViewModel()
     @State private var records: [DrinkRecord] = []
     @State private var dailyGoal: Double = 40
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
+    private var visibleMonthTitle: String {
+        viewModel.monthTitleString(for: viewModel.visibleMonth, language: appState.currentLanguage)
+    }
+
     /// `HomeView` と同型。ヒーローを `ScrollView` の外に置き、タブシェル＋`safeAreaInset` 下でも潰れにくくする。
     var body: some View {
         VStack(spacing: 0) {
             WaveHeroView(height: heroHeight, gradient: AppGradients.heroCalendar) {
                 VStack(spacing: AppSpacing.md) {
-                    Text("📅 カレンダー")
+                    Text(AppCopy.calendarHeroTitle(appState.currentLanguage))
                         .font(AppFonts.heroTitle())
                         .foregroundStyle(AppColors.pureWhite)
 
-                    Text("\(viewModel.monthTitleString(for: viewModel.visibleMonth))のまとめ")
+                    Text(AppCopy.calendarMonthBlurb(visibleMonthTitle, appState.currentLanguage))
                         .font(AppFonts.heroSubtitle())
                         .foregroundStyle(AppColors.pureWhite.opacity(0.85))
 
@@ -63,10 +68,11 @@ struct CalendarView: View {
             dailyGoal: dailyGoal,
             today: Date()
         )
+        let suf = AppCopy.dayCountSuffix(appState.currentLanguage)
         return HStack(spacing: AppSpacing.md) {
-            heroBadge(emoji: "🍵", value: "\(counts.rest)日", label: "休肝日")
-            heroBadge(emoji: "✅", value: "\(counts.inGoal)日", label: "目標内")
-            heroBadge(emoji: "⚠️", value: "\(counts.over)日", label: "超過")
+            heroBadge(emoji: "🍵", value: "\(counts.rest)\(suf)", label: AppCopy.calendarStatRest(appState.currentLanguage))
+            heroBadge(emoji: "✅", value: "\(counts.inGoal)\(suf)", label: AppCopy.calendarStatInGoal(appState.currentLanguage))
+            heroBadge(emoji: "⚠️", value: "\(counts.over)\(suf)", label: AppCopy.calendarStatOver(appState.currentLanguage))
         }
         .padding(.bottom, AppSpacing.sm)
     }
@@ -89,7 +95,7 @@ struct CalendarView: View {
     private var monthCard: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
-                Text(viewModel.monthTitleString(for: viewModel.visibleMonth))
+                Text(visibleMonthTitle)
                     .font(AppFonts.cardTitle())
                     .foregroundStyle(AppColors.charcoal)
                 Spacer()
@@ -100,7 +106,7 @@ struct CalendarView: View {
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(AppColors.charcoal)
                 }
-                .accessibilityLabel("前の月")
+                .accessibilityLabel(AppCopy.calendarPrevMonthA11y(appState.currentLanguage))
                 Button {
                     viewModel.shiftMonth(by: 1)
                 } label: {
@@ -108,7 +114,7 @@ struct CalendarView: View {
                         .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(AppColors.charcoal)
                 }
-                .accessibilityLabel("次の月")
+                .accessibilityLabel(AppCopy.calendarNextMonthA11y(appState.currentLanguage))
             }
 
             weekdayHeader
@@ -132,7 +138,7 @@ struct CalendarView: View {
 
     private var weekdayHeader: some View {
         HStack(spacing: 6) {
-            ForEach(["月", "火", "水", "木", "金", "土", "日"], id: \.self) { w in
+            ForEach(AppCopy.weekdayInitials(appState.currentLanguage), id: \.self) { w in
                 Text(w)
                     .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.greyText)
@@ -142,17 +148,22 @@ struct CalendarView: View {
     }
 
     private var weekChartCard: some View {
-        let bars = viewModel.weekBarData(records: records, dailyGoal: dailyGoal, reference: Date())
+        let bars = viewModel.weekBarData(
+            records: records,
+            dailyGoal: dailyGoal,
+            reference: Date(),
+            language: appState.currentLanguage
+        )
         let scaleMax = Swift.max(bars.map(\.grams).max() ?? 0, dailyGoal, 1)
 
         return VStack(alignment: .leading, spacing: AppSpacing.md) {
-            Text("今週の推移")
+            Text(AppCopy.calendarWeekTrend(appState.currentLanguage))
                 .font(AppFonts.cardTitle())
                 .foregroundStyle(AppColors.charcoal)
 
             HStack(alignment: .top, spacing: 0) {
                 Text("\(Int(dailyGoal))g")
-                    .font(AppFonts.sublabel(for: .ja, size: 10))
+                    .font(AppFonts.sublabel(for: appState.currentLanguage, size: 10))
                     .foregroundStyle(AppColors.greyText.opacity(0.6))
                     .frame(width: 28, alignment: .trailing)
 
@@ -201,5 +212,6 @@ struct CalendarView: View {
 
 #Preview {
     CalendarView()
+        .environmentObject(AppState())
         .modelContainer(for: [DrinkRecord.self, UserProfile.self], inMemory: true)
 }

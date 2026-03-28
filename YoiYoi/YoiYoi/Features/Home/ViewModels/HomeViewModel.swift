@@ -19,21 +19,38 @@ final class HomeViewModel {
     var nicknameNoun: String = "ペンギン"
 
     /// ヒーロー上段（DESIGN: 15pt Medium white 85%）
-    var nicknameLine: String {
-        "\(nicknameFlag)\(nicknameEmoji) \(nicknameAdjective)\(nicknameNoun) さん"
+    func nicknameLine(language: SupportedLanguage) -> String {
+        switch language {
+        case .ja:
+            "\(nicknameFlag)\(nicknameEmoji) \(nicknameAdjective)\(nicknameNoun) さん"
+        case .en:
+            "\(nicknameFlag)\(nicknameEmoji) \(nicknameAdjective)\(nicknameNoun)"
+        }
     }
 
     /// メーター下サブテキスト（状態別表現）
-    var meterSubtext: String {
+    func meterSubtext(language: SupportedLanguage) -> String {
         let p = AlcoholCalculator.percentage(consumed: todayConsumed, goal: dailyGoal)
-        if p >= 100 {
-            return "今日はオーバー…でも大丈夫！"
+        switch language {
+        case .ja:
+            if p >= 100 {
+                return "今日はオーバー…でも大丈夫！"
+            }
+            if p >= 80 {
+                return "そろそろ気をつけて！"
+            }
+            let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoal))
+            return "あと \(remaining)g 飲めるよ！"
+        case .en:
+            if p >= 100 {
+                return "Past today's goal—you're OK!"
+            }
+            if p >= 80 {
+                return "Easy does it—you're close to the limit."
+            }
+            let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoal))
+            return "About \(remaining)g left today."
         }
-        if p >= 80 {
-            return "そろそろ気をつけて！"
-        }
-        let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoal))
-        return "あと \(remaining)g 飲めるよ！"
     }
 
     private(set) var todaysDrinkRecords: [DrinkRecord] = []

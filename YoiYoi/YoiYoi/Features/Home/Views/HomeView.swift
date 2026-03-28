@@ -11,18 +11,21 @@ struct HomeView: View {
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
+    /// 縦 `ScrollView` 内の横 `ScrollView` は高さ未確定だと全体レイアウトが潰れて真っ白になることがある（`docs/DEBUG_WHITE_SCREEN.md`）。
+    private var drinkPillRowHeight: CGFloat { 44 }
+
     /// ヒーロー（グラデ＋Wave クリップ）を `ScrollView` の内側に置くと、タブシェル等の親によっては
     /// **全体が真っ白で描画されない**環境がある。ヒーローは固定高で外に出し、下段だけ `ScrollView` にする。
     var body: some View {
         VStack(spacing: 0) {
             WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
                 VStack(spacing: AppSpacing.md) {
-                    Text(viewModel.nicknameLine)
+                    Text(viewModel.nicknameLine(language: appState.currentLanguage))
                         .font(AppFonts.heroSubtitle())
                         .foregroundStyle(AppColors.pureWhite.opacity(0.85))
                         .multilineTextAlignment(.center)
 
-                    Text("おつかれさま！🍺")
+                    Text(AppCopy.homeGreeting(appState.currentLanguage))
                         .font(AppFonts.heroTitle())
                         .foregroundStyle(AppColors.pureWhite)
                         .multilineTextAlignment(.center)
@@ -32,7 +35,7 @@ struct HomeView: View {
                         dailyGoal: viewModel.dailyGoal
                     )
 
-                    Text(viewModel.meterSubtext)
+                    Text(viewModel.meterSubtext(language: appState.currentLanguage))
                         .font(AppFonts.heroSubtitle())
                         .foregroundStyle(AppColors.pureWhite.opacity(0.85))
                         .multilineTextAlignment(.center)
@@ -81,27 +84,30 @@ struct HomeView: View {
 
     private var weeklySummarySection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            Text("今週のまとめ")
+            Text(AppCopy.homeWeeklySummary(appState.currentLanguage))
                 .font(AppFonts.cardTitle())
                 .foregroundStyle(AppColors.charcoal)
 
             HStack(alignment: .top, spacing: AppSpacing.sm) {
                 HomeMiniStatCard(
                     emoji: "🍵",
-                    title: "休肝日",
-                    value: "\(viewModel.restDaysThisWeek)日",
+                    title: AppCopy.homeStatRestDays(appState.currentLanguage),
+                    value: "\(viewModel.restDaysThisWeek)\(AppCopy.dayCountSuffix(appState.currentLanguage))",
+                    language: appState.currentLanguage,
                     background: AppColors.mintLight
                 )
                 HomeMiniStatCard(
                     emoji: "🔥",
-                    title: "連続",
-                    value: "\(viewModel.streakDays)日",
+                    title: AppCopy.homeStatStreak(appState.currentLanguage),
+                    value: "\(viewModel.streakDays)\(AppCopy.dayCountSuffix(appState.currentLanguage))",
+                    language: appState.currentLanguage,
                     background: AppColors.yellowLight
                 )
                 HomeMiniStatCard(
                     emoji: "📊",
-                    title: "週合計",
+                    title: AppCopy.homeStatWeekTotal(appState.currentLanguage),
                     value: weekTotalText,
+                    language: appState.currentLanguage,
                     background: AppColors.coralLight
                 )
             }
@@ -123,12 +129,12 @@ struct HomeView: View {
 
     private var todayDrinksSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            Text("今日のドリンク")
+            Text(AppCopy.homeTodayDrinks(appState.currentLanguage))
                 .font(AppFonts.cardTitle())
                 .foregroundStyle(AppColors.charcoal)
 
             if viewModel.todaysDrinkRecords.isEmpty {
-                Text("まだ記録がないよ。\n＋ボタンで記録してね！")
+                Text(AppCopy.homeNoDrinksYet(appState.currentLanguage))
                     .font(AppFonts.body(for: appState.currentLanguage, size: 15))
                     .foregroundStyle(AppColors.greyText)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -140,6 +146,7 @@ struct HomeView: View {
                         }
                     }
                 }
+                .frame(height: drinkPillRowHeight)
             }
         }
         .padding(AppSpacing.lg)
@@ -148,7 +155,7 @@ struct HomeView: View {
     }
 
     private func drinkPill(_ record: DrinkRecord) -> some View {
-        let label = DrinkType.shortLabelJA(forRawType: record.drinkType)
+        let label = DrinkType.shortLabel(forRawType: record.drinkType, language: appState.currentLanguage)
         let emoji = DrinkType(rawValue: record.drinkType)?.emoji ?? "🍺"
         let grams = Int(round(record.pureAlcoholGrams))
         return Text("\(emoji) \(label) \(grams)g")
@@ -164,11 +171,12 @@ struct HomeView: View {
 
     private var feedPreviewSection: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            Text("みんなの様子")
+            Text(AppCopy.homeFeedPreview(appState.currentLanguage))
                 .font(AppFonts.cardTitle())
                 .foregroundStyle(AppColors.charcoal)
 
             FeedPreviewPlaceholderRow(
+                language: appState.currentLanguage,
                 flagEmoji: "🇺🇸",
                 nickname: "⭐ ChillFox",
                 message: "目標内！ビール×2で28g 🎉",
@@ -181,13 +189,14 @@ struct HomeView: View {
                 .padding(.vertical, AppSpacing.xs)
 
             FeedPreviewPlaceholderRow(
+                language: appState.currentLanguage,
                 flagEmoji: "🇯🇵",
                 nickname: "🌸 のんびりパンダ",
                 message: "休肝日！3日連続 🌿",
                 reactions: "💪5  🫂3"
             )
 
-            Text("もっと見る →")
+            Text(AppCopy.homeSeeMore(appState.currentLanguage))
                 .font(.system(size: 14, weight: .bold, design: .rounded))
                 .foregroundStyle(AppColors.coralRed)
                 .frame(maxWidth: .infinity, alignment: .center)
@@ -206,6 +215,7 @@ private struct HomeMiniStatCard: View {
     let emoji: String
     let title: String
     let value: String
+    let language: SupportedLanguage
     let background: Color
 
     var body: some View {
@@ -213,7 +223,7 @@ private struct HomeMiniStatCard: View {
             Text(emoji)
                 .font(.system(size: 22))
             Text(title)
-                .font(AppFonts.sublabel(for: .ja, size: 12))
+                .font(AppFonts.sublabel(for: language, size: 12))
                 .foregroundStyle(AppColors.greyText)
             Text(value)
                 .font(AppFonts.statCardValue())
@@ -231,6 +241,7 @@ private struct HomeMiniStatCard: View {
 // MARK: - フィードプレビュー行（ダミー）
 
 private struct FeedPreviewPlaceholderRow: View {
+    let language: SupportedLanguage
     let flagEmoji: String
     let nickname: String
     let message: String
@@ -242,10 +253,10 @@ private struct FeedPreviewPlaceholderRow: View {
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                 .foregroundStyle(AppColors.charcoal)
             Text(message)
-                .font(AppFonts.body(for: .ja, size: 14))
+                .font(AppFonts.body(for: language, size: 14))
                 .foregroundStyle(AppColors.greyText)
             Text(reactions)
-                .font(AppFonts.sublabel(for: .ja, size: 13))
+                .font(AppFonts.sublabel(for: language, size: 13))
                 .foregroundStyle(AppColors.greyText)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

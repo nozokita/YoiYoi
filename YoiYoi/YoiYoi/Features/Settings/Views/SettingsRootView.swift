@@ -19,10 +19,10 @@ struct SettingsRootView: View {
             VStack(spacing: 0) {
                 WaveHeroView(height: heroHeight, gradient: AppGradients.heroSettings) {
                     VStack(spacing: AppSpacing.md) {
-                        Text("設定")
+                        Text(AppCopy.settingsTitle(appState.currentLanguage))
                             .font(AppFonts.heroTitle())
                             .foregroundStyle(AppColors.pureWhite)
-                        Text("アプリとデータの管理")
+                        Text(AppCopy.settingsHeroSubtitle(appState.currentLanguage))
                             .font(AppFonts.heroSubtitle())
                             .foregroundStyle(AppColors.pureWhite.opacity(0.85))
                     }
@@ -35,7 +35,7 @@ struct SettingsRootView: View {
 
                 List {
                     Section {
-                        Picker("アプリの言語", selection: $appState.currentLanguage) {
+                        Picker(AppCopy.settingsLanguagePicker(appState.currentLanguage), selection: $appState.currentLanguage) {
                             ForEach(SupportedLanguage.allCases) { lang in
                                 Text("\(lang.flag) \(lang.displayName)")
                                     .tag(lang)
@@ -46,19 +46,19 @@ struct SettingsRootView: View {
                         .tint(AppColors.coralRed)
                         .listRowBackground(AppColors.cream)
                     } header: {
-                        Text("表示言語")
+                        Text(AppCopy.settingsLanguageSection(appState.currentLanguage))
                             .font(.caption)
                             .foregroundStyle(AppColors.greyText)
                             .textCase(nil)
                     } footer: {
-                        Text("ホームや記録シートの表記が切り替わります。")
+                        Text(AppCopy.settingsLanguageFooter(appState.currentLanguage))
                             .font(.caption2)
                             .foregroundStyle(AppColors.greyText.opacity(0.9))
                     }
 
                     Section {
                         HStack {
-                            Text("バージョン")
+                            Text(AppCopy.settingsVersion(appState.currentLanguage))
                                 .foregroundStyle(AppColors.charcoal)
                             Spacer()
                             Text(appVersionLine)
@@ -67,14 +67,14 @@ struct SettingsRootView: View {
                         }
                         .listRowBackground(AppColors.cream)
                     } header: {
-                        Text("アプリ情報")
+                        Text(AppCopy.settingsAppInfo(appState.currentLanguage))
                             .font(.caption)
                             .foregroundStyle(AppColors.greyText)
                             .textCase(nil)
                     }
 
                     Section {
-                        Text("飲酒目標・通知・データのエクスポートなどは、次の段階でここに追加します。")
+                        Text(AppCopy.settingsPlaceholder(appState.currentLanguage))
                             .font(.subheadline)
                             .foregroundStyle(AppColors.greyText)
                             .listRowBackground(AppColors.cream)

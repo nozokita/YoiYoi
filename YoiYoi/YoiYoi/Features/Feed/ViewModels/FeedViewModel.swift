@@ -22,11 +22,11 @@ enum FeedLanguageFilter: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
 
-    var pillLabel: String {
+    func pillLabel(appLanguage: SupportedLanguage) -> String {
         switch self {
-        case .all: return "すべて"
-        case .ja: return "🇯🇵日本語"
-        case .en: return "🇺🇸 EN"
+        case .all: return AppCopy.feedFilterAll(appLanguage)
+        case .ja: return AppCopy.feedFilterJapanese(appLanguage)
+        case .en: return AppCopy.feedFilterEnglish(appLanguage)
         }
     }
 }
@@ -37,7 +37,8 @@ final class FeedViewModel {
     var posts: [FeedPost] = []
     var nicknameByUID: [String: FeedUserNickname] = [:]
     var languageFilter: FeedLanguageFilter = .all
-    var reactionErrorMessage: String?
+    /// リアクション送信失敗（文言は `AppCopy.feedReactionFailed`）。
+    var reactionFailed: Bool = false
     private var listener: ListenerRegistration?
     private var fetchingUIDs: Set<String> = []
 
@@ -86,7 +87,7 @@ final class FeedViewModel {
     }
 
     func react(to post: FeedPost, kind: FeedReactionKind) async {
-        reactionErrorMessage = nil
+        reactionFailed = false
         guard let uid = AuthService.currentUID else { return }
         guard !post.reactedUIDs.contains(uid) else { return }
         do {
@@ -97,7 +98,7 @@ final class FeedViewModel {
             )
             FeedReactionHighlightStore.save(kind, postId: post.documentID)
         } catch {
-            reactionErrorMessage = "リアクションを送れませんでした"
+            reactionFailed = true
         }
     }
 

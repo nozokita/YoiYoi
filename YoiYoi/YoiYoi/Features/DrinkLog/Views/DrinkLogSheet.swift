@@ -14,7 +14,7 @@ struct DrinkLogSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                    Text("🍺 のみものを記録")
+                    Text(AppCopy.drinkLogTitle(appState.currentLanguage))
                         .font(AppFonts.screenTitle())
                         .foregroundStyle(AppColors.charcoal)
                         .frame(maxWidth: .infinity)
@@ -30,7 +30,7 @@ struct DrinkLogSheet: View {
 
                     adjustmentCard
 
-                    PuffyButton(title: "🍺 記録する！", isEnabled: viewModel.canSave) {
+                    PuffyButton(title: AppCopy.drinkLogSave(appState.currentLanguage), isEnabled: viewModel.canSave) {
                         saveRecord()
                     }
                 }
@@ -46,11 +46,11 @@ struct DrinkLogSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") { dismiss() }
+                    Button(AppCopy.drinkLogClose(appState.currentLanguage)) { dismiss() }
                 }
             }
         }
-        .alert("保存できませんでした", isPresented: Binding(
+        .alert(AppCopy.drinkLogSaveFailed(appState.currentLanguage), isPresented: Binding(
             get: { saveError != nil },
             set: { if !$0 { saveError = nil } }
         )) {
@@ -62,14 +62,14 @@ struct DrinkLogSheet: View {
 
     private var adjustmentCard: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
-            Text("調整")
+            Text(AppCopy.drinkLogAdjust(appState.currentLanguage))
                 .font(AppFonts.cardTitle())
                 .foregroundStyle(AppColors.charcoal)
 
-            stepperRow(title: "杯数", value: "\(viewModel.numberOfDrinks)", decrement: viewModel.decrementDrinks, increment: viewModel.incrementDrinks)
+            stepperRow(title: AppCopy.drinkLogDrinksCount(appState.currentLanguage), value: "\(viewModel.numberOfDrinks)", decrement: viewModel.decrementDrinks, increment: viewModel.incrementDrinks)
 
             stepperRow(
-                title: "度数(%)",
+                title: AppCopy.drinkLogAbv(appState.currentLanguage),
                 value: String(format: "%.1f", viewModel.abvPercent),
                 decrement: viewModel.decrementAbv,
                 increment: viewModel.incrementAbv
@@ -78,7 +78,7 @@ struct DrinkLogSheet: View {
             Divider().background(AppColors.greyText.opacity(0.25))
 
             VStack(spacing: AppSpacing.xs) {
-                Text("純アルコール量")
+                Text(AppCopy.drinkLogPureAlcohol(appState.currentLanguage))
                     .font(AppFonts.sublabel(for: appState.currentLanguage, size: 13))
                     .foregroundStyle(AppColors.greyText)
                 Text(String(format: "%.1fg", viewModel.pureAlcoholGrams))
