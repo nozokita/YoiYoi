@@ -18,6 +18,59 @@
 | **JSON データ作成** | **Sonnet** | 単純な列挙作業 |
 | **README / ドキュメント** | **Sonnet** | 構造化された文書生成 |
 
+## 既知のレイアウト制約と安全ルール（実機で確認済み）
+
+> **重要**: 以下は開発中にシミュレーターで複数回再現し、`git reset` で切り戻した実績のある制約です。
+> DESIGN.md の見た目は維持しつつ、**実装手段**を安全なものに限定してください。
+
+### 壊れたパターンと原因
+
+| # | やったこと | 症状 | 原因 |
+|---|-----------|------|------|
+| 1 | `WaveShape` で `ZStack` 全体を `clipShape` | メーターリングの下端が欠ける | 前景まで波でクリップ → **背景の `Rectangle` だけに `clipShape`** で解決 |
+| 2 | `safeAreaInset` の FAB 領域を `HStack{Spacer+FAB+Spacer}` → `ZStack{Color.clear(h:56)+FAB}` に変更 | ホームのカード群が消える（ヒーロー＋空のクリーム色） | `safeAreaInset` の**内部構造を変えると**、`HomeView` の `VStack { hero + ScrollView }` の **ScrollView に渡る残り高さが 0** になる |
+| 3 | タブバーの `HStack` に `Color.clear.frame(width:56)` スペーサーを追加 | 同上 | `safeAreaInset` の**高さ算出が微妙に変わる**。`Color.clear` は制約次第で高さが膨張する |
+| 4 | `HomeView` の `ScrollView` を `GeometryReader` で包む（内側・外側両方試行） | 解決しない。高さ 0 のまま | `VStack` 内の残り高さ割り当て自体がゼロ → `GeometryReader` にも 0 が来る |
+| 5 | `WaveHeroView` を `ScrollView` の**内側**に入れる | 白画面 | `ScrollView` → `VStack` → `WaveHeroView` → `.frame(height:)` がタブシェル下で潰れる |
+
+### 安全ルール
+
+1. **`safeAreaInset` の構造は凍結**
+   - 現行: `VStack { HStack{Spacer+FAB+Spacer} + Divider + bottomBar }`
+   - この **VStack の子の種類・入れ子・frame 指定を変えない**。padding の pt 値微調整のみ OK。
+   - FAB の位置を DESIGN に近づけるときは **`safeAreaInset` の外の `.overlay(alignment: .bottom)`** を使う。
+
+2. **各画面の body パターン**
+   - `VStack(spacing:0) { WaveHeroView.frame(height: heroHeight) + ScrollView }` のみ使う。
+   - `GeometryReader` でスクロール高さを渡す方式は使わない（高さ 0 問題が再発する）。
+   - `WaveHeroView` は `ScrollView` の **外側 (兄弟)** に固定高さで置く。
+
+3. **1 コミット = 1 種類の変更**
+   - タブ数変更、FAB 位置変更、画面接続を **同一コミットに混ぜない**。
+   - 各コミット後に **ホームタブでカード群が表示されるか** を必ず確認。
+   - 壊れたら **直前の安全コミットに `git reset --hard`** して 1 ステップ戻る。
+
+4. **`WaveShape` のクリップ**
+   - `WaveHeroView` 内で **背景 `Rectangle` だけに `clipShape(WaveShape())`** する。
+   - `ZStack` 全体に掛けるとメーター等の前景が欠ける。
+
+### FAB を DESIGN の「中央浮かし」に近づける安全な方法
+
+```
+// ContentView の body の最外側に .overlay で FAB を載せる。
+// safeAreaInset の構造は触らない。
+.overlay(alignment: .bottom) {
+    drinkLogFAB
+        .offset(y: -tabBarTotalHeight - 8)  // タブバー＋Divider 高さ分 + 余白
+}
+```
+
+- `tabBarTotalHeight` = タブバー + Divider + safeArea 下端。固定値か `GeometryReader` で測る。
+- `safeAreaInset` 側の FAB を削除し、overlay の FAB に一本化する。
+- **ただし**この変更も 1 コミット単位で行い、ホームのカード群が出るかを確認する。
+
+---
+
 ## フェーズ構成（全10フェーズ、約10-14週）
 
 ---
@@ -48,12 +101,15 @@
    - static let isFeedEnabled = true
 
 4. ContentView.swift
-   - TabView with 4 tabs + 中央 FAB
-   - タブ: Home, Calendar, Feed, Settings
-   - 中央の + ボタンは @docs/DESIGN.md「タブバー仕様」の通り
-     56pt 円形、coralRed グラデ、タブバーから上に浮かせる
-   - タップで DrinkLogSheet を .sheet 表示
-   - **実装メモ（YoiYoi 現行・段階実装）:** システム `TabView` は避け **自前タブ**を使う。`HomeView` 等を **一括で接続すると真っ白**になる環境があるため、**まずプレースホルダー付きシェルで表示確認**し、**タブ／画面を1つずつ**足す（ログでは `HomeView.onAppear` が出るのに白い事例あり → シェルではなく子画面側の描画経路を疑う）。
+   - **自前タブバー**（`safeAreaInset(edge: .bottom)`）+ 中央 FAB
+   - システム `TabView` は使わない（白画面の原因になった）
+   - タブ: Home, Calendar, Feed, Settings（4等分 `HStack`）
+   - FAB（56pt 円形・coralRed グラデ）は `safeAreaInset` 内の上段に `HStack{Spacer+FAB+Spacer}` で配置
+   - タップで DrinkLogSheet を `.sheet` 表示
+   - **⚠️ 安全ルール:**
+     - **`safeAreaInset` の VStack 構造（子の種類・frame）を変更しない**（HomeView の ScrollView が潰れる原因になる — 上記「既知のレイアウト制約」参照）
+     - タブ数は **1つずつ追加** → 毎回ホームでカード群表示を確認 → commit
+     - FAB を DESIGN の「タブバーから上に浮かせる」にするときは **`.overlay(alignment: .bottom)`** で行い、`safeAreaInset` 内の構造を変えない
 
 5. Core/Models/SupportedLanguage.swift
    - @docs/SPEC.md の SupportedLanguage enum をそのまま実装
@@ -261,8 +317,8 @@ Pill 3択 + 目標カード。
 Features/Home/Views/WaveHeroView.swift:
 - 共通ウェーブヒーローエリア（他画面でも再利用）
 - 引数: gradientColors, content(@ViewBuilder)
-- WaveShape でクリッピング
-- height: 画面の約35%
+- **WaveShape は背景 Rectangle にだけ clipShape する**（ZStack 全体に掛けるとメーター等の前景が欠ける）
+- height: 画面の約35%（WaveHeroLayout.heroHeight()、GeometryReader は使わない）
 
 Features/Home/Views/AlcoholMeterView.swift:
 - ヒーロー内に配置するメーターリング（160×160）
@@ -277,9 +333,22 @@ Features/Home/Views/AlcoholMeterView.swift:
 @docs/DESIGN.md の「ホーム画面」ASCIIレイアウトを参照して
 Features/Home/Views/HomeView.swift を実装。
 
+⚠️ body パターンは厳密に守る（「既知のレイアウト制約」参照）:
+  VStack(spacing: 0) {
+      WaveHeroView(...).frame(height: heroHeight)  // 固定高さ・ScrollView の外
+      ScrollView { ... }                            // maxHeight: .infinity
+          .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+  }
+  .frame(maxWidth: .infinity, maxHeight: .infinity)
+  
+禁止:
+  - WaveHeroView を ScrollView の中に入れる
+  - GeometryReader で ScrollView の高さを渡す
+  - safeAreaInset 内の構造を変える
+
 上部: WaveHeroView（ニックネーム挨拶 + AlcoholMeterView）
 下部 ScrollView:
-- 今週のまとめカード（StatCard × 3）→ ヒーローに -24pt 重なる
+- 今週のまとめカード（StatCard × 3）→ ヒーローに -16pt 重なる
 - 今日のドリンクカード（横スクロール Pill）
 - みんなの様子カード（フィードプレビュー 2件 + もっと見る →）
 ```
@@ -340,6 +409,11 @@ Tests/FeedGeneratorTests.swift（6ケース）
 @docs/DESIGN.md の「カレンダー画面」を参照。
 WaveHeroView を mintGreen テーマで再利用。
 ヒーロー内にミニバッジ × 3（休肝日/目標内/超過）。
+
+⚠️ body パターンは HomeView と同じにする（「既知のレイアウト制約」参照）:
+  VStack(spacing: 0) { WaveHeroView.frame(height:) + ScrollView }
+  WaveHeroView は ScrollView の外。GeometryReader は使わない。
+  現行の CalendarView がヒーローを ScrollView 内に持っている場合は外に出す。
 ```
 
 **ステップ 7-2: DayCellView + グリッド**（Sonnet）
@@ -389,6 +463,9 @@ FeedView:
 - WaveHeroView を sunnyYellow テーマで使用
 - ※ yellow 背景ではテキスト charcoal（@docs/DESIGN.md 指定通り）
 - 言語フィルタ PillTag（SupportedLanguage.allCases から動的生成）
+- ⚠️ body パターンは HomeView と同じにする（「既知のレイアウト制約」参照）:
+  VStack(spacing: 0) { WaveHeroView.frame(height:) + ScrollView }
+  現行の FeedView がヒーローを ScrollView 内に持っている場合は外に出す。
 
 FeedCardView:
 - コンテンツカード + タイプ別左ボーダー
@@ -498,5 +575,7 @@ Cursor の Auto モードは使わず、タスク粒度ごとに手動で切り�
 
 1. `@docs/SPEC.md` と `@docs/DESIGN.md` を Cursor に読み込ませる
 2. 該当フェーズの目的と成果物を伝える
-3. 1ステップずつ進め、各ステップ完了後に Preview / ビルド確認
+3. **1ステップずつ**進め、各ステップ完了後に **シミュレーターでホームのカード群が表示されるか確認**
 4. 次のステップへ進む前にコミット
+5. **壊れたら直前の安全コミットに `git reset --hard` して 1 ステップ戻り、原因を切り分ける**
+6. **「既知のレイアウト制約と安全ルール」に抵触する変更は行わない**（特に `safeAreaInset` 構造変更、`GeometryReader` でスクロール高さを渡す、`WaveHeroView` を `ScrollView` 内に入れる）
