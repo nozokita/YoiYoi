@@ -15,6 +15,7 @@ import SwiftUI
 /// Step Next-B: 1件以上のとき **最新から最大3件**を改行テキストで列挙（4件目以降は「…他N件」。ピル・横Scrollはまだ入れない）。
 /// Step Next-C: `ContentView` から本物の `DrinkLogSheet` を開き、閉じたあと `drinkLogSheetDismissed` で再読込。
 /// Step Next-D: 画面上の **Step 2〜6 診断テキスト**を削除（レイアウトはカード＋記録ボタンのまま）。
+/// Step Next-E: ヒーローを `HomeView` に寄せる（ニックネーム行・挨拶・メーター・状態テキスト、`UserProfile` 参照）。
 ///
 /// **白画面対策**: ヒーローを **縦 `ScrollView` の内側**に置くとタブシェル環境でレイアウトが潰れることがあるため、
 /// **`VStack` で固定高ヒーロー + 下段だけ `ScrollView`** とする。
@@ -28,23 +29,45 @@ struct HomeViewLite: View {
     @State private var todayConsumed: Double = 0
     @State private var weeklyConsumed: Double = 0
     @State private var dailyGoalGrams: Double = 40
+    /// `HomeView` と同形式。プロフィールが無いときは短いプレースホルダ。
+    @State private var nicknameLine: String = "今日の純アルコール"
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
+
+    /// `HomeViewModel.meterSubtext` と同じ分岐（Lite は ViewModel を増やさずローカルに保持）。
+    private var heroMeterSubtext: String {
+        let p = AlcoholCalculator.percentage(consumed: todayConsumed, goal: dailyGoalGrams)
+        if p >= 100 {
+            return "今日はオーバー…でも大丈夫！"
+        }
+        if p >= 80 {
+            return "そろそろ気をつけて！"
+        }
+        let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoalGrams))
+        return "あと \(remaining)g 飲めるよ！"
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
                 VStack(spacing: AppSpacing.md) {
-                    Text("HomeViewLite — Step 6")
-                        .font(AppFonts.heroTitle())
-                        .foregroundStyle(AppColors.pureWhite)
-                        .multilineTextAlignment(.center)
-                    Text("WaveHeroView + AlcoholMeterView")
+                    Text(nicknameLine)
                         .font(AppFonts.heroSubtitle())
                         .foregroundStyle(AppColors.pureWhite.opacity(0.85))
                         .multilineTextAlignment(.center)
 
+                    Text("おつかれさま！🍺")
+                        .font(AppFonts.heroTitle())
+                        .foregroundStyle(AppColors.pureWhite)
+                        .multilineTextAlignment(.center)
+
                     AlcoholMeterView(consumed: todayConsumed, dailyGoal: dailyGoalGrams)
+
+                    Text(heroMeterSubtext)
+                        .font(AppFonts.heroSubtitle())
+                        .foregroundStyle(AppColors.pureWhite.opacity(0.85))
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, AppSpacing.sm)
                 }
                 .padding(.bottom, AppSpacing.lg)
             }
@@ -90,7 +113,7 @@ struct HomeViewLite: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Next-D: no step debug lines in scroll)")
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Next-E: hero copy aligned with HomeView)")
             reloadFromStore()
         }
         .onReceive(NotificationCenter.default.publisher(for: .drinkLogSheetDismissed)) { _ in
@@ -125,7 +148,13 @@ struct HomeViewLite: View {
             todayDrinksListSnippet = snippet
         }
 
-        dailyGoalGrams = profiles.first?.dailyGoalGrams ?? 40
+        if let p = profiles.first {
+            dailyGoalGrams = p.dailyGoalGrams
+            nicknameLine = "\(p.nicknameFlag)\(p.nicknameEmoji) \(p.nicknameAdjective)\(p.nicknameNoun) さん"
+        } else {
+            dailyGoalGrams = 40
+            nicknameLine = "今日の純アルコール"
+        }
         todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: drinks, on: now, calendar: calendar)
         weeklyConsumed = AlcoholCalculator.weeklyTotal(gramsFrom: drinks, inWeekOf: now, calendar: calendar)
     }
