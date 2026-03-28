@@ -4,8 +4,8 @@ import SwiftUI
 extension Notification.Name {
     /// 記録シートを閉じたあとホーム等が SwiftData を取り直すためのフック（Phase 6）。
     static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
-    /// `HomeViewLite` など子ビューからプレースホルダー記録シートを開く（段階実装用）。
-    static let openDrinkLogPlaceholder = Notification.Name("YoiYoi.openDrinkLogPlaceholder")
+    /// `HomeViewLite` など子ビューから飲酒記録シートを開く。
+    static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
 }
 
 /// **段階実装** — タブ0 は `homeSmoke`（表示確認）、タブ1 はプレースホルダー。
@@ -13,8 +13,9 @@ extension Notification.Name {
 /// タブバーを `VStack` の下に兄弟で置くと内側の `ScrollView` に縦 0 が渡ることがあるため、
 /// タブは **`safeAreaInset(edge: .bottom)`** に載せる。
 struct ContentView: View {
+    @EnvironmentObject private var appState: AppState
     @State private var selectedTab = 0
-    @State private var showPlaceholderSheet = false
+    @State private var showDrinkLogSheet = false
 
     private let otherTabSampleTitles = ["項目 A", "項目 B", "項目 C"]
 
@@ -39,44 +40,24 @@ struct ContentView: View {
             }
             .background(AppColors.cream)
         }
-        .sheet(isPresented: $showPlaceholderSheet, onDismiss: {
-            NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
+        .sheet(isPresented: $showDrinkLogSheet, onDismiss: {
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
+            }
         }) {
-            placeholderSheet
+            DrinkLogSheet()
+                .environmentObject(appState)
+                .presentationDetents([.large])
         }
         .onAppear {
             AppLaunchDiagnostics.log("ContentView.onAppear（tab0=HomeViewLite） selectedTab=\(selectedTab)")
         }
-        .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogPlaceholder)) { _ in
-            showPlaceholderSheet = true
-        }
-    }
-
-    private var placeholderSheet: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("モーダル（プレースホルダー）")
-                    .font(.headline)
-                    .foregroundStyle(AppColors.charcoal)
-                Text("次の段階で飲酒記録などのフォームをここに載せる")
-                    .font(.subheadline)
-                    .foregroundStyle(AppColors.greyText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(AppColors.cream)
-            .navigationTitle("例: 記録")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("閉じる") {
-                        showPlaceholderSheet = false
-                    }
-                }
+        .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogSheet)) { _ in
+            // 同一ランループで `sheet` を立ち上げるとメインスレッドで固まる事例への回避（次フレームで表示）。
+            DispatchQueue.main.async {
+                showDrinkLogSheet = true
             }
         }
-        .presentationDetents([.medium, .large])
     }
 
     /// スモークテスト: HomeView 接続前に「タブ0 で色付きビューが見えるか」を確認するだけ。
@@ -89,7 +70,7 @@ struct ContentView: View {
                 .font(.subheadline)
                 .foregroundStyle(.white.opacity(0.8))
             Button {
-                showPlaceholderSheet = true
+                showDrinkLogSheet = true
             } label: {
                 Text("シートを開く（プレースホルダー）")
                     .font(.headline)

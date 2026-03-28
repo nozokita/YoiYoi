@@ -1,5 +1,3 @@
-import FirebaseAuth
-import FirebaseCore
 import SwiftData
 import SwiftUI
 
@@ -137,7 +135,7 @@ struct DrinkLogSheet: View {
             let dailyGoal = profile?.dailyGoalGrams ?? 40
             let weeklyGoal = profile?.weeklyGoalGrams ?? 280
             let uid: String
-            if FirebaseApp.app() != nil, let authUid = Auth.auth().currentUser?.uid {
+            if let authUid = AuthService.currentUID {
                 uid = authUid
             } else if let p = profile, !p.firebaseUID.isEmpty {
                 uid = p.firebaseUID
@@ -173,11 +171,12 @@ struct DrinkLogSheet: View {
                 drinkTypesToday: drinkKeys
             )
             let post = FeedGenerator.generatePost(context: ctx, calendar: cal)
-            if FeatureFlags.isFeedEnabled, FirebaseApp.app() != nil {
-                FeedFirestoreSync.publishIfPossible(post)
-            }
+            FeedFirestoreSync.publishIfPossible(post)
 
-            dismiss()
+            // `dismiss` と親の `onDismiss`→`reloadFromStore` が同一トランジション内で走るとメインスレッドが詰まることがあるため、次フレームにずらす。
+            DispatchQueue.main.async {
+                dismiss()
+            }
         } catch {
             saveError = error.localizedDescription
         }

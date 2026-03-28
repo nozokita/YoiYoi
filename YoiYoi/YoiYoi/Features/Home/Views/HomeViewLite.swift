@@ -13,6 +13,7 @@ import SwiftUI
 /// 週まとめカードは **週合計の単行のみ**（複行・WaveShape 等で白画面が出たため当面これに戻す）。
 /// Step Next-A: 「今日のドリンク」は件数0のときだけ空状態の2行文言へ（`HStack`・横Scroll・WaveShapeは触らない）。
 /// Step Next-B: 1件以上のとき **最新から最大3件**を改行テキストで列挙（4件目以降は「…他N件」。ピル・横Scrollはまだ入れない）。
+/// Step Next-C: `ContentView` から本物の `DrinkLogSheet` を開き、閉じたあと `drinkLogSheetDismissed` で再読込。
 ///
 /// **白画面対策**: ヒーローを **縦 `ScrollView` の内側**に置くとタブシェル環境でレイアウトが潰れることがあるため、
 /// **`VStack` で固定高ヒーロー + 下段だけ `ScrollView`** とする。
@@ -86,11 +87,11 @@ struct HomeViewLite: View {
                     .padding(.horizontal, 16)
 
                     Button {
-                        NotificationCenter.default.post(name: .openDrinkLogPlaceholder, object: nil)
+                        NotificationCenter.default.post(name: .openDrinkLogSheet, object: nil)
                     } label: {
                         HStack(spacing: 8) {
                             Image(systemName: "plus.circle.fill")
-                            Text("記録シートを開く（プレースホルダー）")
+                            Text("＋ 飲み物を記録")
                                 .font(.system(size: 15, weight: .semibold, design: .rounded))
                         }
                         .frame(maxWidth: .infinity)
@@ -114,39 +115,47 @@ struct HomeViewLite: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.coralRed)
         .onAppear {
-            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Next-B: today drinks up to 3 lines text, no pills)")
-
-            let calendar = Calendar.current
-            let now = Date()
-
-            let drinkDescriptor = FetchDescriptor<DrinkRecord>()
-            let drinks = (try? modelContext.fetch(drinkDescriptor)) ?? []
-            let profileDescriptor = FetchDescriptor<UserProfile>()
-            let profiles = (try? modelContext.fetch(profileDescriptor)) ?? []
-
-            drinkRecordCount = drinks.count
-            profileCount = profiles.count
-
-            let startOfToday = calendar.startOfDay(for: now)
-            let todaysDrinks = drinks
-                .filter { calendar.isDate($0.loggedAt, inSameDayAs: startOfToday) }
-                .sorted { $0.loggedAt > $1.loggedAt }
-            todaysDrinkCount = todaysDrinks.count
-            if todaysDrinks.isEmpty {
-                todayDrinksListSnippet = ""
-            } else {
-                let lines = todaysDrinks.prefix(3).map { Self.drinkLine(for: $0) }
-                var snippet = lines.joined(separator: "\n")
-                if todaysDrinks.count > 3 {
-                    snippet += "\n…他 \(todaysDrinks.count - 3)件"
-                }
-                todayDrinksListSnippet = snippet
-            }
-
-            dailyGoalGrams = profiles.first?.dailyGoalGrams ?? 40
-            todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: drinks, on: now, calendar: calendar)
-            weeklyConsumed = AlcoholCalculator.weeklyTotal(gramsFrom: drinks, inWeekOf: now, calendar: calendar)
+            AppLaunchDiagnostics.log("HomeViewLite.onAppear (Next-C: DrinkLogSheet + reload on dismiss)")
+            reloadFromStore()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .drinkLogSheetDismissed)) { _ in
+            DispatchQueue.main.async {
+                reloadFromStore()
+            }
+        }
+    }
+
+    private func reloadFromStore() {
+        let calendar = Calendar.current
+        let now = Date()
+
+        let drinkDescriptor = FetchDescriptor<DrinkRecord>()
+        let drinks = (try? modelContext.fetch(drinkDescriptor)) ?? []
+        let profileDescriptor = FetchDescriptor<UserProfile>()
+        let profiles = (try? modelContext.fetch(profileDescriptor)) ?? []
+
+        drinkRecordCount = drinks.count
+        profileCount = profiles.count
+
+        let startOfToday = calendar.startOfDay(for: now)
+        let todaysDrinks = drinks
+            .filter { calendar.isDate($0.loggedAt, inSameDayAs: startOfToday) }
+            .sorted { $0.loggedAt > $1.loggedAt }
+        todaysDrinkCount = todaysDrinks.count
+        if todaysDrinks.isEmpty {
+            todayDrinksListSnippet = ""
+        } else {
+            let lines = todaysDrinks.prefix(3).map { Self.drinkLine(for: $0) }
+            var snippet = lines.joined(separator: "\n")
+            if todaysDrinks.count > 3 {
+                snippet += "\n…他 \(todaysDrinks.count - 3)件"
+            }
+            todayDrinksListSnippet = snippet
+        }
+
+        dailyGoalGrams = profiles.first?.dailyGoalGrams ?? 40
+        todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: drinks, on: now, calendar: calendar)
+        weeklyConsumed = AlcoholCalculator.weeklyTotal(gramsFrom: drinks, inWeekOf: now, calendar: calendar)
     }
 
     private var weeklyConsumedText: String {
