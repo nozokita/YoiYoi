@@ -8,7 +8,8 @@ extension Notification.Name {
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
 }
 
-/// **段階実装** — タブ0〜3 は `HomeView` / `CalendarView` / `FeedView` / 設定プレースホルダー。下端は **4等分タブバー + 記録 FAB**（中央スペーサーなし）。
+/// **段階実装** — タブ0〜3 は `HomeView` / `CalendarView` / `FeedView` / 設定プレースホルダー。下端は **4等分タブバー + 記録 FAB**。
+/// FAB は **`safeAreaInset` 外の `overlay`**（インセット内は高さ確保用の `Color.clear` のみ）。`ZStack` 化した事例で `HomeView` の `ScrollView` が潰れたため。
 ///
 /// タブバーを `VStack` の下に兄弟で置くと内側の `ScrollView` に縦 0 が渡ることがあるため、
 /// タブは **`safeAreaInset(edge: .bottom)`** に載せる。
@@ -19,6 +20,19 @@ struct ContentView: View {
     @EnvironmentObject private var appState: AppState
     @State private var selectedTab = 0
     @State private var showDrinkLogSheet = false
+
+    /// 旧 HStack+FAB+padding（8+56+16）と同じ確保高さ。インセット構造は `VStack { 透明帯 / Divider / bar }` の3段のまま。
+    private enum TabChrome {
+        static let fabSlotHeight: CGFloat = 80
+        static let dividerHeight: CGFloat = 1
+        /// `bottomBar` の概算（padding 10+8 + アイコン行）
+        static let tabBarHeight: CGFloat = 54
+
+        /// 画面下端から FAB の**底辺**までの距離（`position` 用）。
+        static func distanceFromBottomToFabBottom(safeBottom: CGFloat) -> CGFloat {
+            safeBottom + tabBarHeight + dividerHeight + fabSlotHeight / 2 - 28
+        }
+    }
 
     var body: some View {
         Group {
@@ -39,18 +53,28 @@ struct ContentView: View {
         .background(AppColors.cream)
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
-                HStack {
-                    Spacer(minLength: 0)
-                    drinkLogFAB
-                    Spacer(minLength: 0)
-                }
-                .padding(.top, 8)
-                .padding(.bottom, 16)
+                Color.clear
+                    .frame(height: TabChrome.fabSlotHeight)
                 Divider()
                     .background(AppColors.greyText.opacity(0.25))
                 bottomBar
             }
             .background(AppColors.cream)
+        }
+        .overlay {
+            GeometryReader { geo in
+                let d = TabChrome.distanceFromBottomToFabBottom(safeBottom: geo.safeAreaInsets.bottom)
+                let fabCenterY = geo.size.height - d - 28
+                ZStack {
+                    Color.clear
+                        .allowsHitTesting(false)
+                        .frame(width: geo.size.width, height: geo.size.height)
+                    drinkLogFAB
+                        .position(x: geo.size.width / 2, y: fabCenterY)
+                }
+                .frame(width: geo.size.width, height: geo.size.height)
+            }
+            .allowsHitTesting(true)
         }
         .sheet(isPresented: $showDrinkLogSheet, onDismiss: {
             DispatchQueue.main.async {
@@ -62,7 +86,7 @@ struct ContentView: View {
                 .presentationDetents([.large])
         }
         .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（4tabs+FAB） selectedTab=\(selectedTab)")
+            AppLaunchDiagnostics.log("ContentView.onAppear（4tabs+FAB overlay） selectedTab=\(selectedTab)")
         }
         .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogSheet)) { _ in
             // 同一ランループで `sheet` を立ち上げるとメインスレッドで固まる事例への回避（次フレームで表示）。
