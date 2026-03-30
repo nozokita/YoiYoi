@@ -8,6 +8,7 @@ struct SettingsRootView: View {
 
     @State private var showGoalsEditor = false
     @State private var showNicknameEditor = false
+    @State private var showNotificationsEditor = false
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
@@ -112,6 +113,27 @@ struct SettingsRootView: View {
                     }
 
                     Section {
+                        Button {
+                            showNotificationsEditor = true
+                        } label: {
+                            HStack {
+                                Text(AppCopy.settingsNotificationsRow(appState.currentLanguage))
+                                    .foregroundStyle(AppColors.charcoal)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
+                            }
+                        }
+                        .listRowBackground(AppColors.cream)
+                    } header: {
+                        Text(AppCopy.settingsNotificationsSection(appState.currentLanguage))
+                            .font(.caption)
+                            .foregroundStyle(AppColors.greyText)
+                            .textCase(nil)
+                    }
+
+                    Section {
                         Text(AppCopy.settingsPlaceholder(appState.currentLanguage))
                             .font(.subheadline)
                             .foregroundStyle(AppColors.greyText)
@@ -168,6 +190,10 @@ struct SettingsRootView: View {
             }
             .sheet(isPresented: $showNicknameEditor) {
                 SettingsNicknameEditView()
+                    .environmentObject(appState)
+            }
+            .sheet(isPresented: $showNotificationsEditor) {
+                SettingsNotificationsView()
                     .environmentObject(appState)
             }
         }

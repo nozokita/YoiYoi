@@ -35,6 +35,7 @@ struct AppRootView: View {
             DebugOnboarding.applyLaunchArgumentIfNeeded(modelContext: modelContext, appState: appState)
             #endif
             syncOnboardingFromSavedProfileIfNeeded()
+            NotificationService.applyCurrentSettings()
         }
         .task(id: appState.onboardingCompleted) {
             await bootstrapFirebaseSession()

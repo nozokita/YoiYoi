@@ -388,8 +388,8 @@ enum AppCopy {
 
     static func settingsPlaceholder(_ l: SupportedLanguage) -> String {
         switch l {
-        case .ja: "通知・データのエクスポートなどは今後追加予定です。"
-        case .en: "Notifications and data export are coming later."
+        case .ja: "データのエクスポートなどは今後追加予定です。"
+        case .en: "Data export and more are coming later."
         }
     }
 
@@ -460,6 +460,31 @@ enum AppCopy {
         switch l {
         case .ja: "ニックネームデータを読み込めませんでした。"
         case .en: "Couldn't load nickname data."
+        }
+    }
+
+    // MARK: - Settings Notifications
+
+    static func settingsNotificationsSection(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "通知"; case .en: "Notifications" }
+    }
+
+    static func settingsNotificationsRow(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "飲酒記録リマインダー"; case .en: "Drink log reminder" }
+    }
+
+    static func settingsNotificationsEnabled(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "リマインダーを受け取る"; case .en: "Receive reminders" }
+    }
+
+    static func settingsNotificationsTime(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "通知時刻"; case .en: "Reminder time" }
+    }
+
+    static func settingsNotificationsHint(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "毎日この時間に「今日は飲んだ？ 記録しよう🍺」とお知らせします。"
+        case .en: "We'll gently ask \"Did you drink today?\" at this time every day."
         }
     }
 
