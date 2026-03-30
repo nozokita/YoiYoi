@@ -386,13 +386,6 @@ enum AppCopy {
         switch l { case .ja: "バージョン"; case .en: "Version" }
     }
 
-    static func settingsPlaceholder(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "データのエクスポートなどは今後追加予定です。"
-        case .en: "Data export and more are coming later."
-        }
-    }
-
     static func settingsSectionGoalsProfile(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "目標・プロフィール"; case .en: "Goals & profile" }
     }
@@ -486,6 +479,64 @@ enum AppCopy {
         case .ja: "毎日この時間に「今日は飲んだ？ 記録しよう🍺」とお知らせします。"
         case .en: "We'll gently ask \"Did you drink today?\" at this time every day."
         }
+    }
+
+    // MARK: - Settings data & privacy
+
+    static func settingsDataPrivacySection(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "データとプライバシー"; case .en: "Data & privacy" }
+    }
+
+    static func settingsExportRow(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "飲酒記録をエクスポート（CSV）"; case .en: "Export drink logs (CSV)" }
+    }
+
+    static func settingsPrivacyPolicyRow(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "プライバシーポリシー"; case .en: "Privacy policy" }
+    }
+
+    static func settingsDataPrivacyFooter(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "CSV はこの端末内の記録のみです。共有先にはご注意ください。"
+        case .en: "The CSV contains only records stored on this device. Be careful where you share it."
+        }
+    }
+
+    static func settingsExportTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "記録のエクスポート"; case .en: "Export logs" }
+    }
+
+    static func settingsExportExplanation(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "飲酒記録を CSV ファイルにまとめます。メールやクラウドなど、お好きな方法で保存・共有できます。"
+        case .en: "We'll bundle your drink logs into a CSV file. Save or share it however you like."
+        }
+    }
+
+    static func settingsExportShareButton(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "共有…"; case .en: "Share…" }
+    }
+
+    static func settingsExportShareSubject(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "YoiYoi 飲酒記録"; case .en: "YoiYoi drink logs" }
+    }
+
+    static func settingsExportShareMessage(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "アプリからエクスポートした飲酒記録（CSV）です。"
+        case .en: "Drink logs exported from YoiYoi (CSV)."
+        }
+    }
+
+    static func settingsExportShareHint(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "「共有」からメール、ファイル、他アプリへ送れます。"
+        case .en: "Use Share to send via Mail, Files, or another app."
+        }
+    }
+
+    static func settingsExportFailed(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "書き出しに失敗しました。"; case .en: "Couldn't create the export." }
     }
 
     // MARK: - Drink log sheet

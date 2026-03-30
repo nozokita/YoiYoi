@@ -9,6 +9,7 @@ struct SettingsRootView: View {
     @State private var showGoalsEditor = false
     @State private var showNicknameEditor = false
     @State private var showNotificationsEditor = false
+    @State private var showDataExport = false
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
@@ -134,10 +135,40 @@ struct SettingsRootView: View {
                     }
 
                     Section {
-                        Text(AppCopy.settingsPlaceholder(appState.currentLanguage))
-                            .font(.subheadline)
+                        Button {
+                            showDataExport = true
+                        } label: {
+                            HStack {
+                                Text(AppCopy.settingsExportRow(appState.currentLanguage))
+                                    .foregroundStyle(AppColors.charcoal)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
+                            }
+                        }
+                        .listRowBackground(AppColors.cream)
+
+                        Link(destination: AppLegalLinks.privacyPolicyURL) {
+                            HStack {
+                                Text(AppCopy.settingsPrivacyPolicyRow(appState.currentLanguage))
+                                    .foregroundStyle(AppColors.charcoal)
+                                Spacer()
+                                Image(systemName: "arrow.up.right.square")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
+                            }
+                        }
+                        .listRowBackground(AppColors.cream)
+                    } header: {
+                        Text(AppCopy.settingsDataPrivacySection(appState.currentLanguage))
+                            .font(.caption)
                             .foregroundStyle(AppColors.greyText)
-                            .listRowBackground(AppColors.cream)
+                            .textCase(nil)
+                    } footer: {
+                        Text(AppCopy.settingsDataPrivacyFooter(appState.currentLanguage))
+                            .font(.caption2)
+                            .foregroundStyle(AppColors.greyText.opacity(0.9))
                     }
 
                     #if DEBUG
@@ -194,6 +225,10 @@ struct SettingsRootView: View {
             }
             .sheet(isPresented: $showNotificationsEditor) {
                 SettingsNotificationsView()
+                    .environmentObject(appState)
+            }
+            .sheet(isPresented: $showDataExport) {
+                SettingsDataExportView()
                     .environmentObject(appState)
             }
         }
