@@ -31,6 +31,9 @@ struct AppRootView: View {
             AppLaunchDiagnostics.log(
                 "AppRootView.onAppear onboardingCompleted=\(appState.onboardingCompleted) → \(appState.onboardingCompleted ? "ContentView" : "Onboarding")"
             )
+            #if DEBUG
+            DebugOnboarding.applyLaunchArgumentIfNeeded(modelContext: modelContext, appState: appState)
+            #endif
             syncOnboardingFromSavedProfileIfNeeded()
         }
         .task(id: appState.onboardingCompleted) {

@@ -32,8 +32,9 @@ final class AppState: ObservableObject {
         UserDefaults.standard.set(true, forKey: Keys.onboarding)
     }
 
-    /// デバッグ・テスト用
+    /// デバッグ・テスト用（`UserProfile.onboardingCompleted` も併せて戻すこと）。
     func resetOnboardingForDebug() {
+        objectWillChange.send()
         onboardingCompleted = false
         UserDefaults.standard.set(false, forKey: Keys.onboarding)
     }

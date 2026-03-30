@@ -13,7 +13,7 @@ struct NicknameSelectView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 HStack {
-                    Button("戻る", action: onBack)
+                    Button(AppCopy.commonBack(language), action: onBack)
                         .font(AppFonts.body(for: language, size: 16))
                         .foregroundStyle(AppColors.coralRed)
                     Spacer()
@@ -23,7 +23,7 @@ struct NicknameSelectView: View {
                     .font(.system(size: 48))
                     .frame(maxWidth: .infinity)
 
-                Text("あなたの相棒を選ぼう")
+                Text(AppCopy.onboardingNicknameTitle(language))
                     .font(AppFonts.screenTitle())
                     .foregroundStyle(AppColors.charcoal)
                     .frame(maxWidth: .infinity)
@@ -35,7 +35,7 @@ struct NicknameSelectView: View {
                 } label: {
                     HStack(spacing: AppSpacing.sm) {
                         Text("🔀")
-                        Text("シャッフル")
+                        Text(AppCopy.onboardingNicknameShuffle(language))
                             .font(AppFonts.body(for: language, size: 16))
                     }
                     .foregroundStyle(AppColors.coralRed)
@@ -48,30 +48,32 @@ struct NicknameSelectView: View {
                         .foregroundStyle(AppColors.warmCoral)
                 }
 
-                labeledRow(title: "国旗") {
+                labeledRow(title: AppCopy.onboardingNicknameFlag(language)) {
                     FlagPicker(
                         items: vm.flagOptions.map { FlagPicker.Item(id: $0, emoji: $0) },
                         selection: $vm.selectedFlag
                     )
+                    .frame(height: 52)
                 }
 
-                labeledRow(title: "絵文字") {
+                labeledRow(title: AppCopy.onboardingNicknameEmoji(language)) {
                     FlagPicker(
                         items: vm.emojiOptions.map { FlagPicker.Item(id: $0, emoji: $0) },
                         selection: $vm.selectedEmoji
                     )
+                    .frame(height: 52)
                 }
 
-                labeledRow(title: "形容詞") {
+                labeledRow(title: AppCopy.onboardingNicknameAdjective(language)) {
                     adjectiveOrNounStrip(options: vm.adjectiveOptions, selected: $vm.selectedAdjective)
                 }
 
-                labeledRow(title: "名詞") {
+                labeledRow(title: AppCopy.onboardingNicknameNoun(language)) {
                     adjectiveOrNounStrip(options: vm.nounOptions, selected: $vm.selectedNoun)
                 }
 
                 PuffyButton(
-                    title: "この相棒にする！🎉",
+                    title: AppCopy.onboardingNicknameComplete(language),
                     isEnabled: vm.selectedFlag != nil && vm.selectedEmoji != nil
                         && vm.selectedAdjective != nil && vm.selectedNoun != nil
                 ) {
@@ -85,7 +87,7 @@ struct NicknameSelectView: View {
                 try vm.loadNicknameDataIfNeeded()
                 loadError = nil
             } catch {
-                loadError = "ニックネームデータを読み込めませんでした。"
+                loadError = AppCopy.onboardingNicknameLoadError(language)
             }
         }
     }
@@ -136,6 +138,7 @@ struct NicknameSelectView: View {
                 }
             }
         }
+        .frame(height: 44)
     }
 }
 

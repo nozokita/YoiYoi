@@ -2,6 +2,20 @@ import Foundation
 
 /// UI 文言（`SupportedLanguage` 連動）。String Catalog 本格導入までの集中管理。
 enum AppCopy {
+    // MARK: - Common
+
+    static func commonBack(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "戻る"; case .en: "Back" }
+    }
+
+    static func commonNext(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "つぎへ"; case .en: "Next" }
+    }
+
+    static func commonOK(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "OK"; case .en: "OK" }
+    }
+
     // MARK: - Shell
 
     static func tabHome(_ l: SupportedLanguage) -> String {
@@ -22,6 +36,141 @@ enum AppCopy {
 
     static func fabLogDrink(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "飲み物を記録"; case .en: "Log a drink" }
+    }
+
+    // MARK: - Onboarding
+
+    static func onboardingSaveErrorTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "保存エラー"; case .en: "Save error" }
+    }
+
+    static func onboardingEULALoadFailed(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "（利用規約を読み込めませんでした。アプリを再インストールするか、開発者にお問い合わせください。）"
+        case .en: "(Couldn't load the terms. Please reinstall the app or contact the developer.)"
+        }
+    }
+
+    static func onboardingEULATitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "利用規約への同意"; case .en: "Terms & Privacy" }
+    }
+
+    static func onboardingEULAToggle(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "利用規約・プライバシーポリシーに同意する"
+        case .en: "I agree to the Terms and Privacy Policy"
+        }
+    }
+
+    static func onboardingEULAStart(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "同意して始める"; case .en: "Agree & start" }
+    }
+
+    static func onboardingEULADeclineNote(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "※ 同意いただけない場合は\nアプリをご利用いただけません"
+        case .en: "* You can't use the app without agreeing."
+        }
+    }
+
+    static func onboardingLanguageTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "言語を選んでね"; case .en: "Choose a language" }
+    }
+
+    static func onboardingGoalTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "あなたの目標を設定"; case .en: "Set your goals" }
+    }
+
+    static func onboardingGenderLabel(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "性別"; case .en: "Gender" }
+    }
+
+    static func onboardingGenderMale(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "男性 ♂"; case .en: "Male ♂" }
+    }
+
+    static func onboardingGenderFemale(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "女性 ♀"; case .en: "Female ♀" }
+    }
+
+    static func onboardingGenderCustom(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "カスタム ⚙"; case .en: "Custom ⚙" }
+    }
+
+    static func onboardingGuidelinesTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "厚労省ガイドライン"; case .en: "Guidelines" }
+    }
+
+    static func onboardingDailyGuide(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "1日の目安"; case .en: "Daily" }
+    }
+
+    static func onboardingWeeklyGuide(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "1週間の目安"; case .en: "Weekly" }
+    }
+
+    static func onboardingCustomDailyStepper(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "1日の目安（g）"; case .en: "Daily goal (g)" }
+    }
+
+    static func onboardingCustomWeeklyStepper(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "1週間の目安（g）"; case .en: "Weekly goal (g)" }
+    }
+
+    static func onboardingGenderAutoHint(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "性別に応じて自動変更（カスタムでは ±5g / ±35g）"
+        case .en: "Auto-set by gender (Custom: ±5g / ±35g)"
+        }
+    }
+
+    static func onboardingNicknameTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "あなたの相棒を選ぼう"; case .en: "Pick your buddy" }
+    }
+
+    static func onboardingNicknameShuffle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "シャッフル"; case .en: "Shuffle" }
+    }
+
+    static func onboardingNicknameFlag(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "国旗"; case .en: "Flag" }
+    }
+
+    static func onboardingNicknameEmoji(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "絵文字"; case .en: "Emoji" }
+    }
+
+    static func onboardingNicknameAdjective(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "形容詞"; case .en: "Adjective" }
+    }
+
+    static func onboardingNicknameNoun(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "名詞"; case .en: "Noun" }
+    }
+
+    static func onboardingNicknameComplete(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "この相棒にする！🎉"; case .en: "Choose this buddy! 🎉" }
+    }
+
+    static func onboardingNicknameLoadError(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "ニックネームデータを読み込めませんでした。"
+        case .en: "Couldn't load nickname data."
+        }
+    }
+
+    static func onboardingErrorEULANotAccepted(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "利用規約への同意が記録されていません。最初の画面からやり直してください。"
+        case .en: "Your agreement wasn't saved. Please start over from the first screen."
+        }
+    }
+
+    static func onboardingErrorLanguageNotSelected(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "言語が選択されていません。言語選択の画面に戻って選んでください。"
+        case .en: "No language selected. Go back and choose one."
+        }
     }
 
     // MARK: - Home
@@ -239,8 +388,78 @@ enum AppCopy {
 
     static func settingsPlaceholder(_ l: SupportedLanguage) -> String {
         switch l {
-        case .ja: "飲酒目標・通知・データのエクスポートなどは、次の段階でここに追加します。"
-        case .en: "Goals, notifications, and export will land here in a later phase."
+        case .ja: "通知・データのエクスポートなどは今後追加予定です。"
+        case .en: "Notifications and data export are coming later."
+        }
+    }
+
+    static func settingsSectionGoalsProfile(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "目標・プロフィール"; case .en: "Goals & profile" }
+    }
+
+    static func settingsGoalsRow(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "飲酒目標（1日・1週間）"; case .en: "Daily & weekly goals" }
+    }
+
+    static func settingsNicknameRow(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "ニックネーム（相棒）"; case .en: "Buddy nickname" }
+    }
+
+    static func settingsGoalsTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "飲酒目標"; case .en: "Drinking goals" }
+    }
+
+    static func settingsNicknameTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "ニックネーム"; case .en: "Nickname" }
+    }
+
+    static func settingsCancel(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "キャンセル"; case .en: "Cancel" }
+    }
+
+    static func settingsSave(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "保存"; case .en: "Save" }
+    }
+
+    static func settingsDailyGoalGrams(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "1日の目標（g）"; case .en: "Daily goal (g)" }
+    }
+
+    static func settingsWeeklyGoalGrams(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "1週間の目標（g）"; case .en: "Weekly goal (g)" }
+    }
+
+    static func settingsGoalsHint(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "厚労省の目安を参考に、自分に合った値に調整できます。"
+        case .en: "Tune these to what works for you."
+        }
+    }
+
+    static func settingsNicknameFlag(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "国旗"; case .en: "Flag" }
+    }
+
+    static func settingsNicknameEmoji(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "絵文字"; case .en: "Emoji" }
+    }
+
+    static func settingsNicknameAdjective(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "形容詞"; case .en: "Adjective" }
+    }
+
+    static func settingsNicknameNoun(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "名詞"; case .en: "Noun" }
+    }
+
+    static func settingsShuffle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "シャッフル"; case .en: "Shuffle" }
+    }
+
+    static func settingsNicknameLoadError(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "ニックネームデータを読み込めませんでした。"
+        case .en: "Couldn't load nickname data."
         }
     }
 

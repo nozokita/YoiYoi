@@ -60,6 +60,9 @@ struct CalendarView: View {
         .onReceive(NotificationCenter.default.publisher(for: .drinkLogSheetDismissed)) { _ in
             reload()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .userProfileDidChange)) { _ in
+            reload()
+        }
     }
 
     private var heroBadgesRow: some View {

@@ -8,7 +8,7 @@ enum EULALoader {
         guard let url,
               let text = try? String(contentsOf: url, encoding: .utf8)
         else {
-            return "（利用規約を読み込めませんでした。アプリを再インストールするか、開発者にお問い合わせください。）"
+            return AppCopy.onboardingEULALoadFailed(language)
         }
         return text
     }
@@ -31,7 +31,7 @@ struct EULAView: View {
                     .font(.system(size: 48))
                     .frame(maxWidth: .infinity)
 
-                Text("利用規約への同意")
+                Text(AppCopy.onboardingEULATitle(displayLanguage))
                     .font(AppFonts.screenTitle())
                     .foregroundStyle(AppColors.charcoal)
                     .frame(maxWidth: .infinity)
@@ -45,18 +45,18 @@ struct EULAView: View {
                     .contentCard(themeColor: AppColors.coralRed)
 
                 Toggle(isOn: $agreed) {
-                    Text("利用規約・プライバシーポリシーに同意する")
+                    Text(AppCopy.onboardingEULAToggle(displayLanguage))
                         .font(AppFonts.body(for: displayLanguage, size: 15))
                         .foregroundStyle(AppColors.charcoal)
                 }
                 .tint(AppColors.coralRed)
 
-                PuffyButton(title: "同意して始める", isEnabled: agreed) {
+                PuffyButton(title: AppCopy.onboardingEULAStart(displayLanguage), isEnabled: agreed) {
                     vm.acceptEULA()
                     onContinue()
                 }
 
-                Text("※ 同意いただけない場合は\nアプリをご利用いただけません")
+                Text(AppCopy.onboardingEULADeclineNote(displayLanguage))
                     .font(AppFonts.sublabel(for: displayLanguage, size: 12))
                     .foregroundStyle(AppColors.greyText)
                     .multilineTextAlignment(.center)

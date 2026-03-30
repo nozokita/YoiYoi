@@ -7,13 +7,27 @@ import SwiftUI
 enum OnboardingCompletionError: LocalizedError {
     case eulaNotAccepted
     case languageNotSelected
+    case other(String)
+
+    func message(language: SupportedLanguage) -> String {
+        switch self {
+        case .eulaNotAccepted:
+            return AppCopy.onboardingErrorEULANotAccepted(language)
+        case .languageNotSelected:
+            return AppCopy.onboardingErrorLanguageNotSelected(language)
+        case .other(let msg):
+            return msg
+        }
+    }
 
     var errorDescription: String? {
         switch self {
         case .eulaNotAccepted:
-            return "利用規約への同意が記録されていません。最初の画面からやり直してください。"
+            return AppCopy.onboardingErrorEULANotAccepted(.ja)
         case .languageNotSelected:
-            return "言語が選択されていません。言語選択の画面に戻って選んでください。"
+            return AppCopy.onboardingErrorLanguageNotSelected(.ja)
+        case .other(let msg):
+            return msg
         }
     }
 }

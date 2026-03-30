@@ -22,7 +22,7 @@ struct OnboardingContainerView: View {
                             currentStep = 1
                         }
                     case 1:
-                        LanguageSelectView(vm: vm) {
+                        LanguageSelectView(vm: vm, displayLanguage: appState.currentLanguage) {
                             if let lang = vm.selectedLanguage {
                                 appState.currentLanguage = lang
                             }
@@ -58,11 +58,11 @@ struct OnboardingContainerView: View {
         .onAppear {
             AppLaunchDiagnostics.log("OnboardingContainerView.onAppear step=\(currentStep)")
         }
-        .alert("保存エラー", isPresented: Binding(
+        .alert(AppCopy.onboardingSaveErrorTitle(appState.currentLanguage), isPresented: Binding(
             get: { saveErrorMessage != nil },
             set: { if !$0 { saveErrorMessage = nil } }
         )) {
-            Button("OK", role: .cancel) {}
+            Button(AppCopy.commonOK(appState.currentLanguage), role: .cancel) {}
         } message: {
             Text(saveErrorMessage ?? "")
         }
@@ -82,7 +82,11 @@ struct OnboardingContainerView: View {
         do {
             try vm.completeOnboarding(modelContext: modelContext, appState: appState)
         } catch {
-            saveErrorMessage = error.localizedDescription
+            if let e = error as? OnboardingCompletionError {
+                saveErrorMessage = e.message(language: appState.currentLanguage)
+            } else {
+                saveErrorMessage = error.localizedDescription
+            }
         }
     }
 }

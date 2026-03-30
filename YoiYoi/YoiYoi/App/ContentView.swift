@@ -6,6 +6,14 @@ extension Notification.Name {
     static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
     /// `HomeView` / `HomeViewLite` など子ビューから飲酒記録シートを開く。
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
+    /// メインタブを切り替える（例: ホーム「もっと見る」→ フィード）。`userInfo["tabIndex"]` に Int 0...3。
+    static let switchMainTab = Notification.Name("YoiYoi.switchMainTab")
+    /// `UserProfile` の目標・ニックネーム等を更新したあと、ホーム等が再集計するためのフック。
+    static let userProfileDidChange = Notification.Name("YoiYoi.userProfileDidChange")
+}
+
+enum MainTabNotification {
+    static let tabIndexKey = "tabIndex"
 }
 
 /// **段階実装** — タブ0〜3 は `HomeView` / `CalendarView` / `FeedView` / `SettingsRootView`。下端は **4等分タブバー + 記録 FAB**。
@@ -95,6 +103,11 @@ struct ContentView: View {
             DispatchQueue.main.async {
                 showDrinkLogSheet = true
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .switchMainTab)) { note in
+            guard let raw = note.userInfo?[MainTabNotification.tabIndexKey] as? Int else { return }
+            let idx = max(0, min(3, raw))
+            selectedTab = idx
         }
     }
 

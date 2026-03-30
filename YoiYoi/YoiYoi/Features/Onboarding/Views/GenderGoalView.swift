@@ -11,7 +11,7 @@ struct GenderGoalView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: AppSpacing.lg) {
                 HStack {
-                    Button("戻る", action: onBack)
+                    Button(AppCopy.commonBack(language), action: onBack)
                         .font(AppFonts.body(for: language, size: 16))
                         .foregroundStyle(AppColors.coralRed)
                     Spacer()
@@ -21,39 +21,39 @@ struct GenderGoalView: View {
                     .font(.system(size: 48))
                     .frame(maxWidth: .infinity)
 
-                Text("あなたの目標を設定")
+                Text(AppCopy.onboardingGoalTitle(language))
                     .font(AppFonts.screenTitle())
                     .foregroundStyle(AppColors.charcoal)
                     .frame(maxWidth: .infinity)
 
-                Text("性別")
+                Text(AppCopy.onboardingGenderLabel(language))
                     .font(AppFonts.sublabel(for: language, size: 13))
                     .foregroundStyle(AppColors.greyText)
 
                 HStack(spacing: AppSpacing.sm) {
-                    genderPill(.male, title: "男性 ♂")
-                    genderPill(.female, title: "女性 ♀")
-                    genderPill(.custom, title: "カスタム ⚙")
+                    genderPill(.male, title: AppCopy.onboardingGenderMale(language))
+                    genderPill(.female, title: AppCopy.onboardingGenderFemale(language))
+                    genderPill(.custom, title: AppCopy.onboardingGenderCustom(language))
                 }
 
                 guidelineCard
 
                 if vm.selectedGender == .custom {
                     stepperRow(
-                        title: "1日の目安（g）",
+                        title: AppCopy.onboardingCustomDailyStepper(language),
                         value: Int(vm.dailyGoal),
                         decrement: { vm.adjustDailyGoal(by: -5) },
                         increment: { vm.adjustDailyGoal(by: 5) }
                     )
                     stepperRow(
-                        title: "1週間の目安（g）",
+                        title: AppCopy.onboardingCustomWeeklyStepper(language),
                         value: Int(vm.weeklyGoal),
                         decrement: { vm.adjustWeeklyGoal(by: -35) },
                         increment: { vm.adjustWeeklyGoal(by: 35) }
                     )
                 }
 
-                PuffyButton(title: "つぎへ", isEnabled: true) {
+                PuffyButton(title: AppCopy.commonNext(language), isEnabled: true) {
                     onContinue()
                 }
             }
@@ -87,12 +87,12 @@ struct GenderGoalView: View {
             HStack(spacing: AppSpacing.sm) {
                 Text("📊")
                     .font(.system(size: 24))
-                Text("厚労省ガイドライン")
+                Text(AppCopy.onboardingGuidelinesTitle(language))
                     .font(AppFonts.cardTitle())
                     .foregroundStyle(AppColors.charcoal)
             }
             HStack {
-                Text("1日の目安")
+                Text(AppCopy.onboardingDailyGuide(language))
                     .font(AppFonts.body(for: language, size: 15))
                     .foregroundStyle(AppColors.charcoal)
                 Spacer()
@@ -101,7 +101,7 @@ struct GenderGoalView: View {
                     .foregroundStyle(AppColors.mintGreen)
             }
             HStack {
-                Text("1週間の目安")
+                Text(AppCopy.onboardingWeeklyGuide(language))
                     .font(AppFonts.body(for: language, size: 15))
                     .foregroundStyle(AppColors.charcoal)
                 Spacer()
@@ -109,7 +109,7 @@ struct GenderGoalView: View {
                     .font(AppFonts.statCardValue())
                     .foregroundStyle(AppColors.mintGreen)
             }
-            Text("性別に応じて自動変更（カスタムでは ±5g / ±35g）")
+            Text(AppCopy.onboardingGenderAutoHint(language))
                 .font(AppFonts.sublabel(for: language, size: 12))
                 .foregroundStyle(AppColors.greyText)
         }

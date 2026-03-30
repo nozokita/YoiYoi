@@ -78,6 +78,9 @@ struct HomeView: View {
         .onReceive(NotificationCenter.default.publisher(for: .drinkLogSheetDismissed)) { _ in
             viewModel.refresh(modelContext: modelContext)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .userProfileDidChange)) { _ in
+            viewModel.refresh(modelContext: modelContext)
+        }
     }
 
     // MARK: - 今週のまとめ
@@ -196,12 +199,21 @@ struct HomeView: View {
                 reactions: "💪5  🫂3"
             )
 
-            Text(AppCopy.homeSeeMore(appState.currentLanguage))
-                .font(.system(size: 14, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.coralRed)
-                .frame(maxWidth: .infinity, alignment: .center)
-                .padding(.top, AppSpacing.sm)
-                .opacity(FeatureFlags.isFeedEnabled ? 1 : 0.45)
+            Button {
+                NotificationCenter.default.post(
+                    name: .switchMainTab,
+                    object: nil,
+                    userInfo: [MainTabNotification.tabIndexKey: 2]
+                )
+            } label: {
+                Text(AppCopy.homeSeeMore(appState.currentLanguage))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.coralRed)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.top, AppSpacing.sm)
+            }
+            .buttonStyle(.plain)
+            .opacity(FeatureFlags.isFeedEnabled ? 1 : 0.45)
         }
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)

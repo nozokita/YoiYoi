@@ -3,6 +3,8 @@ import SwiftUI
 /// DESIGN.md「オンボーディング: 言語選択画面」
 struct LanguageSelectView: View {
     @Bindable var vm: OnboardingViewModel
+    /// 表示用（選択前は `AppState.currentLanguage` を渡す）
+    var displayLanguage: SupportedLanguage
     var onContinue: () -> Void
 
     var body: some View {
@@ -12,7 +14,7 @@ struct LanguageSelectView: View {
                     .font(.system(size: 48))
                     .frame(maxWidth: .infinity)
 
-                Text("言語を選んでね")
+                Text(AppCopy.onboardingLanguageTitle(displayLanguage))
                     .font(AppFonts.screenTitle())
                     .foregroundStyle(AppColors.charcoal)
                     .frame(maxWidth: .infinity)
@@ -23,7 +25,7 @@ struct LanguageSelectView: View {
                     }
                 }
 
-                PuffyButton(title: "つぎへ", isEnabled: vm.selectedLanguage != nil) {
+                PuffyButton(title: AppCopy.commonNext(displayLanguage), isEnabled: vm.selectedLanguage != nil) {
                     onContinue()
                 }
             }
@@ -60,6 +62,6 @@ struct LanguageSelectView: View {
 }
 
 #Preview {
-    LanguageSelectView(vm: OnboardingViewModel()) {}
+    LanguageSelectView(vm: OnboardingViewModel(), displayLanguage: .ja) {}
         .background(AppGradients.onboardingFullScreen)
 }
