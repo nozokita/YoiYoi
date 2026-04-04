@@ -6,12 +6,16 @@ struct SettingsRootView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var appState: AppState
 
+    @Query private var profiles: [UserProfile]
+
     @State private var showGoalsEditor = false
     @State private var showNicknameEditor = false
     @State private var showNotificationsEditor = false
     @State private var showDataExport = false
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
+
+    private var profile: UserProfile? { profiles.first }
 
     private var appVersionLine: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
@@ -23,17 +27,21 @@ struct SettingsRootView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 WaveHeroView(height: heroHeight, gradient: AppGradients.heroSettings) {
-                    VStack(spacing: AppSpacing.md) {
+                    VStack(spacing: AppSpacing.sm) {
                         Text(AppCopy.settingsTitle(appState.currentLanguage))
                             .font(AppFonts.heroTitle())
                             .foregroundStyle(AppColors.pureWhite)
                         Text(AppCopy.settingsHeroSubtitle(appState.currentLanguage))
                             .font(AppFonts.heroSubtitle())
                             .foregroundStyle(AppColors.pureWhite.opacity(0.85))
+
+                        if let p = profile {
+                            settingsProfileCard(p)
+                        }
                     }
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
-                    .padding(.bottom, AppSpacing.lg)
+                    .padding(.bottom, AppSpacing.sm)
                 }
                 .frame(height: heroHeight)
                 .frame(maxWidth: .infinity)
@@ -255,6 +263,37 @@ struct SettingsRootView: View {
                     .environmentObject(appState)
             }
         }
+    }
+
+    /// DESIGN.md「プロフィールカード（フロスト）」— ニックネーム + 変更ボタン
+    private func settingsProfileCard(_ p: UserProfile) -> some View {
+        VStack(spacing: 4) {
+            Text("\(p.nicknameFlag)\(p.nicknameEmoji)")
+                .font(.system(size: 32))
+
+            Text("\(p.nicknameAdjective)\(p.nicknameNoun)")
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundStyle(AppColors.pureWhite)
+
+            Button {
+                showNicknameEditor = true
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "pencil")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(AppCopy.settingsNicknameRow(appState.currentLanguage))
+                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                }
+                .foregroundStyle(AppColors.pureWhite.opacity(0.7))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.vertical, AppSpacing.md)
+        .frame(maxWidth: .infinity)
+        .background(.ultraThinMaterial.opacity(0.6))
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .padding(.horizontal, AppSpacing.xl)
     }
 
     private func syncLanguageToProfile(_ lang: SupportedLanguage) {

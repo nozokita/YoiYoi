@@ -19,7 +19,7 @@ struct HomeView: View {
     var body: some View {
         VStack(spacing: 0) {
             WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
-                VStack(spacing: AppSpacing.md) {
+                VStack(spacing: AppSpacing.sm) {
                     Text(viewModel.nicknameLine(language: appState.currentLanguage))
                         .font(AppFonts.heroSubtitle())
                         .foregroundStyle(AppColors.pureWhite.opacity(0.85))
@@ -41,7 +41,7 @@ struct HomeView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, AppSpacing.sm)
                 }
-                .padding(.bottom, AppSpacing.lg)
+                .padding(.bottom, AppSpacing.sm)
             }
             .frame(height: heroHeight)
             .frame(maxWidth: .infinity)

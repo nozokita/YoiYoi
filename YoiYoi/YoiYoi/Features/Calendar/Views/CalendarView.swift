@@ -202,7 +202,7 @@ struct CalendarView: View {
     private func barHeight(grams: Double, scaleMax: Double) -> CGFloat {
         let cap = max(scaleMax, 1)
         let h = CGFloat(grams / cap) * 72
-        return Swift.max(4, Swift.min(h, 72))
+        return Swift.max(8, Swift.min(h, 72))
     }
 
     private func reload() {
