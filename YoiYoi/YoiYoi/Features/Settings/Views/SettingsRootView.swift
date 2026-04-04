@@ -149,6 +149,18 @@ struct SettingsRootView: View {
                         }
                         .listRowBackground(AppColors.cream)
 
+                        Link(destination: AppLegalLinks.termsOfServiceURL) {
+                            HStack {
+                                Text(AppCopy.settingsTermsOfServiceRow(appState.currentLanguage))
+                                    .foregroundStyle(AppColors.charcoal)
+                                Spacer()
+                                Image(systemName: "arrow.up.right.square")
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
+                            }
+                        }
+                        .listRowBackground(AppColors.cream)
+
                         Link(destination: AppLegalLinks.privacyPolicyURL) {
                             HStack {
                                 Text(AppCopy.settingsPrivacyPolicyRow(appState.currentLanguage))

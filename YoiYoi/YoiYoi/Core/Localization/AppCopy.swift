@@ -495,10 +495,14 @@ enum AppCopy {
         switch l { case .ja: "プライバシーポリシー"; case .en: "Privacy policy" }
     }
 
+    static func settingsTermsOfServiceRow(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "利用規約（EULA）"; case .en: "Terms of use (EULA)" }
+    }
+
     static func settingsDataPrivacyFooter(_ l: SupportedLanguage) -> String {
         switch l {
-        case .ja: "CSV はこの端末内の記録のみです。共有先にはご注意ください。"
-        case .en: "The CSV contains only records stored on this device. Be careful where you share it."
+        case .ja: "法務ページは GitHub Pages で公開しています。CSV はこの端末内の記録のみです。"
+        case .en: "Legal pages are on GitHub Pages. The CSV contains only records on this device."
         }
     }
 
