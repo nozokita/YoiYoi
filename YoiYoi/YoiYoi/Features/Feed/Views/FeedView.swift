@@ -106,8 +106,9 @@ struct FeedView: View {
                 }
             }
             .padding(.vertical, AppSpacing.xs)
-            .padding(.horizontal, AppSpacing.xs)
+            .padding(.horizontal, AppSpacing.md)
         }
+        .scrollClipDisabled()
         /// 外側の縦 `ScrollView` とのネストで高さが 0 になり白画面になるのを防ぐ。
         .frame(height: 48)
     }

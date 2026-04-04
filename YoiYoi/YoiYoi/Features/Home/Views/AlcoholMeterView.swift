@@ -65,7 +65,7 @@ struct AlcoholMeterView: View {
                     .foregroundStyle(AppColors.pureWhite.opacity(0.7))
             }
         }
-        .frame(width: 160, height: 160)
+        .frame(width: 140, height: 140)
     }
 
     private var formattedConsumed: String {
