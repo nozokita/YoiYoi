@@ -9,7 +9,8 @@ struct HomeView: View {
 
     @State private var viewModel = HomeViewModel()
 
-    private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
+    /// メーター＋サブテキストが収まり、下のカード負マージンで隠れないよう少し高めにする。
+    private var heroHeight: CGFloat { WaveHeroLayout.heroHeight(fraction: 0.40, minimum: 300) }
 
     /// 縦 `ScrollView` 内の横 `ScrollView` は高さ未確定だと全体レイアウトが潰れて真っ白になることがある（`docs/DEBUG_WHITE_SCREEN.md`）。
     private var drinkPillRowHeight: CGFloat { 44 }
@@ -37,10 +38,11 @@ struct HomeView: View {
 
                     Text(viewModel.meterSubtext(language: appState.currentLanguage))
                         .font(AppFonts.heroSubtitle())
-                        .foregroundStyle(AppColors.pureWhite.opacity(0.85))
+                        .foregroundStyle(AppColors.pureWhite.opacity(0.95))
                         .multilineTextAlignment(.center)
+                        .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 1)
                 }
-                .padding(.bottom, 4)
+                .padding(.bottom, AppSpacing.md)
             }
             .frame(height: heroHeight)
             .frame(maxWidth: .infinity)
@@ -52,7 +54,8 @@ struct HomeView: View {
                     feedPreviewSection
                 }
                 .padding(.horizontal, AppSpacing.lg)
-                .padding(.top, -AppSpacing.lg)
+                /// 強い負マージンはヒーロー内の白文字をカード下に隠す。重なりは控えめに。
+                .padding(.top, -AppSpacing.sm)
                 .padding(.bottom, AppSpacing.xxl)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(AppColors.cream)

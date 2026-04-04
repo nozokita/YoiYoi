@@ -38,12 +38,14 @@ struct FeedView: View {
                 .frame(maxWidth: .infinity)
 
                 ScrollView {
-                    VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                    VStack(alignment: .leading, spacing: AppSpacing.md) {
                         languageFilterRow
                         feedList
                     }
                     .padding(.horizontal, AppSpacing.lg)
-                    .padding(.top, -AppSpacing.lg)
+                    /// 負の top はピル行ごとヒーロー波の下に潜り、クリーム背景に隠れて見切れる原因になる。
+                    /// ピルは常に波より下のクリーム上に置く。
+                    .padding(.top, AppSpacing.md)
                     .padding(.bottom, AppSpacing.xxl)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .background(AppColors.cream)
@@ -105,12 +107,12 @@ struct FeedView: View {
                     .buttonStyle(.plain)
                 }
             }
-            .padding(.vertical, AppSpacing.xs)
-            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.sm)
+            .padding(.horizontal, AppSpacing.sm)
         }
         .scrollClipDisabled()
         /// 外側の縦 `ScrollView` とのネストで高さが 0 になり白画面になるのを防ぐ。
-        .frame(height: 48)
+        .frame(height: 52)
     }
 
     @ViewBuilder
