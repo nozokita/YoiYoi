@@ -183,6 +183,17 @@ struct SettingsRootView: View {
                             .foregroundStyle(AppColors.greyText.opacity(0.9))
                     }
 
+                    Section {
+                        Text(AppCopy.settingsMedicalDisclaimer(appState.currentLanguage))
+                            .font(AppFonts.sublabel(for: appState.currentLanguage, size: 12))
+                            .foregroundStyle(AppColors.greyText)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, AppSpacing.sm)
+                            .listRowBackground(AppColors.cream)
+                            .listRowSeparator(.hidden)
+                    }
+
                     #if DEBUG
                     Section {
                         Button {

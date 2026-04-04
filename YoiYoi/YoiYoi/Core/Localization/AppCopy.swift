@@ -506,6 +506,16 @@ enum AppCopy {
         }
     }
 
+    /// DESIGN.md「設定画面」・SPEC 免責（12pt 相当で表示）
+    static func settingsMedicalDisclaimer(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja:
+            "⚠️ 本アプリは医療アドバイスや診断を提供するものではありません。表示される数値は目安であり、健康上の判断は医師等の専門家にご相談ください。"
+        case .en:
+            "⚠️ This app is not medical advice or a diagnostic tool. Numbers are for reference only; consult a qualified professional for health decisions."
+        }
+    }
+
     static func settingsExportTitle(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "記録のエクスポート"; case .en: "Export logs" }
     }
