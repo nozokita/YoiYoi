@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// DESIGN.md「ホーム画面」— ウェーブヒーロー + カード群（今週のまとめ / 今日のドリンク / みんなの様子プレースホルダー）。
+/// DESIGN.md「ホーム画面」— ウェーブヒーロー + ローカルの振り返りカード群。
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
@@ -21,7 +21,7 @@ struct HomeView: View {
         VStack(spacing: 0) {
             WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
                 VStack(spacing: 6) {
-                    Text(viewModel.nicknameLine(language: appState.currentLanguage))
+                    Text(AppCopy.homePureAlcoholLabel(appState.currentLanguage))
                         .font(AppFonts.heroSubtitle())
                         .foregroundStyle(AppColors.pureWhite.opacity(0.85))
                         .multilineTextAlignment(.center)
@@ -51,7 +51,6 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: AppSpacing.lg) {
                     weeklySummarySection
                     todayDrinksSection
-                    feedPreviewSection
                 }
                 .padding(.horizontal, AppSpacing.lg)
                 /// 強い負マージンはヒーロー内の白文字をカード下に隠す。重なりは控えめに。
@@ -171,56 +170,6 @@ struct HomeView: View {
             .background(AppColors.coralLight)
             .clipShape(Capsule())
     }
-
-    // MARK: - みんなの様子（Phase 8 までプレースホルダー）
-
-    private var feedPreviewSection: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.md) {
-            Text(AppCopy.homeFeedPreview(appState.currentLanguage))
-                .font(AppFonts.cardTitle())
-                .foregroundStyle(AppColors.charcoal)
-
-            FeedPreviewPlaceholderRow(
-                language: appState.currentLanguage,
-                flagEmoji: "🇺🇸",
-                nickname: "⭐ ChillFox",
-                message: "目標内！ビール×2で28g 🎉",
-                reactions: "👏12  🔥8"
-            )
-
-            Rectangle()
-                .fill(AppColors.greyText.opacity(0.2))
-                .frame(height: 1)
-                .padding(.vertical, AppSpacing.xs)
-
-            FeedPreviewPlaceholderRow(
-                language: appState.currentLanguage,
-                flagEmoji: "🇯🇵",
-                nickname: "🌸 のんびりパンダ",
-                message: "休肝日！3日連続 🌿",
-                reactions: "💪5  🫂3"
-            )
-
-            Button {
-                NotificationCenter.default.post(
-                    name: .switchMainTab,
-                    object: nil,
-                    userInfo: [MainTabNotification.tabIndexKey: 2]
-                )
-            } label: {
-                Text(AppCopy.homeSeeMore(appState.currentLanguage))
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
-                    .foregroundStyle(AppColors.coralRed)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.top, AppSpacing.sm)
-            }
-            .buttonStyle(.plain)
-            .opacity(FeatureFlags.isFeedEnabled ? 1 : 0.45)
-        }
-        .padding(AppSpacing.lg)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .contentCard(themeColor: AppColors.coralRed)
-    }
 }
 
 // MARK: - ミニ Stat（今週のまとめ内）
@@ -249,31 +198,6 @@ private struct HomeMiniStatCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(background)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-    }
-}
-
-// MARK: - フィードプレビュー行（ダミー）
-
-private struct FeedPreviewPlaceholderRow: View {
-    let language: SupportedLanguage
-    let flagEmoji: String
-    let nickname: String
-    let message: String
-    let reactions: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text("\(flagEmoji) \(nickname)")
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(AppColors.charcoal)
-            Text(message)
-                .font(AppFonts.body(for: language, size: 14))
-                .foregroundStyle(AppColors.greyText)
-            Text(reactions)
-                .font(AppFonts.sublabel(for: language, size: 13))
-                .foregroundStyle(AppColors.greyText)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

@@ -1,8 +1,8 @@
 import SwiftData
 import SwiftUI
 
-/// SPEC「オンボーディング（5ステップ）」: EULA → 言語 → 性別・目標 → ニックネーム → ホーム。
-/// EULA はページインジケーターに含めない（言語 / 性別 / ニックネームの 3 ドット）。
+/// Lean MVP 移行中のオンボーディング: 言語 → 性別・目安 → ホーム。
+/// コーチ性格選択は AI コーチ実装と同時に 3 画面目として追加する。
 struct OnboardingContainerView: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.modelContext) private var modelContext
@@ -18,29 +18,18 @@ struct OnboardingContainerView: View {
                 Group {
                     switch currentStep {
                     case 0:
-                        EULAView(vm: vm, displayLanguage: appState.currentLanguage) {
-                            currentStep = 1
-                        }
-                    case 1:
                         LanguageSelectView(vm: vm, displayLanguage: appState.currentLanguage) {
                             if let lang = vm.selectedLanguage {
                                 appState.currentLanguage = lang
                             }
-                            currentStep = 2
+                            currentStep = 1
                         }
-                    case 2:
+                    case 1:
                         GenderGoalView(
                             vm: vm,
                             language: vm.selectedLanguage ?? .ja,
-                            onBack: { currentStep = 1 },
-                            onContinue: { currentStep = 3 }
-                        )
-                    case 3:
-                        NicknameSelectView(
-                            vm: vm,
-                            language: vm.selectedLanguage ?? .ja,
-                            onBack: { currentStep = 2 },
-                            onComplete: finishOnboarding
+                            onBack: { currentStep = 0 },
+                            onContinue: finishOnboarding
                         )
                     default:
                         EmptyView()
@@ -48,10 +37,8 @@ struct OnboardingContainerView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-                if currentStep >= 1, currentStep <= 3 {
-                    pageIndicator
-                        .padding(.bottom, AppSpacing.lg)
-                }
+                pageIndicator
+                    .padding(.bottom, AppSpacing.lg)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -70,9 +57,9 @@ struct OnboardingContainerView: View {
 
     private var pageIndicator: some View {
         HStack(spacing: AppSpacing.sm) {
-            ForEach(0..<3, id: \.self) { index in
+            ForEach(0..<2, id: \.self) { index in
                 Circle()
-                    .fill(index == currentStep - 1 ? AppColors.coralRed : AppColors.greyText.opacity(0.35))
+                    .fill(index == currentStep ? AppColors.coralRed : AppColors.greyText.opacity(0.35))
                     .frame(width: 8, height: 8)
             }
         }

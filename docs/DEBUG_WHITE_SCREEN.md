@@ -3,7 +3,7 @@
 ## 原因として多かったもの（YoiYoi での対応）
 
 - **システム `TabView` + `UITabBar.appearance()`** の組み合わせで **ログだけ出て中身が真っ白**になることがある → **`TabView` を廃止し自前タブ**（[`ContentView.swift`](../YoiYoi/YoiYoi/App/ContentView.swift)）に変更済み。
-- **起動は SwiftUI 標準** … **`@main` は [`YoiYoiApp.swift`](../YoiYoi/YoiYoi/App/YoiYoiApp.swift)** の `WindowGroup`。Firebase などは [`YoiYoiAppDelegate.swift`](../YoiYoi/YoiYoi/App/YoiYoiAppDelegate.swift) を **`@UIApplicationDelegateAdaptor`** で接続（手動 `UIWindow` / 専用 `SceneDelegate` は使わない。ログは出るのに真っ白になる事例の回避）。
+- **起動は SwiftUI 標準** … **`@main` は [`YoiYoiApp.swift`](../YoiYoi/YoiYoi/App/YoiYoiApp.swift)** の `WindowGroup`。フォアグラウンドでのローカル通知表示は [`YoiYoiAppDelegate.swift`](../YoiYoi/YoiYoi/App/YoiYoiAppDelegate.swift) を **`@UIApplicationDelegateAdaptor`** で接続して処理する。
 - **ルート直下の `GeometryReader` + `ScrollView`** … 親（例: `ContentView` の `VStack`）から **高さ 0** が提案されると **`ScrollView` ごと潰れ**、ログは出るのに真っ白になることがある。ホーム／カレンダー／フィードのヒーロー高は [`WaveHeroLayout.swift`](../YoiYoi/YoiYoi/Core/Utilities/WaveHeroLayout.swift) の **`UIScreen.main.bounds` ベース**で決め、`GeometryReader` は使わない。
 - **`VStack { ScrollView…; 固定タブバー }` のメインシェル** … 上段だけ `frame(maxHeight: .infinity)` でも、**タブバーを兄弟に置く**と環境によって **ScrollView に縦 0 が渡る**ことがある。対策のひとつ: メインに **`safeAreaInset(edge: .bottom)`** でタブを載せる。
 - **`onAppear` は出るのに真っ白** … シェルは生きているが **子画面（例: `HomeView`）の中身**が描画されていない可能性。グラデ＋`clipShape`、ネストした `ScrollView`、`TimelineView` などを **1ブロックずつ外して**切り分ける。
@@ -93,17 +93,15 @@
 
 | ログ | 意味 |
 |------|------|
-| `YoiYoiAppDelegate.didFinishLaunching（Firebase 前）` | `UIApplicationDelegate` が動いている |
+| `YoiYoiAppDelegate.didFinishLaunching` | 通知 delegate を設定する `UIApplicationDelegate` が動いている |
 | `YoiYoiApp.init 開始` / `ModelContainer 作成成功` | SwiftUI `App` が起動し SwiftData を開けている |
 | `WindowGroup ルート onAppear` | `WindowGroup` のルートが表示された |
-| `FirebaseBootstrap: … configure スキップ` | `GoogleService-Info.plist` がバンドルにない（Firebase はオフ） |
 | `AppRootView.onAppear … Onboarding` / `ContentView` | どちらの画面に分岐したか |
-| `OnboardingContainerView.onAppear step=0` | オンボ EULA から始まっている |
+| `OnboardingContainerView.onAppear step=0` | オンボの言語選択から始まっている |
 
 ## 4. Xcode コンソールのログ
 
 - **`[YoiYoi Launch]`** で始まる行は、このアプリの **起動診断**です。  
-- **`I-COR000003`** … Firebase 未 `configure`（plist がバンドルにないと出やすい）。**白画面の直接原因とは限りません。**  
 - **`load_eligibility_plist`** … **シミュレーター OS のノイズ**で、アプリとは無関係です。
 
 ## 5. macOS の Console.app（上級）
@@ -195,10 +193,6 @@
 ### 手順 D — 引数を元に戻す
 
 切り分けが終わったら、**Edit Scheme → Run → Arguments** で **`-YoiYoiMinimal` の行を削除**するか **チェックを外す**。そのままだと常に MINIMAL 画面になります。
-
----
-
-関連: [FIREBASE_AND_SIMULATOR_LOGS.md](FIREBASE_AND_SIMULATOR_LOGS.md)
 
 ---
 

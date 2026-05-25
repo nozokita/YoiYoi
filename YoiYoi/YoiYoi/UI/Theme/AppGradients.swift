@@ -14,7 +14,7 @@ enum AppGradients {
         endPoint: .bottom
     )
 
-    static let heroFeed = LinearGradient(
+    static let heroSession = LinearGradient(
         colors: [AppColors.sunnyYellow, AppColors.yellowLight],
         startPoint: .top,
         endPoint: .bottom

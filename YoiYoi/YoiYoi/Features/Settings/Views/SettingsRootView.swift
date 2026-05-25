@@ -6,16 +6,10 @@ struct SettingsRootView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var appState: AppState
 
-    @Query private var profiles: [UserProfile]
-
     @State private var showGoalsEditor = false
-    @State private var showNicknameEditor = false
     @State private var showNotificationsEditor = false
-    @State private var showDataExport = false
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
-
-    private var profile: UserProfile? { profiles.first }
 
     private var appVersionLine: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
@@ -35,9 +29,6 @@ struct SettingsRootView: View {
                             .font(AppFonts.heroSubtitle())
                             .foregroundStyle(AppColors.pureWhite.opacity(0.85))
 
-                        if let p = profile {
-                            settingsProfileCard(p)
-                        }
                     }
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
@@ -100,20 +91,6 @@ struct SettingsRootView: View {
                             }
                         }
                         .listRowBackground(AppColors.cream)
-
-                        Button {
-                            showNicknameEditor = true
-                        } label: {
-                            HStack {
-                                Text(AppCopy.settingsNicknameRow(appState.currentLanguage))
-                                    .foregroundStyle(AppColors.charcoal)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
-                            }
-                        }
-                        .listRowBackground(AppColors.cream)
                     } header: {
                         Text(AppCopy.settingsSectionGoalsProfile(appState.currentLanguage))
                             .font(.caption)
@@ -143,32 +120,6 @@ struct SettingsRootView: View {
                     }
 
                     Section {
-                        Button {
-                            showDataExport = true
-                        } label: {
-                            HStack {
-                                Text(AppCopy.settingsExportRow(appState.currentLanguage))
-                                    .foregroundStyle(AppColors.charcoal)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
-                            }
-                        }
-                        .listRowBackground(AppColors.cream)
-
-                        Link(destination: AppLegalLinks.termsOfServiceURL) {
-                            HStack {
-                                Text(AppCopy.settingsTermsOfServiceRow(appState.currentLanguage))
-                                    .foregroundStyle(AppColors.charcoal)
-                                Spacer()
-                                Image(systemName: "arrow.up.right.square")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
-                            }
-                        }
-                        .listRowBackground(AppColors.cream)
-
                         Link(destination: AppLegalLinks.privacyPolicyURL) {
                             HStack {
                                 Text(AppCopy.settingsPrivacyPolicyRow(appState.currentLanguage))
@@ -208,10 +159,9 @@ struct SettingsRootView: View {
                             DebugOnboarding.resetForReplay(
                                 modelContext: modelContext,
                                 appState: appState,
-                                fromEULA: true
                             )
                         } label: {
-                            Text("🔧 DEBUG: オンボを再表示（EULA から）")
+                            Text("🔧 DEBUG: オンボを再表示")
                                 .font(.subheadline)
                                 .foregroundStyle(AppColors.warmCoral)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -250,50 +200,11 @@ struct SettingsRootView: View {
                 SettingsGoalsEditView()
                     .environmentObject(appState)
             }
-            .sheet(isPresented: $showNicknameEditor) {
-                SettingsNicknameEditView()
-                    .environmentObject(appState)
-            }
             .sheet(isPresented: $showNotificationsEditor) {
                 SettingsNotificationsView()
                     .environmentObject(appState)
             }
-            .sheet(isPresented: $showDataExport) {
-                SettingsDataExportView()
-                    .environmentObject(appState)
-            }
         }
-    }
-
-    /// DESIGN.md「プロフィールカード（フロスト）」— ニックネーム + 変更ボタン
-    private func settingsProfileCard(_ p: UserProfile) -> some View {
-        VStack(spacing: 4) {
-            Text("\(p.nicknameFlag)\(p.nicknameEmoji)")
-                .font(.system(size: 32))
-
-            Text("\(p.nicknameAdjective)\(p.nicknameNoun)")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.pureWhite)
-
-            Button {
-                showNicknameEditor = true
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 12, weight: .semibold))
-                    Text(AppCopy.settingsNicknameRow(appState.currentLanguage))
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                }
-                .foregroundStyle(AppColors.pureWhite.opacity(0.7))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, AppSpacing.lg)
-        .padding(.vertical, AppSpacing.md)
-        .frame(maxWidth: .infinity)
-        .background(.ultraThinMaterial.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .padding(.horizontal, AppSpacing.xl)
     }
 
     private func syncLanguageToProfile(_ lang: SupportedLanguage) {

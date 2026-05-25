@@ -1,456 +1,609 @@
-# YoiYoi 仕様書 v5.0 — MVP 実装版
-> 最終更新: 2026.03.21
+# YoiYoi 仕様書 v2.0 — Lean MVP 実装合意候補
+> 最終更新: 2026.05.26
+>
+> ステータス: 不要機能の除去と日英対応維持の方針は実装へ反映済み。クイック記録、セッション、ローカルコーチは次期実装対象。
 
 ## 概要
 
 | 項目 | 内容 |
 |------|------|
 | アプリ名 | YoiYoi |
-| コンセプト | ゆるふわ飲酒トラッカー × 世界のみんなで励まし合い |
-| ターゲット | 20-40代の飲酒習慣を管理したいユーザー |
-| プラットフォーム | iOS 17+ (iPhone) |
-| 言語（MVP） | 日本語（デフォルト）・英語 |
-| 言語（将来） | 韓国語・その他（多言語追加を容易にする設計） |
-| 収益 | v1.0 は広告なし。MAU 300-500 到達後に AdMob Adaptive Banner 導入 |
-| デザイン | [DESIGN.md](./DESIGN.md) 参照 |
+| コンセプト | 楽しく、無理しないペースでアルコール摂取量をコントロールするパーソナル飲酒トラッカー |
+| ターゲット | 飲酒習慣を管理したい、つい飲みすぎてしまうユーザー |
+| プラットフォーム | iOS 18+ (iPhone)。AI 生成は iOS 26+ かつ Apple Intelligence 利用可能時に提供 |
+| Apple Watch | iPhone の通知がシステム設定に応じて Watch へ転送される。Watch アプリは MVP 対象外 |
+| 推奨端末 | Apple Intelligence 対応端末（AI 生成用）。非対応端末でもテンプレートコーチで全機能を利用可能 |
+| 言語 | 日本語・英語（MVP）。将来は追加言語へ拡張可能な設計を維持 |
+| 収益 | v2.0 は広告なし。将来的に AdMob + 広告非表示サブスクを検討 |
+| デザイン | [DESIGN.md](./DESIGN.md) v2.0 のデザイン方針を踏襲 |
 
-## 多言語設計方針
+## コア4本柱
 
-MVP では JA / EN の2言語のみ対応するが、以下の設計で言語追加を容易にする。
+このアプリが提供する価値はこの4つに集約される。これ以外の機能は持たない。
 
-- **全 UI 文字列**: String Catalogs (.xcstrings) で管理。新言語追加は .xcstrings にロケール追加のみ。
-- **ニックネームデータ**: `adjectives_{lang}.json` / `nouns_{lang}.json` 形式。新言語は JSON ファイル追加のみ。
-- **フィードテンプレート**: Localizable.xcstrings 内のキーで管理。新言語はキーの翻訳追加のみ。
-- **フォント定義**: `AppFonts.swift` で言語ごとのフォントファミリーを定義。新言語はケース追加のみ。
-- **言語選択UI**: `LanguageSelectView` はデータ駆動で、`SupportedLanguage` enum にケース追加すれば自動表示。
+| # | 柱 | 内容 |
+|---|-----|------|
+| 1 | **飲酒トラッカー** | 飲んだお酒の種類・量・度数から純アルコール量(g)を自動計算し、設定した目安と比較 |
+| 2 | **記録** | 日々の飲酒をSwiftDataに保存し、カレンダーで振り返れる |
+| 3 | **通知** | 飲み会モード中の水分補給リマインド。iPhone で通知し、条件を満たせば Watch に転送 |
+| 4 | **ローカルAI** | 利用可能な端末ではオンデバイス LLM、その他はローカルテンプレートでコーチング |
 
+### プロダクト原則
+
+- 飲酒そのものを否定せず、楽しい時間を保ちながら自分のペースを意識できる体験にする。
+- 記録は負担にしない。飲んでいる場面でも数秒で残せるショートカットを中心にする。
+- 目安はユーザーが自分で調整できる基準として扱い、安全量や追加で飲んでよい量とは表現しない。
+- 記録内容は端末内に保存され、アカウントやクラウド共有なしで使える安心感を初回体験とストア表示で伝える。
+
+### 完全オフラインの定義
+
+- アカウント作成、Firebase、独自サーバー、分析 SDK、広告 SDK、クラウド同期を含めない。
+- 飲酒記録、プロフィール、セッション履歴、お気に入りドリンク設定は `SwiftData` に端末内保存する。
+- 通知は `UNUserNotificationCenter` のローカル通知だけを使用する。
+- Foundation Models 利用時も、入力する集計値は端末内で処理される Apple のオンデバイスモデル向けに限定する。
+- Apple Intelligence のモデル取得や利用可否は OS が管理するため、アプリは利用不可状態を正常系として扱い、常にテンプレートへフォールバックする。
+
+### ❌ 持たないもの（意図的な不採用）
+
+| 不採用機能 | 理由 |
+|-----------|------|
+| SNS / フィード / リアクション | ソーシャル全面廃止。サーバー運用コスト・UGC審査リスクがゼロに |
+| Firebase（Auth / Firestore） | サーバー不要。完全オフライン完結 |
+| EULA 同意フロー | SNSがないため初回同意画面は設けない。免責とプライバシーポリシー導線は設定に残す |
+| ニックネームシステム（国旗+絵文字+形容詞+名詞） | ソーシャルでの匿名ID用だった。パーソナルアプリには不要 |
+| 通報・ブロック | ソーシャルなし → 不要 |
+| データエクスポート（CSV） | v2.0 MVPでは省略。将来的に設定画面に追加可能 |
+| ダークモード | v2.0 MVPでは省略 |
+
+### 言語とローカライゼーション方針
+
+- MVP は日本語 (`ja`) と英語 (`en`) を提供する。初回オンボーディングで選択でき、設定画面でいつでも切り替え可能にする。
+- `SupportedLanguage` と言語別の UI 文言管理は維持する。新機能のテキストも JA/EN の双方を実装対象とする。
+- 将来の追加言語では、`SupportedLanguage` へのケース追加、ローカライズ文字列、必要なフォント調整で広げられる構成を維持する。
+- 飲酒記録やお気に入りの保存形式は言語に依存しない識別子を使い、表示文言だけを選択言語で切り替える。
+
+---
+
+## v1.0 → v2.0 削除対象ファイル一覧
+
+| ファイル / ディレクトリ | 理由 |
+|----------------------|------|
+| `App/FirebaseBootstrap.swift` | Firebase 撤去 |
+| `Core/Services/AuthService.swift` | Firebase Auth |
+| `Core/Services/FirestoreService.swift` | Firestore |
+| `Core/Services/FeedGenerator.swift` | フィード投稿生成 |
+| `Core/Services/FeedFirestoreSync.swift` | Firestore 同期 |
+| `Core/Services/FeedPost+Firestore.swift` | Firestore 変換 |
+| `Core/Services/DataExportService.swift` | MVP では省略 |
+| `Core/Models/FeedPost.swift` | フィードモデル |
+| `Core/Models/NicknamePresets.swift` | ニックネーム用 |
+| `Features/Feed/` 配下すべて | フィード UI |
+| `Features/Onboarding/Views/EULAView.swift` | EULA 画面 |
+| `Features/Onboarding/Views/NicknameSelectView.swift` | ニックネーム選択 |
+| `Features/Settings/Views/SettingsNicknameEditView.swift` | ニックネーム編集 |
+| `Features/Settings/Views/SettingsDataExportView.swift` | CSV エクスポート |
+| `UI/Components/FlagPicker.swift` | 国旗ピッカー |
+| `Resources/EULA/` 配下すべて | EULA テキスト |
+| `Resources/NicknameData/` 配下すべて | ニックネーム JSON |
+| `firestore.rules` | セキュリティルール |
+| `FirestoreRulesTests/` 配下すべて | ルールテスト |
+| Firebase SPM パッケージ依存 | Package.resolved から除去 |
+
+### 維持する起動処理
+
+- `App/YoiYoiAppDelegate.swift` はローカル通知をフォアグラウンド表示する `UNUserNotificationCenterDelegate` として維持する。削除するのはクラウド初期化処理のみとする。
+
+### 維持する法務導線
+
+- App Store Connect ではプライバシーポリシー URL が必須で、アプリ内にも容易に到達できるリンクを置く。
+- `Core/Legal/AppLegalLinks.swift` と `docs/legal/privacy.html` は、完全オフライン方針に文面を更新した上で維持する。
+- 初回の EULA 同意 UI と、旧ソーシャル機能を前提にした利用規約本文は撤去する。
+
+---
+
+## データモデル
+
+### AlcoholByVolume（既存踏襲）
 ```swift
-// 言語追加の手順（例: 韓国語追加）
-// 1. SupportedLanguage enum に .ko を追加
-// 2. Localizable.xcstrings に ko ロケール追加・翻訳
-// 3. adjectives_ko.json, nouns_ko.json を Resources/NicknameData/ に追加
-// 4. AppFonts.swift に ko 用フォント（Apple SD Gothic Neo）を追加
-// コード変更は enum の1行 + フォント定義の数行のみ
+struct AlcoholByVolume: Codable, Hashable, Sendable {
+    let fraction: Double                          // 0.0〜1.0
+    var percentage: Double { fraction * 100 }
+    static func fromPercentage(_ percent: Double) -> AlcoholByVolume { ... }
+    static func fromFraction(_ value: Double) -> AlcoholByVolume { ... }
+}
 ```
 
-## プロジェクト構造
+### DrinkRecord (SwiftData — 既存踏襲 + 微拡張)
+```swift
+@Model
+final class DrinkRecord {
+    @Attribute(.unique) var id: UUID = UUID()
+    var drinkType: String
+    var volumeML: Double
+    var abvFraction: Double
+    var pureAlcoholGrams: Double
+    var numberOfDrinks: Int
+    var loggedAt: Date
+    var weekNumber: Int
+    var yearNumber: Int
+    var sessionID: UUID?       // ★ 追加: 飲み会セッションとの紐付け（nil = セッション外）
+}
+```
+
+### UserProfile (SwiftData — 大幅スリム化)
+```swift
+@Model
+final class UserProfile {
+    @Attribute(.unique) var id: UUID = UUID()
+    var gender: String = "male"
+    var weeklyGoalGrams: Double = 280
+    var dailyGoalGrams: Double = 40
+    var language: String = "ja"                  // SupportedLanguage.rawValue
+    var onboardingCompleted: Bool = false
+    var createdAt: Date = Date()
+
+    // AIコーチ設定
+    var aiCoachPersonality: String = "friendly"   // CoachPersonality.rawValue
+    var hydrationIntervalMinutes: Int = 30        // 水分補給通知の間隔（分）
+    var lastOrderReminderEnabled: Bool = true     // ラストオーダーリマインド
+}
+```
+
+> **削除フィールド**: `firebaseUID`, `nicknameFlag`, `nicknameEmoji`, `nicknameAdjective`, `nicknameNoun`, `eulaAccepted`, `eulaAcceptedAt`, `blockedUIDsData`。`language` は JA/EN 設定保持のため維持する。
+
+### CoachPersonality (新規)
+```swift
+enum CoachPersonality: String, CaseIterable, Codable, Identifiable {
+    case strict    = "strict"     // 🔥 スパルタ
+    case gentle    = "gentle"     // 🌸 やさしめ
+    case friendly  = "friendly"   // 😎 フレンドリー
+    case sarcastic = "sarcastic"  // 😏 毒舌
+
+    var id: String { rawValue }
+    var displayName: String { ... }
+    var personalityInstruction: String { ... }  // LLM の System Prompt に組み込む性格文
+}
+```
+
+### DrinkingSession (SwiftData — 新規)
+```swift
+@Model
+final class DrinkingSession {
+    @Attribute(.unique) var id: UUID = UUID()
+    var startTime: Date
+    var endTime: Date?                    // nil = 進行中
+    var hydrationCount: Int = 0           // 水を飲んだ回数
+    var preventedLastOrder: Bool = false   // 余計な1杯を我慢できたか
+    var isActive: Bool { endTime == nil }
+}
+```
+
+### QuickDrinkPreset (SwiftData — 新規)
+```swift
+@Model
+final class QuickDrinkPreset {
+    @Attribute(.unique) var id: UUID = UUID()
+    var displayName: String
+    var drinkType: String
+    var volumeML: Double
+    var abvFraction: Double
+    var numberOfDrinks: Int
+    var sortOrder: Int
+    var createdAt: Date = Date()
+}
+```
+
+**クイック記録ルール**:
+- **お気に入り**: ユーザーがよく飲む組み合わせを最大6件まで保存し、並べ替え・編集・削除できる。
+- **最近使った記録**: `DrinkRecord` の最新履歴から、種類・容量・度数・杯数が同一のものを重複排除して直近5件を表示する。別モデルには保存しない。
+- お気に入りまたは最近使った記録をタップすると、その内容で `DrinkRecord` を即時保存する。
+- 誤タップ対策として、ワンタップ保存後に5秒間の「取り消す」アクションを表示する。
+- 飲み会モード中のクイック記録にも、現在の `sessionID` を自動設定する。
+
+### データ移行方針
+
+- 既存の `DrinkRecord` は保持し、`sessionID` は移行時に `nil` として扱う。
+- 既存の `UserProfile` は目標値・性別・オンボーディング完了状態を引き継ぎ、廃止フィールドは読み出さない。
+- 新しい AI/通知設定は既定値（`friendly`、30分、ラストオーダー ON）で補完する。
+- `QuickDrinkPreset` は新規追加とし、既存ユーザーはお気に入り未設定で開始する。最近使った記録は既存 `DrinkRecord` から自動表示できる。
+- 開発中の破損したシミュレーターストアに対するリセット手順は維持するが、リリース済みユーザーデータの消去を移行手段にしない。
+
+---
+
+## プロジェクト構造（v2.0）
 
 ```
 YoiYoi/
 ├── App/
 │   ├── YoiYoiApp.swift
-│   ├── YoiYoiAppDelegate.swift
 │   ├── AppState.swift
-│   ├── ContentView.swift          # TabView ルート
-│   ├── FeatureFlags.swift
-│   └── FirebaseBootstrap.swift    # FirebaseCore 条件付き configure（plist なしでもビルド可）
+│   ├── AppRootView.swift
+│   ├── YoiYoiAppDelegate.swift        # フォアグラウンド通知表示
+│   └── ContentView.swift              # 3タブ + FAB
 ├── Features/
-│   ├── Onboarding/
+│   ├── Onboarding/                    # 3画面に簡素化
 │   │   ├── Views/
 │   │   │   ├── OnboardingContainerView.swift
-│   │   │   ├── EULAView.swift
 │   │   │   ├── LanguageSelectView.swift
 │   │   │   ├── GenderGoalView.swift
-│   │   │   └── NicknameSelectView.swift
+│   │   │   └── CoachPersonalitySelectView.swift   # ★ 新規
 │   │   └── ViewModels/
 │   │       └── OnboardingViewModel.swift
 │   ├── Home/
 │   │   ├── Views/
 │   │   │   ├── HomeView.swift
-│   │   │   ├── WaveHeroView.swift         # ★ 共通ウェーブヒーロー
+│   │   │   ├── WaveHeroView.swift
 │   │   │   ├── AlcoholMeterView.swift
-│   │   │   └── StatCardView.swift
+│   │   │   ├── AICoachBubbleView.swift            # ★ 新規
+│   │   │   └── SessionStartCardView.swift         # ★ 新規
 │   │   └── ViewModels/
 │   │       └── HomeViewModel.swift
-│   ├── DrinkLog/
+│   ├── DrinkLog/                      # 既存踏襲
+│   │   ├── Views/ ...
+│   │   └── ViewModels/ ...
+│   ├── Session/                       # ★ 新規
 │   │   ├── Views/
-│   │   │   ├── DrinkLogSheet.swift
-│   │   │   ├── DrinkGridView.swift
-│   │   │   └── QuantitySliderView.swift
+│   │   │   ├── ActiveSessionView.swift
+│   │   │   ├── SessionTimerView.swift
+│   │   │   └── LastOrderAlertView.swift
 │   │   └── ViewModels/
-│   │       └── DrinkLogViewModel.swift
-│   ├── Calendar/
-│   │   ├── Views/
-│   │   │   ├── CalendarView.swift
-│   │   │   └── DayCellView.swift
-│   │   └── ViewModels/
-│   │       └── CalendarViewModel.swift
-│   ├── Feed/
-│   │   ├── Views/
-│   │   │   ├── FeedView.swift
-│   │   │   ├── FeedCardView.swift
-│   │   │   └── ReactionBarView.swift
-│   │   └── ViewModels/
-│   │       └── FeedViewModel.swift
+│   │       └── SessionViewModel.swift
+│   ├── Calendar/                      # 既存踏襲
+│   │   ├── Views/ ...
+│   │   └── ViewModels/ ...
 │   └── Settings/
-│       ├── Views/
-│       │   ├── SettingsView.swift
-│       │   └── NicknameEditView.swift
-│       └── ViewModels/
-│           └── SettingsViewModel.swift
+│       └── Views/
+│           ├── SettingsRootView.swift  # スリム化
+│           ├── SettingsGoalsEditView.swift
+│           ├── SettingsNotificationsView.swift
+│           └── CoachSettingsView.swift # ★ 新規
 ├── Core/
 │   ├── Models/
 │   │   ├── DrinkRecord.swift
 │   │   ├── DrinkType.swift
 │   │   ├── AlcoholByVolume.swift
-│   │   ├── UserProfile.swift
-│   │   ├── FeedPost.swift
-│   │   ├── SupportedLanguage.swift
-│   │   └── NicknamePresets.swift
+│   │   ├── SupportedLanguage.swift    # JA / EN、追加言語へ拡張
+│   │   ├── UserProfile.swift          # スリム化
+│   │   ├── DrinkingSession.swift      # ★ 新規
+│   │   ├── QuickDrinkPreset.swift     # ★ 新規
+│   │   └── CoachPersonality.swift     # ★ 新規
 │   ├── Services/
 │   │   ├── AlcoholCalculator.swift
-│   │   ├── FirestoreService.swift
-│   │   ├── AuthService.swift
-│   │   └── FeedGenerator.swift
+│   │   ├── NotificationService.swift  # 拡張（水分補給通知を追加）
+│   │   ├── LocalAICoachService.swift  # ★ 新規
+│   │   └── SessionManager.swift       # ★ 新規
 │   └── Extensions/
 │       ├── Date+Ext.swift
 │       ├── Color+Ext.swift
 │       └── View+Ext.swift
-├── UI/
-│   ├── Theme/
-│   │   ├── AppColors.swift
-│   │   ├── AppFonts.swift
-│   │   ├── AppGradients.swift
-│   │   └── AppSpacing.swift
-│   ├── Components/
-│   │   ├── PuffyButton.swift
-│   │   ├── ContentCard.swift            # ★ 白背景カード（旧FrostCard統合）
-│   │   ├── GradientAccentCard.swift     # ★ 横長グラデーションカード
-│   │   ├── StatCard.swift
-│   │   ├── PillTag.swift
-│   │   ├── FlagPicker.swift
-│   │   └── WaveShape.swift              # ★ ウェーブ CustomShape
-│   └── Modifiers/
-│       ├── ThemedShadowModifier.swift   # ★ テーマ色シャドウ（統合）
-│       └── BounceModifier.swift
+├── UI/                                # 既存踏襲（FlagPicker のみ削除）
+│   ├── Theme/ ...
+│   ├── Components/ ...
+│   └── Modifiers/ ...
 ├── Resources/
 │   ├── Assets.xcassets/
-│   │   ├── AppIcon.appiconset/
-│   │   ├── Colors/
-│   │   └── Images/
-│   ├── Localizable.xcstrings
-│   ├── EULA/
-│   │   ├── eula_ja.md
-│   │   └── eula_en.md
-│   └── NicknameData/
-│       ├── flags.json
-│       ├── emojis.json
-│       ├── adjectives_ja.json
-│       ├── adjectives_en.json
-│       ├── nouns_ja.json
-│       └── nouns_en.json
+│   └── CoachPrompts/                  # ★ 新規
+│       └── coach_prompt_ja.txt
 └── Tests/
     ├── AlcoholByVolumeTests.swift
     ├── AlcoholCalculatorTests.swift
     ├── DrinkRecordTests.swift
-    ├── FeedGeneratorTests.swift
-    └── FirestoreRulesTests/
-        ├── package.json
-        └── firestore-rules.test.js
+    ├── QuickDrinkPresetTests.swift     # ★ 新規
+    ├── SessionManagerTests.swift      # ★ 新規
+    └── HydrationNotificationTests.swift # ★ 新規
 ```
 
-## データモデル
+---
 
-### AlcoholByVolume（型安全な度数）
-```swift
-/// UI では 0-100 のパーセント表示、内部計算では 0.0-1.0 の小数を使う。
-/// この型で変換ミスによる100倍ズレを防止する。
-struct AlcoholByVolume: Codable, Hashable, Sendable {
-    /// 内部値は常に小数（0.0〜1.0）。例: 5% → 0.05
-    let fraction: Double
+## 画面仕様（3タブ + 2モーダル + オンボーディング）
 
-    /// パーセント表示用（UIスライダー/ステッパー向け）。例: 0.05 → 5.0
-    var percentage: Double { fraction * 100 }
+### タブ構成
 
-    /// パーセント値から生成（UI入力）。例: 5.0 → fraction 0.05
-    static func fromPercentage(_ percent: Double) -> AlcoholByVolume {
-        precondition(percent >= 0 && percent <= 100, "ABV must be 0-100%")
-        return AlcoholByVolume(fraction: percent / 100)
-    }
+```
+┌────────────────────────────────────┐
+│                                    │
+│   🏠       📅       （＋）    ⚙️   │
+│  ホーム  カレンダー          設定   │
+│                                    │
+└────────────────────────────────────┘
+```
+- 3タブ + 中央 FAB
+- タブバー・FAB のデザインは DESIGN.md v2.0 踏襲
 
-    /// 小数値から生成（コード内部/JSONデータ）。例: 0.05
-    static func fromFraction(_ value: Double) -> AlcoholByVolume {
-        precondition(value >= 0 && value <= 1.0, "ABV fraction must be 0.0-1.0")
-        return AlcoholByVolume(fraction: value)
-    }
-}
+### オンボーディング（3画面に簡素化）
+
+| # | ステップ | 内容 |
+|---|---------|------|
+| 1 | 言語選択 | 日本語 / English から選択。将来追加言語にも対応可能な一覧表示 |
+| 2 | 性別＋目安 | 性別選択 → 参考値を提示し、ユーザーが調整可能 |
+| 3 | コーチ性格 | 4つの性格から選択。サンプルメッセージでプレビュー |
+
+- ページインジケーター: coralRed ドット **3つ**
+- 全画面グラデーション背景（coralRed → coralLight → cream）— 既存パターン踏襲
+- 言語選択画面に JA / EN で安心訴求を表示: **「記録はこのiPhoneの中だけに保存されます」** / **"Your records stay on this iPhone."**
+- 補足表示: **「アカウント登録なし・クラウド送信なし」** / **"No account. No cloud upload."**
+- **削除**: EULA画面、ニックネーム選択画面
+
+### ホーム画面
+
+テーマ色: `coralRed` / `coralLight`（既存踏襲）
+
+```
+┌──────────────────────────────────────┐
+│                                      │
+│  ┌────────────────────────────────┐  │  ← ウェーブヒーロー（既存踏襲）
+│  │  おつかれさま！🍺               │  │     28pt Bold, white
+│  │      ┌──────────────┐          │  │     AlcoholMeterView（既存踏襲）
+│  │      │    12g       │          │  │     160×160, 48pt Heavy, white
+│  │      │   /40g       │          │  │
+│  │      └──────────────┘          │  │
+│  │  目安まであと 28g                │  │
+│  └─～～～～～～～～～～～～～～～─┘  │
+│                                      │
+│  ┌─── 🤖 AIコーチ ────────────────┐  │  ← ★ 新規: コーチ吹き出しカード
+│  │  💬 "記録できてえらい！           │  │     コンテンツカード（白, radius 24）
+│  │     水分も忘れずにね。"          │  │     タイプライターアニメーション
+│  │          😎 フレンドリー ⟳     │  │     性格バッジ + リロードボタン
+│  └────────────────────────────────┘  │
+│                                      │
+│  ┌─── すぐ記録 ──────────────────┐  │  ← ★ 新規: ワンタップ記録
+│  │  よく飲む [🍺 ビール] [🍹 サワー]│  │     お気に入り: 最大6件
+│  │  最近     [🍷 1杯] [🍺 2杯]    │  │     異なる直近記録: 最大5件
+│  └────────────────────────────────┘  │
+│                                      │
+│  ┌─── 今週のまとめ ──────────────┐  │  ← 既存踏襲
+│  │  [🍵 休肝日 3日] [🔥 連続 5日] │  │     StatCard × 3
+│  │  [📊 週合計 84g]               │  │
+│  └────────────────────────────────┘  │
+│                                      │
+│  ┌─── 今日のドリンク ────────────┐  │  ← 既存踏襲
+│  │  [🍺 ビール 14g] [🍷 ワイン …] │  │     横スクロール Pill
+│  └────────────────────────────────┘  │
+│                                      │
+│  ┌─── 🍻 飲み会モード ──────────┐  │  ← ★ 新規: セッション開始
+│  │  🍻 飲み会を始める！           │  │     グラデーションアクセントカード
+│  │  タップして飲み会モードへ  🍺  │  │     coralLight → coralRed
+│  └────────────────────────────────┘  │
+│                                      │
+├──────────────────────────────────────┤
+│  🏠    📅    (＋)    ⚙️              │
+└──────────────────────────────────────┘
 ```
 
-### DrinkRecord (SwiftData)
-```swift
-@Model
-final class DrinkRecord {
-    @Attribute(.unique) var id: UUID = UUID()
-    var drinkType: String        // "beer","wine","sake","whisky","cocktail","sour"
-    var volumeML: Double
-    var abvFraction: Double      // 0.0-1.0（AlcoholByVolume.fraction から取得）
-    var pureAlcoholGrams: Double  // volumeML * abvFraction * 0.8 * numberOfDrinks
-    var numberOfDrinks: Int
-    var loggedAt: Date
-    var weekNumber: Int
-    var yearNumber: Int
+**ホームのクイック記録**:
+- 「よく飲む」は `QuickDrinkPreset` を最大6件、横スクロールで表示する。未設定時は「＋ よく飲むドリンクを登録」を表示する。
+- 「最近」は直近の異なる記録を最大5件表示する。記録がない場合は行を表示しない。
+- タップ直後に記録し、画面下部に「ビールを記録しました　取り消す」を5秒間表示する。
+- 長押しまたは編集ボタンから、お気に入りの登録・変更・並び替えに進める。
 
-    init(drinkType: String, volumeML: Double, abv: AlcoholByVolume, numberOfDrinks: Int) {
-        self.drinkType = drinkType
-        self.volumeML = volumeML
-        self.abvFraction = abv.fraction
-        self.numberOfDrinks = numberOfDrinks
-        self.pureAlcoholGrams = volumeML * abv.fraction * 0.8 * Double(numberOfDrinks)
-        let now = Date()
-        self.loggedAt = now
-        let cal = Calendar.current
-        self.weekNumber = cal.component(.weekOfYear, from: now)
-        self.yearNumber = cal.component(.yearForWeekOfYear, from: now)
-    }
-}
+### 飲み会モード（Active Session）— ★ 新規
+
+テーマ色: `sunnyYellow` / `yellowLight`（旧フィード画面のテーマを再利用）
+
+`.fullScreenCover` で表示。
+
+```
+┌──────────────────────────────────────┐
+│  ┌────────────────────────────────┐  │  ← ウェーブヒーロー
+│  │  🍻 飲み会モード                │  │     sunnyYellow → yellowLight
+│  │      ⏱ 1:32:15                │  │     経過時間: 48pt Heavy, charcoal
+│  │  [🍺 3杯] [💧 2回] [📊 28g]   │  │     ミニバッジ × 3
+│  └─～～～～～～～～～～～～～～～─┘  │
+│                                      │
+│  ┌─── 🤖 AIコーチ ────────────────┐  │  ← コーチ吹き出し
+│  │  💬 "3杯目か〜。水飲もう！🥤"  │  │
+│  └────────────────────────────────┘  │
+│                                      │
+│  ┌ 💧 水飲んだ！                  ┐  │  ← mintGreen グラデボタン
+│  ┌ 🍺 もう一杯記録する            ┐  │  ← coralRed PuffyButton
+│  ┌ 🔔 ラストオーダー！            ┐  │  ← warmCoral ボーダーボタン
+│  ┌ 🏠 飲み会を終了する            ┐  │  ← greyText テキストボタン
+│                                      │
+└──────────────────────────────────────┘
 ```
 
-### SupportedLanguage（言語拡張用 enum）
-```swift
-enum SupportedLanguage: String, CaseIterable, Codable, Identifiable, Sendable {
-    case ja = "ja"
-    case en = "en"
-    // 将来追加: case ko = "ko"
+**水分補給通知**:
+- `UNUserNotificationCenter` でローカル通知をスケジュール
+- セッション開始時に `hydrationIntervalMinutes` ごとに最大10件登録
+- **Apple Watch**: ペアリング・通知設定・利用状況に応じ、iPhone 通知がシステムによって Watch に転送されうる。両端末への同時表示は保証しない
+- セッション終了時に未発火の通知をキャンセル
 
-    var id: String { rawValue }
+**ラストオーダー**:
+- タップで確認アラート。AIコーチが性格に応じたメッセージで問いかけ
+- 「✋ ストップ！」→ `preventedLastOrder = true` → 🎉 confetti + コーチ称賛
+- 「🍺 もう1杯…」→ DrinkLogSheet を表示
+- カレンダーに 🏆 バッジで記録
 
-    var displayName: String {
-        switch self {
-        case .ja: return "日本語"
-        case .en: return "English"
-        }
-    }
+### カレンダー画面（既存踏襲 + 微拡張）
 
-    var flag: String {
-        switch self {
-        case .ja: return "🇯🇵"
-        case .en: return "🇺🇸"
-        }
-    }
+テーマ色: `mintGreen` / `mintLight`（既存踏襲）
 
-    var fontFamily: String {
-        switch self {
-        case .ja: return "Hiragino Sans"
-        case .en: return ".SFProRounded"
-        }
-    }
-}
+- レイアウト、グリッド、週間棒グラフすべて既存踏襲
+- **追加**: ラストオーダーを我慢できた日に 🏆 バッジ
+
+### 飲酒記録シート（既存踏襲）
+
+- ドリンクグリッド、度数ステッパー、PuffyButton すべて既存踏襲
+- シート上部にも **お気に入り最大6件** と **最近使った記録最大5件** のクイック選択を表示する。
+- シート内のクイック選択は値をフォームに反映し、「記録する」ボタンで確認保存できる。ホーム上のワンタップ保存とは挙動を分ける。
+- 調整した組み合わせを「よく飲むに追加」できる。上限6件では既存プリセットの編集・置換を促す。
+- **追加**: 飲み会モード中は `DrinkRecord.sessionID` を自動セット
+
+### 設定画面（スリム化）
+
+テーマ色: `lavender` / `#E1BEE7`（既存踏襲）
+
+```
+┌──────────────────────────────────────┐
+│  ┌────────────────────────────────┐  │  ← ウェーブヒーロー
+│  │  ⚙️ 設定                       │  │     lavender グラデーション
+│  └─～～～～～～～～～～～～～～～─┘  │
+│                                      │
+│  ┌─── 🤖 AIコーチ ──────────────┐  │
+│  │  コーチの性格   [😎フレンドリー▼]│  │
+│  │  プレビュー: "水分も忘れずにね" │  │
+│  └────────────────────────────────┘  │
+│                                      │
+│  ┌─── 🍻 飲み会モード ──────────┐  │
+│  │  💧 水分補給通知   [30分ごと ▼] │  │
+│  │  🔔 ラストオーダー通知 [── ●]  │  │
+│  └────────────────────────────────┘  │
+│                                      │
+│  ┌─── 🎯 目標設定 ──────────────┐  │
+│  │  性別 / 1日の目標 / 1週間の目標 │  │
+│  └────────────────────────────────┘  │
+│                                      │
+│  ┌─── ℹ️ 情報 ──────────────────┐  │
+│  │  バージョン v2.0.0              │  │
+│  │  プライバシーポリシー          > │  │
+│  └────────────────────────────────┘  │
+│                                      │
+│  ⚠️ 本アプリは医療アドバイスを       │  ← 免責1行（これだけで十分）
+│  提供するものではありません           │
+│                                      │
+├──────────────────────────────────────┤
+│  🏠    📅    (＋)    ⚙️              │
+└──────────────────────────────────────┘
 ```
 
-### UserProfile (SwiftData)
-```swift
-@Model
-final class UserProfile {
-    @Attribute(.unique) var id: UUID = UUID()
-    var firebaseUID: String = ""
-    var nicknameFlag: String = "🇯🇵"
-    var nicknameEmoji: String = "🌙"
-    var nicknameAdjective: String = "ほろよい"
-    var nicknameNoun: String = "ペンギン"
-    var gender: String = "male"
-    var weeklyGoalGrams: Double = 280
-    var dailyGoalGrams: Double = 40
-    var language: String = "ja"
-    var onboardingCompleted: Bool = false
-    var eulaAccepted: Bool = false
-    var eulaAcceptedAt: Date? = nil
-    var createdAt: Date = Date()
-    var blockedUIDs: [String] = []
-}
+> **削除**: ニックネーム編集、ブロックリスト、ダークモード、データエクスポート、利用規約リンク。**維持**: 言語切替、プライバシーポリシーリンク。
+
+---
+
+## オンデバイス LLM 実装要件
+
+### 実装方針
+
+| 優先度 | 実装 | 対象 | 備考 |
+|-------|------|------|------|
+| 1 | **Foundation Models** | iOS 26+ かつモデルが `.available` の場合 | `SystemLanguageModel.default.availability` を必ず確認してから生成 |
+| 2 | **ルールベーステンプレート** | 全端末 / AI 利用不可時 | MVP 必須の常時利用可能経路 |
+
+- MVP では MLX Swift やアプリ独自のモデルダウンロードは導入しない。サイズ、初回体験、端末負荷の不確実性を避ける。
+- Foundation Models 部は `#if canImport(FoundationModels)` と `@available(iOS 26.0, *)` で囲い、iOS 18-25 でも同一アプリが動作する構成にする。
+- 生成エラー、Apple Intelligence 無効、モデル未準備、非対応端末はエラー表示にせずテンプレートへ切り替える。
+
+### プロンプト設計
+```
+[System]
+あなたは「{personality}」という性格の飲酒コーチです。
+{personalityInstruction}
+回答は50文字以内、1文、日本語。絵文字は0〜2個まで。
+医療アドバイスは絶対にしないでください。
+追加の飲酒を勧めたり、摂取可能量を断定したりしないでください。
+
+[Context]
+今日: {todayGrams}g / 目標{dailyGoal}g ({percentage}%)
+今週: {weeklyGrams}g / 目標{weeklyGoal}g
+飲み会モード: {sessionStatus}
+
+[Task]
+短く語りかけてください。
 ```
 
-### オンボーディング状態の二重管理（Phase 4 までの暫定）
+### フォールバック（LLM 非対応端末用）
 
-- **`AppState.onboardingCompleted`**（UserDefaults）: アプリ起動時に `ContentView` / `OnboardingContainerView` を切り替えるための軽量フラグ。
-- **`UserProfile.onboardingCompleted`**（SwiftData）: 永続プロフィールとしての完了状態。
+LLM が使えない場合はルールベーステンプレートで代替:
 
-Phase 0〜3 では UserDefaults のみ更新してもよいが、**Phase 4 でオンボーディング完了フローを実装する際は**、`completeOnboarding()` 等で **両方を同じ値に更新する**、または **UserProfile を真実源**として `AppState` がモデルコンテキストから読み取る形に整理すること（ずれによるバグ防止）。
+| 状態 | 🔥スパルタ | 🌸やさしめ |
+|------|----------|----------|
+| 目標内 | 油断するなよ💪 | いい感じだよ🌸 |
+| 80%超 | あと{n}gだ。覚悟は？🔥 | そろそろ気をつけてね🍵 |
+| 超過 | オーバーだ。明日取り返すぞ😤 | ちょっと超えちゃったね💕 |
+| 休肝日 | {n}日連続。これが当たり前だ👊 | {n}日も休肝すごい！🌿 |
 
-### Firestore コレクション
+`friendly` と `sarcastic` にも同一の安全制約でテンプレートを用意する。「毒舌」はユーザー本人への侮辱や飲酒の煽りにしない。
 
-**`users/{uid}`**
-```json
-{ "nickname_flag":"🇯🇵", "nickname_emoji":"🌙",
-  "nickname_adjective":"ほろよい", "nickname_noun":"ペンギン",
-  "language":"ja", "created_at":"Timestamp" }
-```
+### 安全要件
 
-**`feed/{auto-id}`**
-```json
-{ "uid":"xxx", "type":"goal_met|rest_day|over_goal|weekly_achieved",
-  "actual_grams":20, "goal_grams":40, "percentage":50,
-  "drinks":["beer","beer"], "streak_days":5,
-  "message_variant":3, "language":"ja",
-  "reactions":{"clap":12,"fire":8,"muscle":5,"hug":0,"clover":0,"cheers":0},
-  "reacted_uids":["uid1","uid2"], "created_at":"Timestamp" }
-```
+- 純アルコール量と設定した目安の比較を表示するが、「飲める量」「安全な量」と表現しない。
+- AI/テンプレートは診断、治療、服薬判断、依存症の判定を行わない。
+- 超過時は責めず、水分補給・記録・休息などの低リスクな声かけに限定する。
+- 設定画面に「本アプリは医療アドバイスを提供するものではありません」を常時表示する。
 
-**`reports/{auto-id}`**
-```json
-{ "reporter_uid":"xxx", "target_uid":"yyy",
-  "target_post_id":"feed-id", "reason":"inappropriate",
-  "created_at":"Timestamp" }
-```
+---
 
-### Firebase セキュリティルール（強化版）
+## ドリンク初期データ（既存踏襲）
 
-```javascript
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+| 種類 | emoji | 容量 | 度数 | 純AL |
+|------|-------|------|------|------|
+| ビール | 🍺 | 350ml | 5% | 14g |
+| ワイン | 🍷 | 125ml | 12% | 12g |
+| 日本酒 | 🍶 | 180ml | 15% | 21.6g |
+| ウイスキー | 🥃 | 30ml | 40% | 9.6g |
+| カクテル | 🍸 | 200ml | 5% | 8g |
+| サワー | 🍹 | 350ml | 5% | 14g |
 
-    match /users/{uid} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == uid;
-    }
+---
 
-    match /feed/{postId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null
-        && request.resource.data.uid == request.auth.uid;
+## 将来のマネタイズ
 
-      allow update: if request.auth != null
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions', 'reacted_uids'])
-        && request.resource.data.reacted_uids.hasAll(resource.data.reacted_uids)
-        && request.resource.data.reacted_uids.size() == resource.data.reacted_uids.size() + 1
-        && request.resource.data.reacted_uids[request.resource.data.reacted_uids.size() - 1] == request.auth.uid
-        && !resource.data.reacted_uids.hasAny([request.auth.uid])
-        && reactionsValid(resource.data.reactions, request.resource.data.reactions);
+| バージョン | 広告 | サブスク | 備考 |
+|-----------|------|---------|------|
+| v2.0 | なし | なし | UX最優先 |
+| v2.x | AdMob Banner | — | FeatureFlag で制御 |
+| v3.x | AdMob | 広告非表示プラン | 月額 ¥200-300 を想定 |
 
-      function reactionsValid(before, after) {
-        let validKeys = ['clap', 'fire', 'muscle', 'hug', 'clover', 'cheers'];
-        return after.keys().hasAll(validKeys)
-          && (
-            (after.clap == before.clap + 1 && after.fire == before.fire && after.muscle == before.muscle && after.hug == before.hug && after.clover == before.clover && after.cheers == before.cheers) ||
-            (after.clap == before.clap && after.fire == before.fire + 1 && after.muscle == before.muscle && after.hug == before.hug && after.clover == before.clover && after.cheers == before.cheers) ||
-            (after.clap == before.clap && after.fire == before.fire && after.muscle == before.muscle + 1 && after.hug == before.hug && after.clover == before.clover && after.cheers == before.cheers) ||
-            (after.clap == before.clap && after.fire == before.fire && after.muscle == before.muscle && after.hug == before.hug + 1 && after.clover == before.clover && after.cheers == before.cheers) ||
-            (after.clap == before.clap && after.fire == before.fire && after.muscle == before.muscle && after.hug == before.hug && after.clover == before.clover + 1 && after.cheers == before.cheers) ||
-            (after.clap == before.clap && after.fire == before.fire && after.muscle == before.muscle && after.hug == before.hug && after.clover == before.clover && after.cheers == before.cheers + 1)
-          );
-      }
-    }
-
-    match /reports/{reportId} {
-      allow create: if request.auth != null;
-      allow read: if false;
-    }
-  }
-}
-```
-
-**ルール設計のトレードオフ:**
-- Cloud Functions 不使用 → 月額コストゼロ（Firestore 無料枠内で運用）
-- `reacted_uids` は追加のみ許可、削除・上書き不可
-- 同一ユーザーの二重リアクションはルールレベルで拒否
-- `reactions` カウントは厳密に +1 のみ許可
-- 制限: リアクション取り消しは v1.0 では非対応
-
-### クライアント側リアクション実装
-
-```swift
-func addReaction(postId: String, reactionType: String, uid: String) async throws {
-    let ref = db.collection("feed").document(postId)
-    try await ref.updateData([
-        "reactions.\(reactionType)": FieldValue.increment(Int64(1)),
-        "reacted_uids": FieldValue.arrayUnion([uid])
-    ])
-}
-```
-
-## 画面仕様（全6画面 + 1モーダル + 1オンボーディング）
-
-### オンボーディング（5ステップ）
-1. **EULA 同意** — 利用規約・プライバシーポリシーの確認と同意
-2. 言語選択（JA/EN — SupportedLanguage.allCases から動的生成）
-3. 性別 + 目標確認（厚労省基準自動設定）
-4. ニックネーム選択（国旗+絵文字+形容詞+名詞、シャッフル可）
-5. → ホームへ遷移
-
-### EULA 同意画面の要件
-- 利用規約全文を `Resources/EULA/eula_{lang}.md` から読み込み、ScrollView で表示
-- チェックボックス ON で「同意して始める」ボタンが活性化
-- 同意時に `UserProfile.eulaAccepted = true` + `eulaAcceptedAt = Date()` を記録
-- 同意しない限り次のステップに進めない
-- 利用規約には以下を含む: 免責表示、フィード利用ルール、通報・ブロック方針、データ取り扱い
-
-### メインタブ（4タブ + 中央FAB）
-```
-[🏠ホーム] [📅カレンダー] [➕記録FAB] [🌍みんな] [⚙️設定]
-```
-
-### 各画面のレイアウト詳細 → [DESIGN.md](./DESIGN.md)「画面別レイアウト仕様」セクション参照
-
-## ドリンク初期データ
-
-| 種類 | emoji | 初期容量 | 初期度数(%) | ABV fraction | 純AL |
-|------|-------|---------|------------|-------------|------|
-| ビール | 🍺 | 350ml | 5% | 0.05 | 14g |
-| ワイン | 🍷 | 125ml | 12% | 0.12 | 12g |
-| 日本酒 | 🍶 | 180ml | 15% | 0.15 | 21.6g |
-| ウイスキー | 🥃 | 30ml | 40% | 0.40 | 9.6g |
-| カクテル | 🍸 | 200ml | 5% | 0.05 | 8g |
-| サワー | 🍹 | 350ml | 5% | 0.05 | 14g |
-
-> ドリンク初期データは `DrinkType` enum 内で `AlcoholByVolume.fromFraction()` を使って定義。
-> UI の度数ステッパーでは `AlcoholByVolume.fromPercentage()` を使い、変換ミスを型レベルで防止。
-
-## フィード自動生成テンプレート
-
-4タイプ × 各5-10バリエーション（Localizable.xcstrings で管理）:
-- `goal_met`: "今日は目標内！🍺×{n}で{actual}g — 目標{goal}gの{pct}%に抑えたよ🎉"
-- `rest_day`: "今日は休肝日！{streak}日連続達成🌿"
-- `over_goal`: "今日はオーバー…{actual}g / 目標{goal}g (+{over_pct}%)。明日こそ！💪"
-- `weekly_achieved`: "今週クリア！合計{actual}g / 目標{goal}gで{pct}%に収まった🏆"
-
-## ニックネームプリセット
-- 国旗 50種 × 絵文字 20種 × 形容詞 30種/言語 × 名詞 30種/言語 = 900,000通り
-- JSON ファイルで管理、言語別に形容詞・名詞を切り替え
-- 新言語追加時は `adjectives_{lang}.json` + `nouns_{lang}.json` を追加するだけ
-
-## マネタイズロードマップ
-
-| バージョン | MAU | 広告 | 備考 |
-|-----------|-----|------|------|
-| v1.0 | 0-300 | なし | UX最優先 |
-| v1.x | 300-500 | AdMob Banner導入 | FeatureFlag で制御 |
-| v2.x | 1,000+ | Banner定常運用 | Apple Dev年会費回収 |
-
-## KPI
-
-| 指標 | 3ヶ月 | 6ヶ月 | 12ヶ月 |
-|------|------|------|-------|
-| MAU | 30 | 200 | 1,000 |
-| 7日リテンション | 20% | 25% | 30% |
-| リアクション率 | 10% | 15% | 20% |
+---
 
 ## テスト戦略
 
-### テストするもの（MVP 必須）
-- **AlcoholByVolume 型変換**: パーセント ↔ 小数の変換精度、境界値、不正値の precondition
-- **DrinkRecord 純アルコール計算**: 各ドリンクタイプの計算正確性、複数杯の計算
-- **AlcoholCalculator**: 日計・週計・ストリーク・パーセンテージ
-- **FeedGenerator**: 4タイプの正しい判定、テンプレート適用
-- **Firestore セキュリティルール**: npm エミュレータでのルールユニットテスト
-
-### テストしないもの（MVP では省略）
-- UI テスト / スナップショットテスト — 手動確認で代替
-- ViewModel のユニットテスト — ロジックは Service 層に集約しているためそちらでカバー
-- パフォーマンステスト — MVP の規模では不要
-- ネットワークモックテスト — Firestore ルールテストでカバー
-
-### テストファイル一覧
-| ファイル | テスト対象 | 最低ケース数 |
-|---------|-----------|------------|
-| `AlcoholByVolumeTests.swift` | 型変換、境界値、precondition | 6 |
-| `DrinkRecordTests.swift` | 純AL計算、全6ドリンクタイプ | 8 |
-| `AlcoholCalculatorTests.swift` | 日計・週計・ストリーク | 8 |
-| `FeedGeneratorTests.swift` | 4タイプ判定、パーセンテージ | 6 |
-| `firestore-rules.test.js` | リアクション正常/二重拒否/不正値拒否 | 8 |
+| ファイル | テスト対象 | ケース数 |
+|---------|-----------|---------|
+| `AlcoholByVolumeTests.swift` | 型変換、境界値 | 6（既存） |
+| `DrinkRecordTests.swift` | 純AL計算 | 8（既存） |
+| `AlcoholCalculatorTests.swift` | 日計・週計・ストリーク | 8（既存） |
+| `QuickDrinkPresetTests.swift` | お気に入り上限、直近履歴の重複排除、クイック記録への値反映 | 6（新規） |
+| `SessionManagerTests.swift` | セッション制御 | 6（新規） |
+| `HydrationNotificationTests.swift` | 通知スケジューリング | 4（新規） |
 
 ## App Store 審査対策
-- HealthKit 未使用 → 医療審査不要
-- テキスト入力なし → UGC 1.2 リスク最小
-- 通報・ブロック・**EULA 同意フロー**は必須実装済み
-- EULA はオンボーディングの最初のステップで同意必須
-- 免責表示: 「本アプリは医療アドバイスを提供するものではありません」（EULA 内 + 設定画面）
+
+- 完全オフラインでユーザーの飲酒記録を開発者または第三者へ送信しない設計とする
+- SNSなし → ユーザー投稿のモデレーション機能は対象外
+- HealthKit 未使用 → HealthKit の権限・データ取扱いは対象外。ただし飲酒を扱うため安全な表現と免責は維持する
+- 免責: 設定画面に「本アプリは医療アドバイスを提供するものではありません」
+- プライバシーポリシー: App Store Connect メタデータとアプリ内設定画面の両方から到達可能にする
+- AI 表現: Foundation Models の acceptable use requirements と安全要件に従う
+
+### App Store / 初回訴求
+
+**主メッセージ案**:
+> 楽しく飲みながら、無理しないペースを見つけよう。
+
+**紹介文案**:
+> YoiYoi は、純アルコール量の記録、水分補給リマインド、やさしい声かけで、飲み会のペース管理を支えるアプリです。よく飲むドリンクや最近の記録をワンタップで残せます。飲酒記録はあなたの端末内だけに保存され、アカウント登録やクラウド送信はありません。
+
+**English description draft**:
+> YoiYoi helps you enjoy drinking at your own comfortable pace with alcohol tracking, hydration reminders, and gentle coaching. Log favorite drinks or recent entries with one tap. Your drinking records stay only on your device, with no account or cloud upload required.
+
+**スクリーンショット／オンボーディングで必ず見せる訴求**:
+- 「記録は端末だけに保存」 / "Records stay on your device"
+- 「よく飲むドリンクをワンタップ記録」 / "Log favorites in one tap"
+- 「設定した目安まであと28g」 / "28g until your set guide"
+- 「飲み会中は水分補給をリマインド」 / "Hydration reminders while you drink"
+
+---
+
+## 方針確認と次期実装事項
+
+| # | 方針 | 実装への影響 |
+|---|----------|--------------|
+| 1 | Deployment target は **iOS 18.0** のまま、Foundation Models は **iOS 26+ の任意強化**として実装する | iOS 18-25 / AI 無効端末はテンプレートで動作 |
+| 2 | Firebase、フィード、匿名プロフィール、EULA 同意画面は完全撤去する | 依存パッケージ・Firestore rules・旧 UI/テストを削除 |
+| 3 | プライバシーポリシーリンクは設定画面と Web 文書に残す | App Store 提出要件に対応 |
+| 4 | 既存ローカル飲酒記録と目標設定は保持する移行を行う | SwiftData モデル追加/縮小時にデータ維持を優先 |
+| 5 | コンセプトは **「楽しく、無理しないペースでアルコール摂取量をコントロールする」** とする | UI 文言とストア訴求をこの価値に統一 |
+| 6 | 「あと何g飲める」ではなく **「設定した目安まであと28g」** を採用する | 健康安全上、飲酒推奨に見える表現を避ける |
+| 7 | MVP は **日本語・英語** を維持し、将来の言語追加が可能な構造にする | `SupportedLanguage`、言語選択、設定の言語切替を維持 |
+| 8 | お気に入りは最大6件、最近使った異なる記録は最大5件を表示する | ホーム／記録シート・モデル・テストを追加 |
+| 9 | 初回画面と App Store 紹介で **「記録は端末だけに保存」** を JA/EN で明確に訴求する | オンボーディングと配布文面を更新 |
+| 10 | MVP の AI は Foundation Models + テンプレートに限定し、MLX は対象外とする | アプリサイズ増加と別モデル管理を回避 |
+
+### 参照した Apple 公式情報（2026.05.26 確認）
+
+- [Foundation Models](https://developer.apple.com/documentation/foundationmodels/)
+- [Generating content and performing tasks with Foundation Models](https://developer.apple.com/documentation/FoundationModels/generating-content-and-performing-tasks-with-foundation-models)
+- [Notifications on watchOS](https://developer.apple.com/documentation/watchOS-Apps/notifications)
+- [App Review Guidelines](https://developer.apple.com/app-store/review/guidelines/)
+- [App privacy details on the App Store](https://developer.apple.com/app-store/app-privacy-details/)

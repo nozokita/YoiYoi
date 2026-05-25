@@ -75,14 +75,6 @@ struct SettingsGoalsEditView: View {
         p.weeklyGoalGrams = weeklyGoal
         try? modelContext.save()
         NotificationCenter.default.post(name: .userProfileDidChange, object: nil)
-        pushProfileToFirestore(p)
-    }
-
-    private func pushProfileToFirestore(_ profile: UserProfile) {
-        Task {
-            guard let uid = AuthService.currentUID else { return }
-            try? await FirestoreService.shared.syncUserDocument(uid: uid, profile: profile)
-        }
     }
 
     private func goalStepper(

@@ -13,21 +13,6 @@ final class HomeViewModel {
     var streakDays: Int = 0
     var restDaysThisWeek: Int = 0
 
-    var nicknameFlag: String = "🇯🇵"
-    var nicknameEmoji: String = "🌙"
-    var nicknameAdjective: String = "ほろよい"
-    var nicknameNoun: String = "ペンギン"
-
-    /// ヒーロー上段（DESIGN: 15pt Medium white 85%）
-    func nicknameLine(language: SupportedLanguage) -> String {
-        switch language {
-        case .ja:
-            "\(nicknameFlag)\(nicknameEmoji) \(nicknameAdjective)\(nicknameNoun) さん"
-        case .en:
-            "\(nicknameFlag)\(nicknameEmoji) \(nicknameAdjective)\(nicknameNoun)"
-        }
-    }
-
     /// メーター下サブテキスト（状態別表現）
     func meterSubtext(language: SupportedLanguage) -> String {
         let p = AlcoholCalculator.percentage(consumed: todayConsumed, goal: dailyGoal)
@@ -40,7 +25,7 @@ final class HomeViewModel {
                 return "そろそろ気をつけて！"
             }
             let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoal))
-            return "あと \(remaining)g 飲めるよ！"
+            return "設定した目安まであと \(remaining)g"
         case .en:
             if p >= 100 {
                 return "Past today's goal—you're OK!"
@@ -49,7 +34,7 @@ final class HomeViewModel {
                 return "Easy does it—you're close to the limit."
             }
             let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoal))
-            return "About \(remaining)g left today."
+            return "\(remaining)g until your set guide."
         }
     }
 
@@ -69,10 +54,6 @@ final class HomeViewModel {
         if let p = profiles.first {
             dailyGoal = p.dailyGoalGrams
             weeklyGoal = p.weeklyGoalGrams
-            nicknameFlag = p.nicknameFlag
-            nicknameEmoji = p.nicknameEmoji
-            nicknameAdjective = p.nicknameAdjective
-            nicknameNoun = p.nicknameNoun
         }
 
         todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: allRecords, on: now, calendar: calendar)

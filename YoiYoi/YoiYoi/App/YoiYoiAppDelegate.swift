@@ -1,15 +1,13 @@
 import UIKit
 import UserNotifications
 
-/// Firebase など UIKit ライフサイクルで必要な処理のみ。`@main` は `YoiYoiApp`（SwiftUI）側。
+/// 通知をアプリ前面でも表示するための UIKit delegate。`@main` は `YoiYoiApp` 側。
 final class YoiYoiAppDelegate: NSObject, UIApplicationDelegate {
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
     ) -> Bool {
-        AppLaunchDiagnostics.log("YoiYoiAppDelegate.didFinishLaunching（Firebase 前）")
-        FirebaseBootstrap.configureIfNeeded()
-        AppLaunchDiagnostics.log("YoiYoiAppDelegate.didFinishLaunching（Firebase 後）")
+        AppLaunchDiagnostics.log("YoiYoiAppDelegate.didFinishLaunching")
         UNUserNotificationCenter.current().delegate = self
         return true
     }

@@ -26,10 +26,6 @@ enum AppCopy {
         switch l { case .ja: "カレンダー"; case .en: "Calendar" }
     }
 
-    static func tabFeed(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "みんな"; case .en: "Feed" }
-    }
-
     static func tabSettings(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "設定"; case .en: "Settings" }
     }
@@ -44,37 +40,22 @@ enum AppCopy {
         switch l { case .ja: "保存エラー"; case .en: "Save error" }
     }
 
-    static func onboardingEULALoadFailed(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "（利用規約を読み込めませんでした。アプリを再インストールするか、開発者にお問い合わせください。）"
-        case .en: "(Couldn't load the terms. Please reinstall the app or contact the developer.)"
-        }
-    }
-
-    static func onboardingEULATitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "利用規約への同意"; case .en: "Terms & Privacy" }
-    }
-
-    static func onboardingEULAToggle(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "利用規約・プライバシーポリシーに同意する"
-        case .en: "I agree to the Terms and Privacy Policy"
-        }
-    }
-
-    static func onboardingEULAStart(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "同意して始める"; case .en: "Agree & start" }
-    }
-
-    static func onboardingEULADeclineNote(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "※ 同意いただけない場合は\nアプリをご利用いただけません"
-        case .en: "* You can't use the app without agreeing."
-        }
-    }
-
     static func onboardingLanguageTitle(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "言語を選んでね"; case .en: "Choose a language" }
+    }
+
+    static func onboardingLocalOnlyTitle(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "記録はこのiPhoneの中だけに保存されます"
+        case .en: "Your records stay on this iPhone."
+        }
+    }
+
+    static func onboardingLocalOnlyDetail(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "アカウント登録なし・クラウド送信なし"
+        case .en: "No account. No cloud upload."
+        }
     }
 
     static func onboardingGoalTitle(_ l: SupportedLanguage) -> String {
@@ -124,48 +105,6 @@ enum AppCopy {
         }
     }
 
-    static func onboardingNicknameTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "あなたの相棒を選ぼう"; case .en: "Pick your buddy" }
-    }
-
-    static func onboardingNicknameShuffle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "シャッフル"; case .en: "Shuffle" }
-    }
-
-    static func onboardingNicknameFlag(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "国旗"; case .en: "Flag" }
-    }
-
-    static func onboardingNicknameEmoji(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "絵文字"; case .en: "Emoji" }
-    }
-
-    static func onboardingNicknameAdjective(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "形容詞"; case .en: "Adjective" }
-    }
-
-    static func onboardingNicknameNoun(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "名詞"; case .en: "Noun" }
-    }
-
-    static func onboardingNicknameComplete(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "この相棒にする！🎉"; case .en: "Choose this buddy! 🎉" }
-    }
-
-    static func onboardingNicknameLoadError(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "ニックネームデータを読み込めませんでした。"
-        case .en: "Couldn't load nickname data."
-        }
-    }
-
-    static func onboardingErrorEULANotAccepted(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "利用規約への同意が記録されていません。最初の画面からやり直してください。"
-        case .en: "Your agreement wasn't saved. Please start over from the first screen."
-        }
-    }
-
     static func onboardingErrorLanguageNotSelected(_ l: SupportedLanguage) -> String {
         switch l {
         case .ja: "言語が選択されていません。言語選択の画面に戻って選んでください。"
@@ -210,15 +149,7 @@ enum AppCopy {
         }
     }
 
-    static func homeFeedPreview(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "みんなの様子"; case .en: "Community" }
-    }
-
-    static func homeSeeMore(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "もっと見る →"; case .en: "See more →" }
-    }
-
-    static func homeNicknameFallback(_ l: SupportedLanguage) -> String {
+    static func homePureAlcoholLabel(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "今日の純アルコール"; case .en: "Today's pure alcohol" }
     }
 
@@ -266,93 +197,6 @@ enum AppCopy {
         }
     }
 
-    // MARK: - Feed
-
-    static func feedHeroTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "🌍 みんなの記録"; case .en: "🌍 Everyone's log" }
-    }
-
-    static func feedHeroSubtitle(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "世界中の仲間と励まし合おう！"
-        case .en: "Cheer each other on around the world!"
-        }
-    }
-
-    static func feedNavTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "みんな"; case .en: "Feed" }
-    }
-
-    static func feedEmpty(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "まだ投稿がありません"; case .en: "No posts yet" }
-    }
-
-    static func feedBlockAlertTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "ブロックしますか？"; case .en: "Block this user?" }
-    }
-
-    static func feedCancel(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "キャンセル"; case .en: "Cancel" }
-    }
-
-    static func feedBlock(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "ブロック"; case .en: "Block" }
-    }
-
-    static func feedBlockConfirmNamed(_ name: String, _ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "\(name) をブロックします。フィードに表示されなくなります。"
-        case .en: "Block \(name)? They won't appear in your feed."
-        }
-    }
-
-    static func feedBlockConfirmAnonymous(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "このユーザーをブロックします。フィードに表示されなくなります。"
-        case .en: "Block this user? They won't appear in your feed."
-        }
-    }
-
-    static func feedReactionAlertTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "リアクション"; case .en: "Reaction" }
-    }
-
-    static func feedReactionFailed(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "リアクションを送れませんでした"; case .en: "Couldn't send reaction" }
-    }
-
-    static func feedFilterAll(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "すべて"; case .en: "All" }
-    }
-
-    static func feedFilterJapanese(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "🇯🇵日本語"; case .en: "🇯🇵 Japanese" }
-    }
-
-    static func feedFilterEnglish(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "🇺🇸 EN"; case .en: "🇺🇸 English" }
-    }
-
-    static func feedCardBlockUser(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "このユーザーをブロック"; case .en: "Block user" }
-    }
-
-    static func feedCardReportPost(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "この投稿を通報"; case .en: "Report post" }
-    }
-
-    static func feedReportInappropriate(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "不適切な内容"; case .en: "Inappropriate" }
-    }
-
-    static func feedReportSpam(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "スパム"; case .en: "Spam" }
-    }
-
-    static func feedReportHarassment(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "ハラスメント"; case .en: "Harassment" }
-    }
-
     // MARK: - Settings
 
     static func settingsTitle(_ l: SupportedLanguage) -> String {
@@ -394,16 +238,8 @@ enum AppCopy {
         switch l { case .ja: "飲酒目標（1日・1週間）"; case .en: "Daily & weekly goals" }
     }
 
-    static func settingsNicknameRow(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "ニックネーム（相棒）"; case .en: "Buddy nickname" }
-    }
-
     static func settingsGoalsTitle(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "飲酒目標"; case .en: "Drinking goals" }
-    }
-
-    static func settingsNicknameTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "ニックネーム"; case .en: "Nickname" }
     }
 
     static func settingsCancel(_ l: SupportedLanguage) -> String {
@@ -426,33 +262,6 @@ enum AppCopy {
         switch l {
         case .ja: "厚労省の目安を参考に、自分に合った値に調整できます。"
         case .en: "Tune these to what works for you."
-        }
-    }
-
-    static func settingsNicknameFlag(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "国旗"; case .en: "Flag" }
-    }
-
-    static func settingsNicknameEmoji(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "絵文字"; case .en: "Emoji" }
-    }
-
-    static func settingsNicknameAdjective(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "形容詞"; case .en: "Adjective" }
-    }
-
-    static func settingsNicknameNoun(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "名詞"; case .en: "Noun" }
-    }
-
-    static func settingsShuffle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "シャッフル"; case .en: "Shuffle" }
-    }
-
-    static func settingsNicknameLoadError(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "ニックネームデータを読み込めませんでした。"
-        case .en: "Couldn't load nickname data."
         }
     }
 
@@ -487,22 +296,14 @@ enum AppCopy {
         switch l { case .ja: "データとプライバシー"; case .en: "Data & privacy" }
     }
 
-    static func settingsExportRow(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "飲酒記録をエクスポート（CSV）"; case .en: "Export drink logs (CSV)" }
-    }
-
     static func settingsPrivacyPolicyRow(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "プライバシーポリシー"; case .en: "Privacy policy" }
     }
 
-    static func settingsTermsOfServiceRow(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "利用規約（EULA）"; case .en: "Terms of use (EULA)" }
-    }
-
     static func settingsDataPrivacyFooter(_ l: SupportedLanguage) -> String {
         switch l {
-        case .ja: "法務ページは GitHub Pages で公開しています。CSV はこの端末内の記録のみです。"
-        case .en: "Legal pages are on GitHub Pages. The CSV contains only records on this device."
+        case .ja: "飲酒記録と設定は、この端末内だけに保存されます。"
+        case .en: "Drink logs and settings stay only on this device."
         }
     }
 
@@ -514,43 +315,6 @@ enum AppCopy {
         case .en:
             "⚠️ This app is not medical advice or a diagnostic tool. Numbers are for reference only; consult a qualified professional for health decisions."
         }
-    }
-
-    static func settingsExportTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "記録のエクスポート"; case .en: "Export logs" }
-    }
-
-    static func settingsExportExplanation(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "飲酒記録を CSV ファイルにまとめます。メールやクラウドなど、お好きな方法で保存・共有できます。"
-        case .en: "We'll bundle your drink logs into a CSV file. Save or share it however you like."
-        }
-    }
-
-    static func settingsExportShareButton(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "共有…"; case .en: "Share…" }
-    }
-
-    static func settingsExportShareSubject(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "YoiYoi 飲酒記録"; case .en: "YoiYoi drink logs" }
-    }
-
-    static func settingsExportShareMessage(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "アプリからエクスポートした飲酒記録（CSV）です。"
-        case .en: "Drink logs exported from YoiYoi (CSV)."
-        }
-    }
-
-    static func settingsExportShareHint(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "「共有」からメール、ファイル、他アプリへ送れます。"
-        case .en: "Use Share to send via Mail, Files, or another app."
-        }
-    }
-
-    static func settingsExportFailed(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "書き出しに失敗しました。"; case .en: "Couldn't create the export." }
     }
 
     // MARK: - Drink log sheet
@@ -587,34 +351,4 @@ enum AppCopy {
         switch l { case .ja: "純アルコール量"; case .en: "Pure alcohol" }
     }
 
-    // MARK: - HomeViewLite（診断用）
-
-    static func liteWeekTotalLabel(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "週合計"; case .en: "Week total" }
-    }
-
-    static func liteMoreCount(_ n: Int, _ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "…他 \(n)件"
-        case .en: "…+\(n) more"
-        }
-    }
-
-    static func liteTodayRecordsLine(_ count: Int, _ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "今日の記録: \(count)件"
-        case .en: "Today: \(count) \(count == 1 ? "entry" : "entries")"
-        }
-    }
-
-    static func liteFeedPlaceholder(_ l: SupportedLanguage) -> String {
-        switch l {
-        case .ja: "公開準備中（もっと見る →）"
-        case .en: "Coming soon (See more →)"
-        }
-    }
-
-    static func liteLogButton(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "＋ 飲み物を記録"; case .en: "＋ Log a drink" }
-    }
 }

@@ -4,19 +4,13 @@ import SwiftUI
 extension Notification.Name {
     /// 記録シートを閉じたあとホーム等が SwiftData を取り直すためのフック（Phase 6）。
     static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
-    /// `HomeView` / `HomeViewLite` など子ビューから飲酒記録シートを開く。
+    /// 子ビューから飲酒記録シートを開く。
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
-    /// メインタブを切り替える（例: ホーム「もっと見る」→ フィード）。`userInfo["tabIndex"]` に Int 0...3。
-    static let switchMainTab = Notification.Name("YoiYoi.switchMainTab")
     /// `UserProfile` の目標・ニックネーム等を更新したあと、ホーム等が再集計するためのフック。
     static let userProfileDidChange = Notification.Name("YoiYoi.userProfileDidChange")
 }
 
-enum MainTabNotification {
-    static let tabIndexKey = "tabIndex"
-}
-
-/// **段階実装** — タブ0〜3 は `HomeView` / `CalendarView` / `FeedView` / `SettingsRootView`。下端は **4等分タブバー + 記録 FAB**。
+/// タブ0〜2 は `HomeView` / `CalendarView` / `SettingsRootView`。下端は **3等分タブバー + 記録 FAB**。
 /// FAB は **`safeAreaInset` 外の `overlay`**（インセット内は高さ確保用の `Color.clear` のみ）。`ZStack` 化した事例で `HomeView` の `ScrollView` が潰れたため。
 ///
 /// タブバーを `VStack` の下に兄弟で置くと内側の `ScrollView` に縦 0 が渡ることがあるため、
@@ -50,8 +44,6 @@ struct ContentView: View {
             case 1:
                 CalendarView()
             case 2:
-                FeedView()
-            case 3:
                 SettingsRootView()
             default:
                 HomeView()
@@ -104,11 +96,6 @@ struct ContentView: View {
                 showDrinkLogSheet = true
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: .switchMainTab)) { note in
-            guard let raw = note.userInfo?[MainTabNotification.tabIndexKey] as? Int else { return }
-            let idx = max(0, min(3, raw))
-            selectedTab = idx
-        }
     }
 
     /// DESIGN.md「中央 FAB」— 記録シートを開く（`openDrinkLogSheet` と同じく次フレームで表示）。
@@ -142,8 +129,7 @@ struct ContentView: View {
         HStack(spacing: 0) {
             barItem(index: 0, title: AppCopy.tabHome(appState.currentLanguage), systemImage: "house.fill")
             barItem(index: 1, title: AppCopy.tabCalendar(appState.currentLanguage), systemImage: "calendar")
-            barItem(index: 2, title: AppCopy.tabFeed(appState.currentLanguage), systemImage: "globe")
-            barItem(index: 3, title: AppCopy.tabSettings(appState.currentLanguage), systemImage: "gearshape.fill")
+            barItem(index: 2, title: AppCopy.tabSettings(appState.currentLanguage), systemImage: "gearshape.fill")
         }
         .padding(.top, 10)
         .padding(.bottom, 8)

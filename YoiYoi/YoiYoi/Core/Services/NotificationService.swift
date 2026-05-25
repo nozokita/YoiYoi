@@ -50,7 +50,7 @@ enum NotificationService {
 
     private static func refreshSchedule(settings: Settings) async {
         let center = UNUserNotificationCenter.current()
-        await center.removePendingNotificationRequests(withIdentifiers: ["daily_drink_reminder"])
+        center.removePendingNotificationRequests(withIdentifiers: ["daily_drink_reminder"])
 
         guard settings.enabled else { return }
 
@@ -59,7 +59,7 @@ enum NotificationService {
 
         let content = UNMutableNotificationContent()
         content.title = "YoiYoi"
-        content.body = "今日は飲んだ？ 記録しておこう 🍺"
+        content.body = "今日のペースを記録して振り返ろう"
         content.sound = .default
 
         var date = DateComponents()
@@ -99,4 +99,3 @@ enum NotificationService {
         }
     }
 }
-

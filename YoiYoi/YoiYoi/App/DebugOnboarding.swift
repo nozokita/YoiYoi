@@ -20,22 +20,16 @@ enum DebugOnboarding {
         guard ProcessInfo.processInfo.arguments.contains(launchArgument) else { return }
         guard !didApplyLaunchArgument else { return }
         didApplyLaunchArgument = true
-        resetForReplay(modelContext: modelContext, appState: appState, fromEULA: true)
+        resetForReplay(modelContext: modelContext, appState: appState)
         AppLaunchDiagnostics.log("DebugOnboarding: applied launch argument \(launchArgument)")
     }
 
     /// オンボを再度表示できる状態にする。
-    /// - Parameters:
-    ///   - fromEULA: `true` なら EULA からやり直し（利用規約の再読込用）。`false` なら完了フラグのみ戻す。
-    static func resetForReplay(modelContext: ModelContext, appState: AppState, fromEULA: Bool) {
+    static func resetForReplay(modelContext: ModelContext, appState: AppState) {
         appState.resetOnboardingForDebug()
         let desc = FetchDescriptor<UserProfile>()
         guard let p = try? modelContext.fetch(desc).first else { return }
         p.onboardingCompleted = false
-        if fromEULA {
-            p.eulaAccepted = false
-            p.eulaAcceptedAt = nil
-        }
         try? modelContext.save()
     }
 }

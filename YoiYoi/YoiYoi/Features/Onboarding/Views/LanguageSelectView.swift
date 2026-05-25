@@ -25,6 +25,19 @@ struct LanguageSelectView: View {
                     }
                 }
 
+                VStack(spacing: AppSpacing.xs) {
+                    Text(AppCopy.onboardingLocalOnlyTitle(displayLanguage))
+                        .font(AppFonts.cardTitle())
+                        .foregroundStyle(AppColors.charcoal)
+                    Text(AppCopy.onboardingLocalOnlyDetail(displayLanguage))
+                        .font(AppFonts.sublabel(for: displayLanguage, size: 13))
+                        .foregroundStyle(AppColors.greyText)
+                }
+                .multilineTextAlignment(.center)
+                .padding(AppSpacing.md)
+                .frame(maxWidth: .infinity)
+                .contentCard(themeColor: AppColors.mintGreen)
+
                 PuffyButton(title: AppCopy.commonNext(displayLanguage), isEnabled: vm.selectedLanguage != nil) {
                     onContinue()
                 }

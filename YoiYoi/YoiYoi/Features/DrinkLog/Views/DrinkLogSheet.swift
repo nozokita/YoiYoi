@@ -1,7 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// DESIGN.md「飲酒記録シート」— グリッド・調整カード・純AL 表示・保存 + `FeedGenerator`（ローカル生成のみ）。
+/// DESIGN.md「飲酒記録シート」— グリッド・調整カード・純アルコール量のローカル保存。
 struct DrinkLogSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -125,53 +125,6 @@ struct DrinkLogSheet: View {
             )
             modelContext.insert(record)
             try modelContext.save()
-
-            let cal = Calendar.current
-            let now = Date()
-            let all = try modelContext.fetch(FetchDescriptor<DrinkRecord>())
-            let profiles = try modelContext.fetch(FetchDescriptor<UserProfile>())
-            let profile = profiles.first
-
-            let dailyGoal = profile?.dailyGoalGrams ?? 40
-            let weeklyGoal = profile?.weeklyGoalGrams ?? 280
-            let uid: String
-            if let authUid = AuthService.currentUID {
-                uid = authUid
-            } else if let p = profile, !p.firebaseUID.isEmpty {
-                uid = p.firebaseUID
-            } else if let p = profile {
-                uid = p.id.uuidString
-            } else {
-                uid = "local"
-            }
-
-            let todayTotal = AlcoholCalculator.dailyTotal(gramsFrom: all, on: now, calendar: cal)
-            let weekTotal = AlcoholCalculator.weeklyTotal(gramsFrom: all, inWeekOf: now, calendar: cal)
-            let streak = AlcoholCalculator.streakDays(
-                gramsFrom: all,
-                dailyGoalGrams: dailyGoal,
-                endingOn: now,
-                calendar: cal
-            )
-
-            let startOfToday = cal.startOfDay(for: now)
-            let drinkKeys: [String] = all
-                .filter { cal.isDate($0.loggedAt, inSameDayAs: startOfToday) }
-                .flatMap { r in Array(repeating: r.drinkType, count: r.numberOfDrinks) }
-
-            let ctx = FeedGenerator.Context(
-                referenceDate: now,
-                uid: uid,
-                language: appState.currentLanguage.rawValue,
-                todayTotalGrams: todayTotal,
-                dailyGoalGrams: dailyGoal,
-                weeklyTotalGrams: weekTotal,
-                weeklyGoalGrams: weeklyGoal,
-                streakDays: streak,
-                drinkTypesToday: drinkKeys
-            )
-            let post = FeedGenerator.generatePost(context: ctx, calendar: cal)
-            FeedFirestoreSync.publishIfPossible(post)
 
             // `dismiss` と親の `onDismiss`→`reloadFromStore` が同一トランジション内で走るとメインスレッドが詰まることがあるため、次フレームにずらす。
             DispatchQueue.main.async {

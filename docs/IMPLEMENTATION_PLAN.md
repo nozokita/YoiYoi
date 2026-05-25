@@ -1,581 +1,119 @@
-# YoiYoi MVP v1.0 実装計画
-> Cursor で Claude Sonnet 4 / Opus 4.6 を使い分けて開発
-
-## AI モデル使い分けの原則
-
-| 状況 | 使うモデル | 理由 |
-|------|-----------|------|
-| **初期アーキテクチャ設計** | **Opus** | 複数ファイル間の依存関係・設計判断が必要 |
-| **新 Feature の骨組み作成** | **Opus** | ViewModel + View + Model を同時に整合させる |
-| **個別 View の実装** | **Sonnet** | 単一ファイル、UI パーツの繰り返し作業 |
-| **スタイリング・カラー調整** | **Sonnet** | 定義済みトークンの適用、反復作業 |
-| **バグ修正（単一ファイル）** | **Sonnet** | 速い。局所的な問題解決 |
-| **バグ修正（複数ファイル横断）** | **Opus** | 原因が不明確、複数ファイルの状態追跡が必要 |
-| **Firebase ルール・セキュリティ** | **Opus** | セキュリティは高リスク、慎重な推論が必要 |
-| **テストコード作成** | **Sonnet** | パターン化された繰り返し |
-| **ローカライゼーション** | **Sonnet** | 定型的な翻訳・文字列管理 |
-| **レビュー・リファクタリング** | **Opus** | コード全体の品質判断 |
-| **JSON データ作成** | **Sonnet** | 単純な列挙作業 |
-| **README / ドキュメント** | **Sonnet** | 構造化された文書生成 |
-
-## 既知のレイアウト制約と安全ルール（実機で確認済み）
-
-> **重要**: 以下は開発中にシミュレーターで複数回再現し、`git reset` で切り戻した実績のある制約です。
-> DESIGN.md の見た目は維持しつつ、**実装手段**を安全なものに限定してください。
-
-### 壊れたパターンと原因
-
-| # | やったこと | 症状 | 原因 |
-|---|-----------|------|------|
-| 1 | `WaveShape` で `ZStack` 全体を `clipShape` | メーターリングの下端が欠ける | 前景まで波でクリップ → **背景の `Rectangle` だけに `clipShape`** で解決 |
-| 2 | `safeAreaInset` の FAB 領域を `HStack{Spacer+FAB+Spacer}` → `ZStack{Color.clear(h:56)+FAB}` に変更 | ホームのカード群が消える（ヒーロー＋空のクリーム色） | `safeAreaInset` の**内部構造を変えると**、`HomeView` の `VStack { hero + ScrollView }` の **ScrollView に渡る残り高さが 0** になる |
-| 3 | タブバーの `HStack` に `Color.clear.frame(width:56)` スペーサーを追加 | 同上 | `safeAreaInset` の**高さ算出が微妙に変わる**。`Color.clear` は制約次第で高さが膨張する |
-| 4 | `HomeView` の `ScrollView` を `GeometryReader` で包む（内側・外側両方試行） | 解決しない。高さ 0 のまま | `VStack` 内の残り高さ割り当て自体がゼロ → `GeometryReader` にも 0 が来る |
-| 5 | `WaveHeroView` を `ScrollView` の**内側**に入れる | 白画面 | `ScrollView` → `VStack` → `WaveHeroView` → `.frame(height:)` がタブシェル下で潰れる |
-
-### 安全ルール
-
-1. **`safeAreaInset` の構造は凍結**
-   - 現行: `VStack { HStack{Spacer+FAB+Spacer} + Divider + bottomBar }`
-   - この **VStack の子の種類・入れ子・frame 指定を変えない**。padding の pt 値微調整のみ OK。
-   - FAB の位置を DESIGN に近づけるときは **`safeAreaInset` の外の `.overlay(alignment: .bottom)`** を使う。
-
-2. **各画面の body パターン**
-   - `VStack(spacing:0) { WaveHeroView.frame(height: heroHeight) + ScrollView }` のみ使う。
-   - `GeometryReader` でスクロール高さを渡す方式は使わない（高さ 0 問題が再発する）。
-   - `WaveHeroView` は `ScrollView` の **外側 (兄弟)** に固定高さで置く。
-
-3. **1 コミット = 1 種類の変更**
-   - タブ数変更、FAB 位置変更、画面接続を **同一コミットに混ぜない**。
-   - 各コミット後に **ホームタブでカード群が表示されるか** を必ず確認。
-   - 壊れたら **直前の安全コミットに `git reset --hard`** して 1 ステップ戻る。
-
-4. **`WaveShape` のクリップ**
-   - `WaveHeroView` 内で **背景 `Rectangle` だけに `clipShape(WaveShape())`** する。
-   - `ZStack` 全体に掛けるとメーター等の前景が欠ける。
-
-### FAB を DESIGN の「中央浮かし」に近づける安全な方法
+# YoiYoi Lean MVP 実装計画 v2.0
+> 最終更新: 2026.05.26
+>
+> 仕様は [SPEC.md](./SPEC.md)、画面方針は [DESIGN.md](./DESIGN.md) を正とする。
 
-```
-// ContentView の body の最外側に .overlay で FAB を載せる。
-// safeAreaInset の構造は触らない。
-.overlay(alignment: .bottom) {
-    drinkLogFAB
-        .offset(y: -tabBarTotalHeight - 8)  // タブバー＋Divider 高さ分 + 余白
-}
-```
-
-- `tabBarTotalHeight` = タブバー + Divider + safeArea 下端。固定値か `GeometryReader` で測る。
-- `safeAreaInset` 側の FAB を削除し、overlay の FAB に一本化する。
-- **ただし**この変更も 1 コミット単位で行い、ホームのカード群が出るかを確認する。
-
----
-
-## フェーズ構成（全10フェーズ、約10-14週）
-
----
-
-### Phase 0: プロジェクト初期セットアップ（1-2日）
-**モデル: Opus**
-
-**Cursor プロンプト:**
-```
-@docs/SPEC.md @docs/DESIGN.md を読み込んで。
-
-以下をこの順番で作成して:
-
-1. YoiYoiApp.swift / YoiYoiAppDelegate.swift
-   - `@main` は `YoiYoiApp`（SwiftUI `App` / `WindowGroup`）。Firebase 等は `@UIApplicationDelegateAdaptor(YoiYoiAppDelegate.self)`。
-   - SwiftData ModelContainer（DrinkRecord, UserProfile）
-   - Firebase の初期化（FirebaseApp.configure()）
-   - AppState を @Environment に注入
-   - onboardingCompleted に応じて OnboardingContainerView / ContentView を切り替え
-
-2. AppState.swift
-   - @Observable class
-   - onboardingCompleted: Bool（UserDefaults 永続化）
-   - currentLanguage: SupportedLanguage
-
-3. FeatureFlags.swift
-   - static let isAdsEnabled = false
-   - static let isFeedEnabled = true
-
-4. ContentView.swift
-   - **自前タブバー**（`safeAreaInset(edge: .bottom)`）+ 中央 FAB
-   - システム `TabView` は使わない（白画面の原因になった）
-   - タブ: Home, Calendar, Feed, Settings（4等分 `HStack`）
-   - FAB（56pt 円形・coralRed グラデ）は `safeAreaInset` 内の上段に `HStack{Spacer+FAB+Spacer}` で配置
-   - タップで DrinkLogSheet を `.sheet` 表示
-   - **⚠️ 安全ルール:**
-     - **`safeAreaInset` の VStack 構造（子の種類・frame）を変更しない**（HomeView の ScrollView が潰れる原因になる — 上記「既知のレイアウト制約」参照）
-     - タブ数は **1つずつ追加** → 毎回ホームでカード群表示を確認 → commit
-     - FAB を DESIGN の「タブバーから上に浮かせる」にするときは **`.overlay(alignment: .bottom)`** で行い、`safeAreaInset` 内の構造を変えない
-
-5. Core/Models/SupportedLanguage.swift
-   - @docs/SPEC.md の SupportedLanguage enum をそのまま実装
-```
-
-**成果物:** アプリが起動し、タブ画面が表示される状態。
-
----
-
-### Phase 1: テーマシステム + 共通シェイプ（1-2日）
-**モデル: Sonnet**
-
-**ステップ 1-1: カラー定義**
-```
-@docs/DESIGN.md の「カラーパレット」を参照して
-UI/Theme/AppColors.swift を作成。
-enum AppColors で全色を static let で定義。
-Color+Ext.swift に hex イニシャライザも作成。
-```
-
-**ステップ 1-2: グラデーション定義**
-```
-@docs/DESIGN.md の「ヒーローエリア配色」を参照して
-UI/Theme/AppGradients.swift を作成。
-各画面用のヒーローグラデーション + 全画面グラデーション（オンボーディング用）を定義。
-```
-
-**ステップ 1-3: フォント定義**
-```
-@docs/DESIGN.md のタイポグラフィ表と @docs/SPEC.md の SupportedLanguage を参照して
-UI/Theme/AppFonts.swift を作成。
-SF Pro Rounded を .design(.rounded) で指定。
-言語ごとのフォント切り替えを SupportedLanguage.fontFamily と連動。
-ヒーロー見出し（28pt Bold white）やメーター数字（48pt Heavy）も定義。
-```
-
-**ステップ 1-4: スペーシング**
-```
-UI/Theme/AppSpacing.swift を作成。
-xs=4, sm=8, md=16, lg=24, xl=32, xxl=48 を定義。
-```
-
-**ステップ 1-5: WaveShape**
-```
-@docs/DESIGN.md の「ウェーブシェイプ仕様」を参照して
-UI/Components/WaveShape.swift を作成。
-CustomShape として実装。ヒーローエリアの下端クリッピングに使う。
-```
-
-**成果物:** 全デザイントークン + ウェーブシェイプが利用可能。
-
----
-
-### Phase 2: 共通UIコンポーネント（2-3日）
-**モデル: Sonnet**（個別パーツ）→ **Opus**（最終レビュー）
-
-**ステップ 2-1: ContentCard**（Sonnet）
-```
-@docs/DESIGN.md の「① コンテンツカード」を参照して
-UI/Components/ContentCard.swift を作成。
-白背景 + テーマ色シャドウ。themeColor を引数で受ける。
-.contentCard(themeColor:) の ViewModifier として使えるようにして。
-```
-
-**ステップ 2-2: GradientAccentCard**（Sonnet）
-```
-@docs/DESIGN.md の「② グラデーションアクセントカード」を参照して
-UI/Components/GradientAccentCard.swift を作成。
-参照デザインの科目カードパターン: 横長、左テキスト＋右絵文字、グラデーション背景。
-引数: title, subtitle, emoji, gradientColors
-```
-
-**ステップ 2-3: PuffyButton**（Sonnet）
-```
-@docs/DESIGN.md の「ぷっくりボタン仕様」を参照して
-UI/Components/PuffyButton.swift を作成。
-disabled 状態: opacity 0.5、shadow なし、タップ無効。
-```
-
-**ステップ 2-4: StatCard**（Sonnet）
-```
-UI/Components/StatCard.swift を作成。
-引数: title, value, emoji, backgroundColor
-数字は AppFonts のメーター数字相当（28pt Heavy）。
-背景は薄い色（mintLight / yellowLight / coralLight）。
-```
-
-**ステップ 2-5: PillTag**（Sonnet）
-```
-UI/Components/PillTag.swift を作成。
-引数: text, bgColor, textColor, isSelected
-cornerRadius 999。
-```
-
-**ステップ 2-6: FlagPicker / BounceModifier / ThemedShadowModifier**（Sonnet）
-```
-UI/Components/FlagPicker.swift — 横スクロール国旗ピッカー。
-UI/Modifiers/BounceModifier.swift — タップ時 scaleEffect 0.95。
-UI/Modifiers/ThemedShadowModifier.swift — テーマ色シャドウ。
-```
-
-**ステップ 2-7: コンポーネントレビュー**（Opus）
-```
-@UI/Components/ と @UI/Modifiers/ の全ファイルを
-@docs/DESIGN.md の「カードスタイル定義」「影ルール」と照合してレビュー。
-一貫性・命名規則をチェック。問題があれば修正。
-```
-
-**成果物:** 再利用可能な UI パーツが揃い、Preview で確認可能。
-
----
-
-### Phase 3: データモデル + 純アルコール計算（2日）
-**モデル: Opus**（モデル設計）→ **Sonnet**（テスト）
-
-**ステップ 3-1: AlcoholByVolume 型**（Opus）
-```
-@docs/SPEC.md の「AlcoholByVolume」をそのまま実装。
-Core/Models/AlcoholByVolume.swift
-```
-
-**ステップ 3-2: SwiftData モデル**（Opus）
-```
-@docs/SPEC.md の「データモデル」を参照して Core/Models/ 配下に:
-- DrinkRecord.swift（init は AlcoholByVolume 型のみ受付）
-- UserProfile.swift（eulaAccepted + eulaAcceptedAt 含む）
-- DrinkType.swift（enum、ABV は AlcoholByVolume.fromFraction で定義）
-- FeedPost.swift（Codable struct）
-- NicknamePresets.swift（JSON 読み込み）
-```
-
-**ステップ 3-3: 計算サービス**（Sonnet）
-```
-Core/Services/AlcoholCalculator.swift を作成。
-dailyTotal, weeklyTotal, remainingToday, percentage, streakDays
-```
-
-**ステップ 3-4: テスト**（Sonnet）
-```
-Tests/AlcoholByVolumeTests.swift（6ケース）
-Tests/DrinkRecordTests.swift（8ケース）
-Tests/AlcoholCalculatorTests.swift（8ケース）
-```
-
-**成果物:** データモデル + 計算ロジック + テスト。
+## 目標
 
----
+楽しく、無理しないペースでアルコール摂取量をコントロールできる、端末内完結の iPhone アプリへ整理する。MVP は日本語と英語を提供し、言語追加に耐える構造を維持する。
 
-### Phase 4: オンボーディング（3-4日）
-**モデル: Opus**（フロー設計）→ **Sonnet**（個別画面）
+## 実装原則
 
-**ステップ 4-1: フロー設計**（Opus）
-```
-@docs/SPEC.md の「オンボーディング（5ステップ）」を参照して
-Features/Onboarding/ を設計。
-
-OnboardingContainerView.swift:
-- @State currentStep: Int (0-4)、5ステップ
-- EULA ステップはインジケーターに含めない
-- ページインジケーター: coralRed ドット3つ（言語/性別/ニックネーム）
-
-OnboardingViewModel.swift:
-- eulaAccepted, selectedLanguage: SupportedLanguage
-- selectedGender, weeklyGoal, dailyGoal
-- nickname 4パーツ + shuffleNickname()
-- acceptEULA(), completeOnboarding()
-```
-
-**ステップ 4-2: EULA 画面**（Sonnet）
-```
-@docs/DESIGN.md の「オンボーディング: EULA 同意画面」を参照して
-Features/Onboarding/Views/EULAView.swift を実装。
-全画面グラデーション（ウェーブなし）。コンテンツカード内に ScrollView。
-```
-
-**ステップ 4-3: 言語選択画面**（Sonnet）
-```
-@docs/DESIGN.md の「オンボーディング: 言語選択画面」を参照して実装。
-SupportedLanguage.allCases から動的にカード生成。
-```
-
-**ステップ 4-4: 性別・目標画面**（Sonnet）
-```
-@docs/DESIGN.md の「オンボーディング: 性別・目標画面」を参照して実装。
-Pill 3択 + 目標カード。
-```
-
-**ステップ 4-5: ニックネーム選択画面**（Sonnet）
-```
-@docs/DESIGN.md の「オンボーディング: ニックネーム選択画面」を参照して実装。
-4行の横スクロールピッカー + プレビューカード + シャッフルボタン。
-```
-
-**成果物:** EULA同意 → 言語 → 性別 → ニックネーム → ホーム遷移。
-
----
-
-### Phase 5: ホーム画面 + メーター（3-4日）
-**モデル: Opus**（ウェーブヒーロー + メーター設計）→ **Sonnet**（サブビュー）
-
-**ステップ 5-1: WaveHeroView + メーター**（Opus）
-```
-@docs/DESIGN.md の「ホーム画面」を参照して以下を作成。
-
-Features/Home/Views/WaveHeroView.swift:
-- 共通ウェーブヒーローエリア（他画面でも再利用）
-- 引数: gradientColors, content(@ViewBuilder)
-- **WaveShape は背景 Rectangle にだけ clipShape する**（ZStack 全体に掛けるとメーター等の前景が欠ける）
-- height: 画面の約35%（WaveHeroLayout.heroHeight()、GeometryReader は使わない）
-
-Features/Home/Views/AlcoholMeterView.swift:
-- ヒーロー内に配置するメーターリング（160×160）
-- 背景リング: white 20%, 太さ 14pt
-- 消費リング: white, trim アニメーション
-- 中央数字: 48pt Heavy, white
-- @docs/DESIGN.md のメーター状態別表現テーブルに従う
-```
-
-**ステップ 5-2: HomeView 全体**（Sonnet）
-```
-@docs/DESIGN.md の「ホーム画面」ASCIIレイアウトを参照して
-Features/Home/Views/HomeView.swift を実装。
-
-⚠️ body パターンは厳密に守る（「既知のレイアウト制約」参照）:
-  VStack(spacing: 0) {
-      WaveHeroView(...).frame(height: heroHeight)  // 固定高さ・ScrollView の外
-      ScrollView { ... }                            // maxHeight: .infinity
-          .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
-  }
-  .frame(maxWidth: .infinity, maxHeight: .infinity)
-  
-禁止:
-  - WaveHeroView を ScrollView の中に入れる
-  - GeometryReader で ScrollView の高さを渡す
-  - safeAreaInset 内の構造を変える
-
-上部: WaveHeroView（ニックネーム挨拶 + AlcoholMeterView）
-下部 ScrollView:
-- 今週のまとめカード（StatCard × 3）→ ヒーローに -16pt 重なる
-- 今日のドリンクカード（横スクロール Pill）
-- みんなの様子カード（フィードプレビュー 2件 + もっと見る →）
-```
-
-**ステップ 5-3: HomeViewModel**（Sonnet）
-```
-Features/Home/ViewModels/HomeViewModel.swift
-@Observable, @MainActor
-todayConsumed, weeklyConsumed, streakDays, restDaysThisWeek
-```
-
-**成果物:** ウェーブヒーロー + メーター + カード群のホーム画面。
-
----
-
-### Phase 6: 飲酒記録シート（3日）
-**モデル: Opus**（フロー設計）→ **Sonnet**（UI）
-
-**ステップ 6-1: 記録フロー設計**（Opus）
-```
-@docs/DESIGN.md の「飲酒記録シート」を参照してフロー設計。
-
-DrinkLogViewModel:
-- ドリンク選択 → 量・度数調整 → 純AL リアルタイム計算
-- 度数は AlcoholByVolume.fromPercentage() 経由
-- SwiftData 保存 + FeedGenerator でローカル投稿生成（Firestore は Phase 8）
-```
-
-**ステップ 6-2: ドリンクグリッド**（Sonnet）
-```
-@docs/DESIGN.md の「飲酒記録シート」を参照。
-2×3 LazyVGrid、選択時 coralRed ボーダー 2.5pt + scale 1.03。
-```
-
-**ステップ 6-3: スライダー + 度数**（Sonnet）
-```
-@docs/DESIGN.md の「飲酒記録シート」調整エリアを参照。
-杯数ステッパー + 度数ステッパー（±0.5%）+ 純AL リアルタイム表示（36pt Heavy, coralRed）。
-```
+- 飲酒記録と設定は SwiftData で端末内に保持する。
+- ローカル通知以外の外部通信を前提にしない。
+- UI 文言は JA/EN を同時に追加し、`SupportedLanguage` を通して切り替える。
+- 「設定した目安まであと28g」のように、ユーザーの設定値との比較として表現する。
+- プライバシーポリシーはアプリ内と公開ページの双方から到達できる状態を維持する。
 
-**ステップ 6-4: FeedGenerator + テスト**（Sonnet）
-```
-Core/Services/FeedGenerator.swift
-generatePost() → FeedPost を返す（Firestore 非依存）。
-
-Tests/FeedGeneratorTests.swift（6ケース）
-```
+## 移行フェーズ
 
-**成果物:** 記録入力 → ローカル保存 → フィード投稿テンプレート生成。
+### Phase 1: 旧機能整理
 
----
+状態: 反映済み。
 
-### Phase 7: カレンダー画面（2-3日）
-**モデル: Opus**（ウェーブヒーロー統合）→ **Sonnet**（グリッド）
+| 作業 | 完了条件 |
+|------|----------|
+| クラウド連携と共有画面のコードを削除 | アプリターゲットに不要な依存・参照がない |
+| 匿名表示名と初回同意画面を削除 | 初回導線が言語選択から開始する |
+| CSV 出力と旧法務リンクを削除 | 設定にプライバシーポリシーだけが残る |
+| 公開文書を更新 | 端末内保存と JA/EN 方針が明記される |
 
-**ステップ 7-1: CalendarView + ヒーロー**（Opus）
-```
-@docs/DESIGN.md の「カレンダー画面」を参照。
-WaveHeroView を mintGreen テーマで再利用。
-ヒーロー内にミニバッジ × 3（休肝日/目標内/超過）。
-
-⚠️ body パターンは HomeView と同じにする（「既知のレイアウト制約」参照）:
-  VStack(spacing: 0) { WaveHeroView.frame(height:) + ScrollView }
-  WaveHeroView は ScrollView の外。GeometryReader は使わない。
-  現行の CalendarView がヒーローを ScrollView 内に持っている場合は外に出す。
-```
+維持するもの:
 
-**ステップ 7-2: DayCellView + グリッド**（Sonnet）
-```
-@docs/DESIGN.md の「カレンダー画面」を参照。
-44×44 セル、4状態の色ドット、当日 coralRed ボーダーリング。
-月切り替え矢印。
-```
+- `YoiYoiAppDelegate` のフォアグラウンド通知表示処理。
+- `SupportedLanguage`、言語選択画面、設定画面の言語切替。
+- 既存の飲酒記録、カレンダー、目安設定、ローカル通知。
 
-**ステップ 7-3: 週間棒グラフ**（Sonnet）
-```
-@docs/DESIGN.md の「今週の推移」カードを参照。
-目標ライン（点線）+ 各曜日バー（mintGreen/warmCoral）。
-```
+### Phase 2: クイック記録
 
-**成果物:** ウェーブヒーロー + カレンダー + 棒グラフ。
+| 作業 | 実装内容 |
+|------|----------|
+| `QuickDrinkPreset` を追加 | よく飲むドリンクを最大 6 件保存 |
+| 最近の記録を算出 | 種類・容量・度数・杯数で重複排除し最大 5 件表示 |
+| ホームに `すぐ記録` を追加 | タップで記録し 5 秒間の取り消しを提供 |
+| 記録シートと連携 | ショートカットから値を引き継いで編集可能にする |
 
----
+テスト:
 
-### Phase 8: Firebase + フィード画面（6-8日）★最大の技術チャレンジ
-**モデル: Opus**
+- お気に入り上限と並べ替え。
+- 最近の記録の重複排除と順序。
+- ワンタップ保存と取り消し。
+- JA/EN 表示の切替後にも保存値が変わらないこと。
 
-**ステップ 8-1: Firebase セットアップ**（Opus）
-```
-Core/Services/AuthService.swift — Anonymous Auth
-`YoiYoiAppDelegate.didFinishLaunching` の Firebase 初期化コード更新。
-```
+### Phase 3: 飲み会セッションと通知
 
-**ステップ 8-2: Firestore サービス**（Opus）
-```
-Core/Services/FirestoreService.swift
-@docs/SPEC.md の「クライアント側リアクション実装」参照。
-FieldValue.increment(1) + FieldValue.arrayUnion([uid]) を使用。
-```
+| 作業 | 実装内容 |
+|------|----------|
+| `DrinkingSession` を追加 | 開始・終了・現在のセッションを管理 |
+| 記録を紐付け | セッション中の新規記録へ `sessionID` を設定 |
+| 水分補給リマインド | 選択した間隔でローカル通知を予約 |
+| セッション終了 | 未送信の通知を取り消し、振り返りを表示 |
 
-**ステップ 8-3: Phase 6 の FeedGenerator を Firestore に接続**（Opus）
-```
-DrinkLogViewModel の記録フローに Firestore 書き込みを統合。
-エラー時はローカル保存は維持、フィード投稿のみ失敗を許容。
-```
+テスト:
 
-**ステップ 8-4: フィード画面**（Opus）
-```
-@docs/DESIGN.md の「フィード画面」を参照して全画面を実装。
-
-FeedView:
-- WaveHeroView を sunnyYellow テーマで使用
-- ※ yellow 背景ではテキスト charcoal（@docs/DESIGN.md 指定通り）
-- 言語フィルタ PillTag（SupportedLanguage.allCases から動的生成）
-- ⚠️ body パターンは HomeView と同じにする（「既知のレイアウト制約」参照）:
-  VStack(spacing: 0) { WaveHeroView.frame(height:) + ScrollView }
-  現行の FeedView がヒーローを ScrollView 内に持っている場合は外に出す。
-
-FeedCardView:
-- コンテンツカード + タイプ別左ボーダー
-- @docs/DESIGN.md の「FeedCard タイプ別の視覚的区別」テーブルに従う
-- ミニ進捗バー: 高さ 6pt, radius 3
-- 「⋯」メニュー: ブロック/通報
-
-ReactionBarView:
-- 6種の PillTag、リアクション済みは coralRed fill + white text
-```
+- セッション開始・終了と記録の紐付け。
+- 通知の予約・取り消し。
+- 通知許可がない場合の穏やかな案内。
 
-**ステップ 8-5: セキュリティルール + テスト**（Opus）
-```
-@docs/SPEC.md の Firebase セキュリティルールを firestore.rules に。
-Tests/FirestoreRulesTests/firestore-rules.test.js（8ケース）
-Firebase Emulator Suite でテスト。
-```
+### Phase 4: ローカルコーチ
 
-**成果物:** フィード画面 + リアクション + セキュリティルールテスト済み。
+| 経路 | 条件 | 実装 |
+|------|------|------|
+| 定型メッセージ | 全対応 OS | 必須のフォールバック |
+| Foundation Models | iOS 26+ かつ利用可能 | 端末上で短い声かけを生成 |
 
----
+実装事項:
 
-### Phase 9: 設定画面（2日）
-**モデル: Sonnet**
+- コーチ性格選択をオンボーディングと設定に追加する。
+- 生成不可または失敗はエラー画面にせず定型メッセージへ切り替える。
+- 診断や飲酒推奨に見える出力を行わない安全制約を共通化する。
 
-```
-@docs/DESIGN.md の「設定画面」を参照して全画面を実装。
-WaveHeroView を lavender テーマで使用。
-ヒーロー内にプロフィールカード（フロスト）。
-下部にコンテンツカード群（目標設定/アプリ設定/ソーシャル/情報）。
-免責表示を最下部に。
-```
+### Phase 5: リリース準備
 
-**成果物:** 設定から全パラメータの変更が可能。
+| 作業 | 確認内容 |
+|------|----------|
+| プライバシー表示 | 初回画面、設定、App Store 表示で端末内保存を JA/EN で明記 |
+| 画面 QA | 日英、Dynamic Type、小型 iPhone で主要操作が利用可能 |
+| データ移行 | 既存記録と目安設定を保持し、新規フィールドを既定値で補完 |
+| 安全表現 | 目安を安全量または追加摂取可能量として扱わない |
 
----
+## 現行画面構成
 
-### Phase 10: ローカライゼーション + 仕上げ + 提出準備（3-4日）
-**モデル: Sonnet**（翻訳）→ **Opus**（最終レビュー）
+| 画面 | 現在の責務 | 次期追加 |
+|------|------------|----------|
+| 初回画面 | 言語選択、性別・目安、端末内保存の訴求 | コーチ性格選択 |
+| ホーム | 今日の量、目安との差 | クイック記録、コーチ、セッション |
+| カレンダー | 日々の記録振り返り | セッション単位の閲覧 |
+| 設定 | 目安、通知、言語、プライバシー、免責 | コーチ設定 |
+| 記録シート | ドリンク入力と保存 | お気に入り作成導線 |
 
-**ステップ 10-1: String Catalog**（Sonnet）
-```
-MVP は JA / EN の2言語。約260キー。
-```
+## 検証コマンド
 
-**ステップ 10-2: NicknameData JSON**（Sonnet）
-```
-6ファイル: flags.json, emojis.json, adjectives/nouns × ja/en
-```
+実装単位ごとに次を行う。
 
-**ステップ 10-3: EULA テキスト**（Sonnet）
+```sh
+git diff --check
+xcodebuild -list -project YoiYoi/YoiYoi.xcodeproj
+xcodebuild test -project YoiYoi/YoiYoi.xcodeproj -scheme YoiYoi \
+  -destination 'platform=iOS Simulator,name=iPhone 16 Pro'
 ```
-eula_ja.md, eula_en.md
-免責事項、フィード利用ルール、通報方針、プライバシーポリシー概要。
-```
 
-**ステップ 10-4: App Store 準備**（Sonnet）
-```
-AppIcon 1024×1024、スクリーンショットテキスト（2言語）、
-App Store 説明文（2言語）、プライバシーポリシー。
-```
+シミュレーター環境に指定端末がない場合は、利用可能な iPhone シミュレーターを選んで同じテストを実行する。
 
-**ステップ 10-5: 最終レビュー**（Opus）
-```
-プロジェクト全体を @docs/SPEC.md @docs/DESIGN.md と照合。
-
-チェックリスト:
-□ 全画面でウェーブヒーローが一貫して使われているか
-□ カードスタイルが docs/DESIGN.md の3種（コンテンツ/グラデーション/フロスト）に統一されているか
-□ 影が全て画面テーマ色で統一されているか
-□ 全テキストがローカライズされているか（JA/EN）
-□ AlcoholByVolume が全箇所で使われ、Double の直接渡しがないか
-□ Firebase セキュリティルールのテストが全パス
-□ リアクションの1ユーザー1回制約が機能するか
-□ ブロック・通報が動作するか
-□ EULA → オンボーディング → ホーム遷移が正しいか
-□ 免責表示が EULA 内 + 設定画面にあるか
-□ SupportedLanguage に言語追加時の影響範囲が限定されているか
-□ メモリリークや不要な再レンダリングがないか
-```
+## 完了判定
 
-**成果物:** App Store 提出可能な MVP。
-
----
-
-## 全体タイムライン
-
-| 週 | フェーズ | 主要モデル | 成果物 |
-|----|---------|-----------|--------|
-| 1 | Phase 0-1 | Opus → Sonnet | 骨格 + テーマ + WaveShape |
-| 2 | Phase 2-3 | Sonnet + Opus | コンポーネント + データモデル |
-| 3 | Phase 4 | Opus + Sonnet | オンボーディング + EULA |
-| 4-5 | Phase 5 | Opus + Sonnet | ホーム + ウェーブヒーロー + メーター |
-| 6 | Phase 6 | Opus + Sonnet | 飲酒記録 |
-| 7 | Phase 7 | Opus + Sonnet | カレンダー |
-| 8-10 | Phase 8 | **Opus** | Firebase + フィード（最重要） |
-| 11 | Phase 9 | Sonnet | 設定画面 |
-| 12-14 | Phase 10 | Sonnet + Opus | ローカライゼーション + 最終レビュー |
-
-## コスト意識
-
-Sonnet: 全体の約 **65%**（UI パーツ、テスト、翻訳、JSON）
-Opus: 全体の約 **35%**（設計、統合、セキュリティ、レビュー）
-Cursor の Auto モードは使わず、タスク粒度ごとに手動で切り替える。
-
-## 各フェーズ開始時の共通手順
-
-1. `@docs/SPEC.md` と `@docs/DESIGN.md` を Cursor に読み込ませる
-2. 該当フェーズの目的と成果物を伝える
-3. **1ステップずつ**進め、各ステップ完了後に **シミュレーターでホームのカード群が表示されるか確認**
-4. 次のステップへ進む前にコミット
-5. **壊れたら直前の安全コミットに `git reset --hard` して 1 ステップ戻り、原因を切り分ける**
-6. **「既知のレイアウト制約と安全ルール」に抵触する変更は行わない**（特に `safeAreaInset` 構造変更、`GeometryReader` でスクロール高さを渡す、`WaveHeroView` を `ScrollView` 内に入れる）
+- 日本語・英語の切替が残り、初回画面と設定から操作できる。
+- 飲酒記録・目安設定が端末内で保存される。
+- 不要になった旧機能への UI 導線、依存、テスト、公開用説明が残っていない。
+- ホームの差分表現が「設定した目安まであと28g」に統一されている。
+- ビルドと対象テストが通過し、公開文書が実装状態と次期実装を正しく区別している。

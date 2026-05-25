@@ -4,6 +4,7 @@ xcuserdata/
 *.xccheckout
 *.xcscmblueprint
 DerivedData/
+.derivedData/
 *.moved-aside
 *.hmap
 *.ipa
@@ -16,6 +17,7 @@ DerivedData/
 # Swift Package Manager
 .build/
 .swiftpm/
+node_modules/
 
 # CocoaPods (if used later)
 Pods/
@@ -25,9 +27,3 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
-
-# Firebase (add locally; do not commit secrets)
-# GoogleService-Info.plist
-
-# Node (Firestore rules tests — run npm install locally)
-FirestoreRulesTests/node_modules/
