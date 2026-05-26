@@ -8,6 +8,7 @@ struct CalendarView: View {
     @EnvironmentObject private var appState: AppState
     @State private var viewModel = CalendarViewModel()
     @State private var records: [DrinkRecord] = []
+    @State private var sessions: [DrinkingSession] = []
     @State private var dailyGoal: Double = 40
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
@@ -61,6 +62,9 @@ struct CalendarView: View {
             reload()
         }
         .onReceive(NotificationCenter.default.publisher(for: .userProfileDidChange)) { _ in
+            reload()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .sessionDidChange)) { _ in
             reload()
         }
     }
@@ -122,13 +126,19 @@ struct CalendarView: View {
 
             weekdayHeader
 
-            let cells = viewModel.monthCells(records: records, dailyGoal: dailyGoal, today: Date())
+            let cells = viewModel.monthCells(records: records, sessions: sessions, dailyGoal: dailyGoal, today: Date())
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7), spacing: 6) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, cell in
                     if cell.isPlaceholder {
                         Color.clear.frame(width: 44, height: 44)
                     } else if let _ = cell.date {
-                        DayCellView(dayNumber: cell.dayNumber, visual: cell.visual, isToday: cell.isToday)
+                        DayCellView(
+                            dayNumber: cell.dayNumber,
+                            visual: cell.visual,
+                            isToday: cell.isToday,
+                            achievedLastOrder: cell.achievedLastOrder,
+                            achievementLabel: AppCopy.calendarLastOrderAchievement(appState.currentLanguage)
+                        )
                     }
                 }
             }
@@ -208,6 +218,7 @@ struct CalendarView: View {
     private func reload() {
         let desc = FetchDescriptor<DrinkRecord>()
         records = (try? modelContext.fetch(desc)) ?? []
+        sessions = (try? modelContext.fetch(FetchDescriptor<DrinkingSession>())) ?? []
         let profiles = (try? modelContext.fetch(FetchDescriptor<UserProfile>())) ?? []
         dailyGoal = profiles.first?.dailyGoalGrams ?? 40
     }
@@ -216,5 +227,5 @@ struct CalendarView: View {
 #Preview {
     CalendarView()
         .environmentObject(AppState())
-        .modelContainer(for: [DrinkRecord.self, UserProfile.self], inMemory: true)
+        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
 }

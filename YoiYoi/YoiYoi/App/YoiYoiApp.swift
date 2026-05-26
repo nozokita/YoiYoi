@@ -26,6 +26,8 @@ struct YoiYoiApp: App {
         let schema = Schema([
             DrinkRecord.self,
             UserProfile.self,
+            DrinkingSession.self,
+            QuickDrinkPreset.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         do {

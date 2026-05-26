@@ -12,6 +12,7 @@ final class DrinkRecord {
     var loggedAt: Date
     var weekNumber: Int
     var yearNumber: Int
+    var sessionID: UUID?
 
     /// - Parameters:
     ///   - loggedAt: `nil` のときは現在時刻（本番）。テストでは固定日時を渡す。
@@ -21,6 +22,7 @@ final class DrinkRecord {
         volumeML: Double,
         abv: AlcoholByVolume,
         numberOfDrinks: Int,
+        sessionID: UUID? = nil,
         loggedAt: Date? = nil,
         calendar: Calendar = .current
     ) {
@@ -29,6 +31,7 @@ final class DrinkRecord {
         self.abvFraction = abv.fraction
         self.numberOfDrinks = numberOfDrinks
         self.pureAlcoholGrams = volumeML * abv.fraction * 0.8 * Double(numberOfDrinks)
+        self.sessionID = sessionID
         let at = loggedAt ?? Date()
         self.loggedAt = at
         self.weekNumber = calendar.component(.weekOfYear, from: at)

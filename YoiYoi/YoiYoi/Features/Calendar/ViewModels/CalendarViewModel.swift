@@ -18,13 +18,15 @@ struct CalendarDayCellData: Equatable {
     var dayNumber: Int
     var visual: CalendarDayVisualState
     var isToday: Bool
+    var achievedLastOrder: Bool
 
     static let placeholder = CalendarDayCellData(
         isPlaceholder: true,
         date: nil,
         dayNumber: 0,
         visual: .empty,
-        isToday: false
+        isToday: false,
+        achievedLastOrder: false
     )
 }
 
@@ -54,7 +56,12 @@ final class CalendarViewModel {
     }
 
     /// 月グリッド用セル（先頭パディング + 各日）。
-    func monthCells(records: [DrinkRecord], dailyGoal: Double, today: Date = Date()) -> [CalendarDayCellData] {
+    func monthCells(
+        records: [DrinkRecord],
+        sessions: [DrinkingSession] = [],
+        dailyGoal: Double,
+        today: Date = Date()
+    ) -> [CalendarDayCellData] {
         let monthStart = startOfMonth(containing: visibleMonth)
         guard let dayRange = calendar.range(of: .day, in: .month, for: monthStart) else { return [] }
 
@@ -70,6 +77,9 @@ final class CalendarViewModel {
             let dayStart = calendar.startOfDay(for: date)
             let total = AlcoholCalculator.dailyTotal(gramsFrom: records, on: date, calendar: calendar)
             let isToday = calendar.isDate(date, inSameDayAs: today)
+            let achievedLastOrder = sessions.contains {
+                $0.preventedLastOrder && calendar.isDate($0.startTime, inSameDayAs: date)
+            }
 
             let visual: CalendarDayVisualState
             if dayStart > startToday {
@@ -88,7 +98,8 @@ final class CalendarViewModel {
                     date: date,
                     dayNumber: day,
                     visual: visual,
-                    isToday: isToday
+                    isToday: isToday,
+                    achievedLastOrder: achievedLastOrder
                 )
             )
         }

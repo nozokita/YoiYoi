@@ -8,6 +8,7 @@ struct SettingsRootView: View {
 
     @State private var showGoalsEditor = false
     @State private var showNotificationsEditor = false
+    @State private var showCoachSettings = false
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
@@ -72,6 +73,27 @@ struct SettingsRootView: View {
                         .listRowBackground(AppColors.cream)
                     } header: {
                         Text(AppCopy.settingsAppInfo(appState.currentLanguage))
+                            .font(.caption)
+                            .foregroundStyle(AppColors.greyText)
+                            .textCase(nil)
+                    }
+
+                    Section {
+                        Button {
+                            showCoachSettings = true
+                        } label: {
+                            HStack {
+                                Text(AppCopy.settingsCoachRow(appState.currentLanguage))
+                                    .foregroundStyle(AppColors.charcoal)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
+                            }
+                        }
+                        .listRowBackground(AppColors.cream)
+                    } header: {
+                        Text(AppCopy.settingsCoachSection(appState.currentLanguage))
                             .font(.caption)
                             .foregroundStyle(AppColors.greyText)
                             .textCase(nil)
@@ -204,6 +226,10 @@ struct SettingsRootView: View {
                 SettingsNotificationsView()
                     .environmentObject(appState)
             }
+            .sheet(isPresented: $showCoachSettings) {
+                CoachSettingsView()
+                    .environmentObject(appState)
+            }
         }
     }
 
@@ -218,5 +244,5 @@ struct SettingsRootView: View {
 #Preview {
     SettingsRootView()
         .environmentObject(AppState())
-        .modelContainer(for: [UserProfile.self, DrinkRecord.self], inMemory: true)
+        .modelContainer(for: [UserProfile.self, DrinkRecord.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
 }

@@ -6,9 +6,16 @@ struct DrinkLogSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var appState: AppState
+    @Query(sort: \QuickDrinkPreset.sortOrder) private var presets: [QuickDrinkPreset]
+    @Query(sort: \DrinkRecord.loggedAt, order: .reverse) private var records: [DrinkRecord]
 
     @State private var viewModel = DrinkLogViewModel()
     @State private var saveError: String?
+    var sessionID: UUID?
+
+    private var recentRecords: [DrinkRecord] {
+        QuickDrinkService.recentUnique(from: records)
+    }
 
     var body: some View {
         NavigationStack {
@@ -20,7 +27,7 @@ struct DrinkLogSheet: View {
                         .frame(maxWidth: .infinity)
 
                     VStack(alignment: .leading, spacing: AppSpacing.md) {
-                        DrinkGridView(selection: $viewModel.selectedType)
+                        DrinkGridView(selection: $viewModel.selectedType, onSelect: viewModel.select)
                     }
                     .padding(AppSpacing.md)
                     .frame(maxWidth: .infinity)
@@ -28,7 +35,17 @@ struct DrinkLogSheet: View {
                     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
                     .themedShadow(themeColor: AppColors.coralRed, opacity: 0.10, radius: 16, y: 6)
 
+                    reusableSelections
                     adjustmentCard
+
+                    if viewModel.canSave {
+                        Button(AppCopy.drinkLogAddFavorite(appState.currentLanguage)) {
+                            addFavorite()
+                        }
+                        .font(AppFonts.body(for: appState.currentLanguage, size: 15))
+                        .foregroundStyle(AppColors.coralRed)
+                        .frame(maxWidth: .infinity)
+                    }
 
                     PuffyButton(title: AppCopy.drinkLogSave(appState.currentLanguage), isEnabled: viewModel.canSave) {
                         saveRecord()
@@ -58,6 +75,70 @@ struct DrinkLogSheet: View {
         } message: {
             Text(saveError ?? "")
         }
+    }
+
+    @ViewBuilder
+    private var reusableSelections: some View {
+        if !presets.isEmpty || !recentRecords.isEmpty {
+            VStack(alignment: .leading, spacing: AppSpacing.md) {
+                if !presets.isEmpty {
+                    selectionRow(title: AppCopy.homeFavorites(appState.currentLanguage), records: nil)
+                }
+                if !recentRecords.isEmpty {
+                    selectionRow(title: AppCopy.homeRecent(appState.currentLanguage), records: recentRecords)
+                }
+            }
+            .padding(AppSpacing.lg)
+            .contentCard(themeColor: AppColors.yellowLight)
+        }
+    }
+
+    private func selectionRow(title: String, records: [DrinkRecord]?) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+            Text(title)
+                .font(AppFonts.sublabel(for: appState.currentLanguage, size: 13))
+                .foregroundStyle(AppColors.greyText)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: AppSpacing.sm) {
+                    if let records {
+                        ForEach(records, id: \.id) { record in
+                            reusableButton(
+                                type: record.drinkType,
+                                volume: record.volumeML,
+                                abv: record.abvFraction,
+                                drinks: record.numberOfDrinks
+                            )
+                        }
+                    } else {
+                        ForEach(presets, id: \.id) { preset in
+                            reusableButton(
+                                type: preset.drinkType,
+                                volume: preset.volumeML,
+                                abv: preset.abvFraction,
+                                drinks: preset.numberOfDrinks
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func reusableButton(type: String, volume: Double, abv: Double, drinks: Int) -> some View {
+        let emoji = DrinkType(rawValue: type)?.emoji ?? "🍺"
+        let name = DrinkType.shortLabel(forRawType: type, language: appState.currentLanguage)
+        return Button {
+            viewModel.apply(drinkType: type, volumeML: volume, abvFraction: abv, numberOfDrinks: drinks)
+        } label: {
+            Text("\(emoji) \(name) \(Int(volume))ml ×\(drinks)")
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.charcoal)
+                .padding(.horizontal, AppSpacing.md)
+                .padding(.vertical, AppSpacing.sm)
+                .background(AppColors.pureWhite)
+                .clipShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 
     private var adjustmentCard: some View {
@@ -119,9 +200,10 @@ struct DrinkLogSheet: View {
         do {
             let record = DrinkRecord(
                 drinkType: type.rawValue,
-                volumeML: type.defaultVolumeML,
+                volumeML: viewModel.volumeML,
                 abv: viewModel.abv,
-                numberOfDrinks: viewModel.numberOfDrinks
+                numberOfDrinks: viewModel.numberOfDrinks,
+                sessionID: sessionID
             )
             modelContext.insert(record)
             try modelContext.save()
@@ -134,10 +216,40 @@ struct DrinkLogSheet: View {
             saveError = error.localizedDescription
         }
     }
+
+    private func addFavorite() {
+        guard let type = viewModel.selectedType else { return }
+        if presets.count >= QuickDrinkPreset.maximumCount {
+            saveError = AppCopy.drinkLogFavoritesLimit(appState.currentLanguage)
+            return
+        }
+        let duplicate = presets.contains {
+            $0.drinkType == type.rawValue
+                && $0.volumeML == viewModel.volumeML
+                && $0.abvFraction == viewModel.abv.fraction
+                && $0.numberOfDrinks == viewModel.numberOfDrinks
+        }
+        guard !duplicate else { return }
+        modelContext.insert(
+            QuickDrinkPreset(
+                displayName: type.rawValue,
+                drinkType: type.rawValue,
+                volumeML: viewModel.volumeML,
+                abvFraction: viewModel.abv.fraction,
+                numberOfDrinks: viewModel.numberOfDrinks,
+                sortOrder: presets.count
+            )
+        )
+        do {
+            try modelContext.save()
+        } catch {
+            saveError = error.localizedDescription
+        }
+    }
 }
 
 #Preview {
     DrinkLogSheet()
         .environmentObject(AppState())
-        .modelContainer(for: [DrinkRecord.self, UserProfile.self], inMemory: true)
+        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
 }

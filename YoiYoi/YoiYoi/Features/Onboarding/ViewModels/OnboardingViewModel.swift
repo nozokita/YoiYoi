@@ -21,13 +21,13 @@ enum OnboardingGender: String, CaseIterable, Sendable {
     case custom
 }
 
-/// 言語と目安設定を端末内の `UserProfile` へ保存する暫定オンボーディング。
-/// AI コーチ選択画面は Lean MVP の次の実装段階でこのフローに追加する。
+/// 言語、目安、ローカルコーチ設定を端末内の `UserProfile` へ保存する。
 @Observable
 @MainActor
 final class OnboardingViewModel {
     var selectedLanguage: SupportedLanguage?
     var selectedGender: OnboardingGender = .male
+    var selectedPersonality: CoachPersonality = .friendly
     var dailyGoal: Double = 25
     var weeklyGoal: Double = 175
 
@@ -71,6 +71,7 @@ final class OnboardingViewModel {
         profile.gender = selectedGender.rawValue
         profile.dailyGoalGrams = dailyGoal
         profile.weeklyGoalGrams = weeklyGoal
+        profile.aiCoachPersonality = selectedPersonality.rawValue
         profile.onboardingCompleted = true
 
         try modelContext.save()

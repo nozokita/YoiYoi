@@ -3,6 +3,7 @@ import SwiftUI
 /// DESIGN.md 飲酒記録シート: 2×3 グリッド。選択時 coral 枠 2.5pt + 背景 + scale 1.03。
 struct DrinkGridView: View {
     @Binding var selection: DrinkType?
+    var onSelect: ((DrinkType) -> Void)?
     @EnvironmentObject private var appState: AppState
 
     private let columns = [
@@ -21,7 +22,11 @@ struct DrinkGridView: View {
     private func drinkCell(_ type: DrinkType) -> some View {
         let on = selection == type
         return Button {
-            selection = type
+            if let onSelect {
+                onSelect(type)
+            } else {
+                selection = type
+            }
         } label: {
             VStack(spacing: AppSpacing.sm) {
                 Text(type.emoji)

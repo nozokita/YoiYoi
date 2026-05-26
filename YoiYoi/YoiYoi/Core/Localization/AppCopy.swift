@@ -16,6 +16,10 @@ enum AppCopy {
         switch l { case .ja: "OK"; case .en: "OK" }
     }
 
+    static func commonDelete(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "削除"; case .en: "Delete" }
+    }
+
     // MARK: - Shell
 
     static func tabHome(_ l: SupportedLanguage) -> String {
@@ -112,6 +116,21 @@ enum AppCopy {
         }
     }
 
+    static func onboardingCoachTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "コーチの話し方を選ぶ"; case .en: "Choose your coach style" }
+    }
+
+    static func onboardingCoachDetail(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "端末内で、無理しないペースを応援するひとことを表示します。"
+        case .en: "On-device encouragement to help you keep a comfortable pace."
+        }
+    }
+
+    static func onboardingStart(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "はじめる"; case .en: "Start" }
+    }
+
     // MARK: - Home
 
     static func homeGreeting(_ l: SupportedLanguage) -> String {
@@ -153,6 +172,99 @@ enum AppCopy {
         switch l { case .ja: "今日の純アルコール"; case .en: "Today's pure alcohol" }
     }
 
+    static func homeQuickRecord(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "ワンタップ記録"; case .en: "One-tap log" }
+    }
+
+    static func homeFavorites(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "よく飲むドリンク"; case .en: "Favorites" }
+    }
+
+    static func homeRecent(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "前回の内容を再利用"; case .en: "Recent combinations" }
+    }
+
+    static func homeManageFavorites(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "編集"; case .en: "Edit" }
+    }
+
+    static func homeNoFavorites(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "記録画面から最大6種類を登録できます。"
+        case .en: "Add up to six from the log screen."
+        }
+    }
+
+    static func homeLoggedUndo(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "記録しました"; case .en: "Logged" }
+    }
+
+    static func homeUndo(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "取り消す"; case .en: "Undo" }
+    }
+
+    static func homeSessionTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "飲み会モード"; case .en: "Session mode" }
+    }
+
+    static func homeSessionStart(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "飲み会をはじめる"; case .en: "Start a session" }
+    }
+
+    static func homeSessionResume(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "進行中の飲み会を開く"; case .en: "Open active session" }
+    }
+
+    static func homeCoachTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "ローカルコーチ"; case .en: "Local coach" }
+    }
+
+    static func homeCoachReload(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "更新"; case .en: "Refresh" }
+    }
+
+    static func sessionElapsed(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "経過時間"; case .en: "Elapsed" }
+    }
+
+    static func sessionHydration(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "お水を飲んだ"; case .en: "Logged water" }
+    }
+
+    static func sessionLogDrink(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "ドリンクを記録"; case .en: "Log a drink" }
+    }
+
+    static func sessionLastOrder(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "ラストオーダー"; case .en: "Last order" }
+    }
+
+    static func sessionEnd(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "飲み会を終了"; case .en: "End session" }
+    }
+
+    static func sessionLastOrderQuestion(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "このまま一区切りにしますか？"
+        case .en: "Make this your stopping point?"
+        }
+    }
+
+    static func sessionStop(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "ここでやめる"; case .en: "Stop here" }
+    }
+
+    static func sessionContinue(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "記録を続ける"; case .en: "Keep logging" }
+    }
+
+    static func sessionStoppedPraise(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "ここで止められたね。おつかれさま！"
+        case .en: "You chose to stop here. Nicely done."
+        }
+    }
+
     // MARK: - Calendar
 
     static func calendarHeroTitle(_ l: SupportedLanguage) -> String {
@@ -188,6 +300,10 @@ enum AppCopy {
 
     static func calendarWeekTrend(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "今週の推移"; case .en: "This week" }
+    }
+
+    static func calendarLastOrderAchievement(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "ラストオーダー達成"; case .en: "Stopped at last order" }
     }
 
     static func weekdayInitials(_ l: SupportedLanguage) -> [String] {
@@ -265,6 +381,34 @@ enum AppCopy {
         }
     }
 
+    static func settingsCoachSection(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "コーチと飲み会モード"; case .en: "Coach & sessions" }
+    }
+
+    static func settingsCoachRow(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "コーチ・水分通知の設定"; case .en: "Coach & hydration settings" }
+    }
+
+    static func settingsCoachTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "コーチ設定"; case .en: "Coach settings" }
+    }
+
+    static func settingsCoachPersonality(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "話し方"; case .en: "Style" }
+    }
+
+    static func settingsHydrationInterval(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "水分通知の間隔"; case .en: "Hydration interval" }
+    }
+
+    static func settingsMinutes(_ minutes: Int, _ l: SupportedLanguage) -> String {
+        switch l { case .ja: "\(minutes)分"; case .en: "\(minutes) min" }
+    }
+
+    static func settingsLastOrderReminder(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "ラストオーダー確認を表示"; case .en: "Show last-order prompt" }
+    }
+
     // MARK: - Settings Notifications
 
     static func settingsNotificationsSection(_ l: SupportedLanguage) -> String {
@@ -285,8 +429,15 @@ enum AppCopy {
 
     static func settingsNotificationsHint(_ l: SupportedLanguage) -> String {
         switch l {
-        case .ja: "毎日この時間に「今日は飲んだ？ 記録しよう🍺」とお知らせします。"
-        case .en: "We'll gently ask \"Did you drink today?\" at this time every day."
+        case .ja: "毎日この時間に、今日のペースを記録して振り返るようお知らせします。"
+        case .en: "We'll remind you to log and reflect on today's pace at this time."
+        }
+    }
+
+    static func notificationHydrationBody(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "お水でひと息。無理しないペースで楽しもう。"
+        case .en: "Water break time. Keep a comfortable pace."
         }
     }
 
@@ -349,6 +500,21 @@ enum AppCopy {
 
     static func drinkLogPureAlcohol(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "純アルコール量"; case .en: "Pure alcohol" }
+    }
+
+    static func drinkLogAddFavorite(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "よく飲むドリンクに追加"; case .en: "Add to favorites" }
+    }
+
+    static func drinkLogFavoritesLimit(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "よく飲むドリンクは6種類まで登録できます。"
+        case .en: "You can keep up to six favorites."
+        }
+    }
+
+    static func drinkLogPresetApplied(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "内容をフォームに反映しました"; case .en: "Filled into the form" }
     }
 
 }

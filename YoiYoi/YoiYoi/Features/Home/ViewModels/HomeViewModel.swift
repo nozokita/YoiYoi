@@ -12,6 +12,12 @@ final class HomeViewModel {
     var weeklyGoal: Double = 280
     var streakDays: Int = 0
     var restDaysThisWeek: Int = 0
+    var coachPersonality: CoachPersonality = .friendly
+    var hydrationIntervalMinutes: Int = 30
+    var lastOrderReminderEnabled = true
+    private(set) var presets: [QuickDrinkPreset] = []
+    private(set) var recentRecords: [DrinkRecord] = []
+    private(set) var activeSession: DrinkingSession?
 
     /// メーター下サブテキスト（状態別表現）
     func meterSubtext(language: SupportedLanguage) -> String {
@@ -54,7 +60,20 @@ final class HomeViewModel {
         if let p = profiles.first {
             dailyGoal = p.dailyGoalGrams
             weeklyGoal = p.weeklyGoalGrams
+            coachPersonality = CoachPersonality(rawValue: p.aiCoachPersonality) ?? .friendly
+            hydrationIntervalMinutes = p.hydrationIntervalMinutes
+            lastOrderReminderEnabled = p.lastOrderReminderEnabled
         }
+
+        presets = (try? modelContext.fetch(
+            FetchDescriptor<QuickDrinkPreset>(sortBy: [SortDescriptor(\.sortOrder)])
+        )) ?? []
+        recentRecords = QuickDrinkService.recentUnique(from: allRecords)
+        activeSession = SessionManager.activeSession(
+            in: (try? modelContext.fetch(
+                FetchDescriptor<DrinkingSession>(sortBy: [SortDescriptor(\.startTime, order: .reverse)])
+            )) ?? []
+        )
 
         todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: allRecords, on: now, calendar: calendar)
         weeklyConsumed = AlcoholCalculator.weeklyTotal(gramsFrom: allRecords, inWeekOf: now, calendar: calendar)

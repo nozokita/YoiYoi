@@ -1,8 +1,7 @@
 import SwiftData
 import SwiftUI
 
-/// Lean MVP 移行中のオンボーディング: 言語 → 性別・目安 → ホーム。
-/// コーチ性格選択は AI コーチ実装と同時に 3 画面目として追加する。
+/// Lean MVP オンボーディング: 言語 → 性別・目安 → コーチ → ホーム。
 struct OnboardingContainerView: View {
     @EnvironmentObject private var appState: AppState
     @Environment(\.modelContext) private var modelContext
@@ -29,6 +28,13 @@ struct OnboardingContainerView: View {
                             vm: vm,
                             language: vm.selectedLanguage ?? .ja,
                             onBack: { currentStep = 0 },
+                            onContinue: { currentStep = 2 }
+                        )
+                    case 2:
+                        CoachPersonalitySelectView(
+                            vm: vm,
+                            language: vm.selectedLanguage ?? .ja,
+                            onBack: { currentStep = 1 },
                             onContinue: finishOnboarding
                         )
                     default:
@@ -57,7 +63,7 @@ struct OnboardingContainerView: View {
 
     private var pageIndicator: some View {
         HStack(spacing: AppSpacing.sm) {
-            ForEach(0..<2, id: \.self) { index in
+            ForEach(0..<3, id: \.self) { index in
                 Circle()
                     .fill(index == currentStep ? AppColors.coralRed : AppColors.greyText.opacity(0.35))
                     .frame(width: 8, height: 8)
@@ -81,5 +87,5 @@ struct OnboardingContainerView: View {
 #Preview {
     OnboardingContainerView()
         .environmentObject(AppState())
-        .modelContainer(for: UserProfile.self, inMemory: true)
+        .modelContainer(for: [UserProfile.self], inMemory: true)
 }

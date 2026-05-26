@@ -1,7 +1,7 @@
 # YoiYoi 仕様書 v2.0 — Lean MVP 実装合意候補
 > 最終更新: 2026.05.26
 >
-> ステータス: 不要機能の除去と日英対応維持の方針は実装へ反映済み。クイック記録、セッション、ローカルコーチは次期実装対象。
+> ステータス: Lean MVP の旧機能整理、日英対応、クイック記録、飲み会モード、水分通知、ローカルコーチを実装済み。
 
 ## 概要
 
@@ -235,19 +235,13 @@ YoiYoi/
 │   │   │   ├── WaveHeroView.swift
 │   │   │   ├── AlcoholMeterView.swift
 │   │   │   ├── AICoachBubbleView.swift            # ★ 新規
-│   │   │   └── SessionStartCardView.swift         # ★ 新規
+│   │   │   ├── QuickDrinkManagerView.swift        # ★ 新規
+│   │   │   └── ActiveSessionView.swift            # ★ 新規
 │   │   └── ViewModels/
 │   │       └── HomeViewModel.swift
 │   ├── DrinkLog/                      # 既存踏襲
 │   │   ├── Views/ ...
 │   │   └── ViewModels/ ...
-│   ├── Session/                       # ★ 新規
-│   │   ├── Views/
-│   │   │   ├── ActiveSessionView.swift
-│   │   │   ├── SessionTimerView.swift
-│   │   │   └── LastOrderAlertView.swift
-│   │   └── ViewModels/
-│   │       └── SessionViewModel.swift
 │   ├── Calendar/                      # 既存踏襲
 │   │   ├── Views/ ...
 │   │   └── ViewModels/ ...
@@ -281,9 +275,7 @@ YoiYoi/
 │   ├── Components/ ...
 │   └── Modifiers/ ...
 ├── Resources/
-│   ├── Assets.xcassets/
-│   └── CoachPrompts/                  # ★ 新規
-│       └── coach_prompt_ja.txt
+│   └── Assets.xcassets/
 └── Tests/
     ├── AlcoholByVolumeTests.swift
     ├── AlcoholCalculatorTests.swift
@@ -585,7 +577,7 @@ LLM が使えない場合はルールベーステンプレートで代替:
 
 ---
 
-## 方針確認と次期実装事項
+## 方針確認と実装反映
 
 | # | 方針 | 実装への影響 |
 |---|----------|--------------|

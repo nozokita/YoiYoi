@@ -8,6 +8,8 @@ extension Notification.Name {
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
     /// `UserProfile` の目標・ニックネーム等を更新したあと、ホーム等が再集計するためのフック。
     static let userProfileDidChange = Notification.Name("YoiYoi.userProfileDidChange")
+    /// 飲み会モードの開始・更新・終了を各画面へ反映する。
+    static let sessionDidChange = Notification.Name("YoiYoi.sessionDidChange")
 }
 
 /// タブ0〜2 は `HomeView` / `CalendarView` / `SettingsRootView`。下端は **3等分タブバー + 記録 FAB**。
@@ -88,7 +90,7 @@ struct ContentView: View {
                 .presentationDetents([.large])
         }
         .onAppear {
-            AppLaunchDiagnostics.log("ContentView.onAppear（4tabs+FAB overlay） selectedTab=\(selectedTab)")
+            AppLaunchDiagnostics.log("ContentView.onAppear（3tabs+FAB overlay） selectedTab=\(selectedTab)")
         }
         .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogSheet)) { _ in
             // 同一ランループで `sheet` を立ち上げるとメインスレッドで固まる事例への回避（次フレームで表示）。
@@ -157,5 +159,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environmentObject(AppState())
-        .modelContainer(for: [DrinkRecord.self, UserProfile.self], inMemory: true)
+        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
 }

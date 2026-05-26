@@ -8,10 +8,7 @@ final class DrinkLogViewModel {
     var numberOfDrinks: Int = 1
     /// ステッパー表示用（±0.5%）。保存時は `AlcoholByVolume.fromPercentage` 経由。
     var abvPercent: Double = 5
-
-    var volumeML: Double {
-        selectedType?.defaultVolumeML ?? 0
-    }
+    var volumeML: Double = 0
 
     var abv: AlcoholByVolume {
         AlcoholByVolume.fromPercentage(abvPercent)
@@ -19,16 +16,25 @@ final class DrinkLogViewModel {
 
     /// 純アルコール（g）— リアルタイム。
     var pureAlcoholGrams: Double {
-        guard let type = selectedType else { return 0 }
-        return type.defaultVolumeML * abv.fraction * 0.8 * Double(numberOfDrinks)
+        guard selectedType != nil else { return 0 }
+        return volumeML * abv.fraction * 0.8 * Double(numberOfDrinks)
     }
 
     var canSave: Bool { selectedType != nil }
 
     func select(_ type: DrinkType) {
         selectedType = type
+        volumeML = type.defaultVolumeML
         abvPercent = type.defaultAbv.percentage
         numberOfDrinks = 1
+    }
+
+    func apply(drinkType: String, volumeML: Double, abvFraction: Double, numberOfDrinks: Int) {
+        guard let type = DrinkType(rawValue: drinkType) else { return }
+        selectedType = type
+        self.volumeML = volumeML
+        abvPercent = AlcoholByVolume.fromFraction(abvFraction).percentage
+        self.numberOfDrinks = numberOfDrinks
     }
 
     func incrementDrinks() {
