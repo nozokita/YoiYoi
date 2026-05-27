@@ -13,7 +13,6 @@ struct LanguageSelectView: View {
                 OnboardingHeroHeader(
                     stepText: "1 / 3",
                     title: AppCopy.onboardingLanguageTitle(displayLanguage),
-                    detail: AppCopy.onboardingLocalOnlyDetail(displayLanguage),
                     language: displayLanguage
                 )
 
@@ -21,26 +20,6 @@ struct LanguageSelectView: View {
                     ForEach(SupportedLanguage.allCases) { lang in
                         languageCard(lang)
                     }
-                }
-
-                VStack(alignment: .leading, spacing: AppSpacing.sm) {
-                    Text(AppCopy.onboardingLocalOnlyTitle(displayLanguage))
-                        .font(AppFonts.cardTitle())
-                        .foregroundStyle(AppColors.charcoal)
-                    Text(AppCopy.onboardingLocalOnlyDetail(displayLanguage))
-                        .font(AppFonts.sublabel(for: displayLanguage, size: 13))
-                        .foregroundStyle(AppColors.greyText)
-                }
-                .multilineTextAlignment(.leading)
-                .padding(AppSpacing.lg)
-                .frame(maxWidth: .infinity)
-                .background(AppColors.pureWhite.opacity(0.82))
-                .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-                .overlay(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3, style: .continuous)
-                        .fill(AppColors.mintGreen)
-                        .frame(width: 4)
-                        .padding(.vertical, AppSpacing.md)
                 }
 
                 PuffyButton(title: AppCopy.commonNext(displayLanguage), isEnabled: vm.selectedLanguage != nil) {

@@ -3,7 +3,7 @@ import SwiftUI
 struct OnboardingHeroHeader: View {
     let stepText: String
     let title: String
-    let detail: String
+    var detail: String? = nil
     let language: SupportedLanguage
 
     var body: some View {
@@ -23,11 +23,13 @@ struct OnboardingHeroHeader: View {
                 .foregroundStyle(AppColors.charcoal)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Text(detail)
-                .font(AppFonts.body(for: language, size: 15))
-                .foregroundStyle(AppColors.greyText)
-                .lineSpacing(4)
-                .fixedSize(horizontal: false, vertical: true)
+            if let detail, !detail.isEmpty {
+                Text(detail)
+                    .font(AppFonts.body(for: language, size: 15))
+                    .foregroundStyle(AppColors.greyText)
+                    .lineSpacing(4)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
