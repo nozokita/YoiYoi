@@ -21,7 +21,12 @@ final class AppState: ObservableObject {
     }
 
     init() {
-        onboardingCompleted = UserDefaults.standard.bool(forKey: Keys.onboarding)
+        #if DEBUG
+        let forceOnboarding = ProcessInfo.processInfo.arguments.contains("-YoiYoiOnboarding")
+        #else
+        let forceOnboarding = false
+        #endif
+        onboardingCompleted = !forceOnboarding && UserDefaults.standard.bool(forKey: Keys.onboarding)
         let raw = UserDefaults.standard.string(forKey: Keys.language) ?? SupportedLanguage.ja.rawValue
         currentLanguage = SupportedLanguage(rawValue: raw) ?? .ja
     }

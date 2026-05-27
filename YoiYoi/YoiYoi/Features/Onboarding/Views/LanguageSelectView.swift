@@ -41,6 +41,7 @@ struct LanguageSelectView: View {
                 PuffyButton(title: AppCopy.commonNext(displayLanguage), isEnabled: vm.selectedLanguage != nil) {
                     onContinue()
                 }
+                .accessibilityIdentifier("onboarding.language.next")
             }
             .padding(AppSpacing.lg)
         }
@@ -71,6 +72,7 @@ struct LanguageSelectView: View {
             .themedShadow(themeColor: AppColors.coralRed, opacity: selected ? 0.12 : 0.08, radius: 12, y: 4)
         }
         .buttonStyle(.plain)
+        .accessibilityIdentifier("onboarding.language.\(lang.rawValue)")
     }
 }
 

@@ -72,9 +72,11 @@ struct OnboardingContainerView: View {
     }
 
     private func finishOnboarding() {
+        AppLaunchDiagnostics.log("OnboardingContainerView.finishOnboarding tapped")
         do {
             try vm.completeOnboarding(modelContext: modelContext, appState: appState)
         } catch {
+            AppLaunchDiagnostics.log("OnboardingContainerView.finishOnboarding failed: \(error.localizedDescription)")
             if let e = error as? OnboardingCompletionError {
                 saveErrorMessage = e.message(language: appState.currentLanguage)
             } else {

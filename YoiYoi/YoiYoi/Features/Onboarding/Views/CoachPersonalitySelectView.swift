@@ -35,6 +35,7 @@ struct CoachPersonalitySelectView: View {
                 PuffyButton(title: AppCopy.onboardingStart(language), isEnabled: true) {
                     onContinue()
                 }
+                .accessibilityIdentifier("onboarding.coach.start")
             }
             .padding(AppSpacing.lg)
         }

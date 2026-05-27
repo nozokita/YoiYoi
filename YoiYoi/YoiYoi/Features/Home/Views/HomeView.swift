@@ -4,7 +4,6 @@ import SwiftUI
 /// DESIGN.md「ホーム画面」— ウェーブヒーロー + ローカルの振り返りカード群。
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var appState: AppState
 
     @State private var viewModel = HomeViewModel()
@@ -13,100 +12,73 @@ struct HomeView: View {
     @State private var undoRecord: DrinkRecord?
     @State private var undoTask: Task<Void, Never>?
 
-    /// メーター＋サブテキストが収まり、下のカード負マージンで隠れないよう少し高めにする。
-    private var heroHeight: CGFloat { WaveHeroLayout.heroHeight(fraction: 0.40, minimum: 300) }
-
     /// 縦 `ScrollView` 内の横 `ScrollView` は高さ未確定だと全体レイアウトが潰れて真っ白になることがある（`docs/DEBUG_WHITE_SCREEN.md`）。
     private var drinkPillRowHeight: CGFloat { 44 }
 
-    /// ヒーロー（グラデ＋Wave クリップ）を `ScrollView` の内側に置くと、タブシェル等の親によっては
-    /// **全体が真っ白で描画されない**環境がある。ヒーローは固定高で外に出し、下段だけ `ScrollView` にする。
+    /// 固定ヒーロー + 下段 `ScrollView` は、オンボーディング直後のルート差し替え時に高さ提案が崩れて
+    /// 白画面になることがある。単一 `ScrollView` にカードを積み、初回描画を安定させる。
     var body: some View {
-        VStack(spacing: 0) {
-            WaveHeroView(height: heroHeight, gradient: AppGradients.heroHome) {
-                VStack(spacing: 6) {
-                    Text(AppCopy.homePureAlcoholLabel(appState.currentLanguage))
-                        .font(AppFonts.heroSubtitle())
-                        .foregroundStyle(AppColors.pureWhite.opacity(0.85))
-                        .multilineTextAlignment(.center)
-
-                    Text(AppCopy.homeGreeting(appState.currentLanguage))
-                        .font(AppFonts.heroTitle())
-                        .foregroundStyle(AppColors.pureWhite)
-                        .multilineTextAlignment(.center)
-
-                    AlcoholMeterView(
-                        consumed: viewModel.todayConsumed,
-                        dailyGoal: viewModel.dailyGoal
-                    )
-
-                    Text(viewModel.meterSubtext(language: appState.currentLanguage))
-                        .font(AppFonts.heroSubtitle())
-                        .foregroundStyle(AppColors.pureWhite.opacity(0.95))
-                        .multilineTextAlignment(.center)
-                        .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 1)
+        ScrollView {
+            VStack(alignment: .leading, spacing: AppSpacing.lg) {
+                heroSection
+                coachSection
+                quickRecordSection
+                sessionSection
+                weeklySummarySection
+                todayDrinksSection
+                if undoRecord != nil {
+                    undoBanner
                 }
-                .padding(.bottom, AppSpacing.md)
             }
-            .frame(height: heroHeight)
-            .frame(maxWidth: .infinity)
-
-            ScrollView {
-                VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                    coachSection
-                    quickRecordSection
-                    sessionSection
-                    weeklySummarySection
-                    todayDrinksSection
-                    if undoRecord != nil {
-                        undoBanner
-                    }
-                }
-                .padding(.horizontal, AppSpacing.lg)
-                /// 強い負マージンはヒーロー内の白文字をカード下に隠す。重なりは控えめに。
-                .padding(.top, -AppSpacing.sm)
-                .padding(.bottom, AppSpacing.xxl)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(AppColors.cream)
-            }
-            .scrollIndicators(.hidden)
-            .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.top, AppSpacing.lg)
+            .padding(.bottom, AppSpacing.xxl)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .background(AppColors.cream)
         }
+        .scrollIndicators(.hidden)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
-        .onAppear {
-            viewModel.refresh(modelContext: modelContext)
-        }
-        .onChange(of: appState.currentLanguage) { _, _ in
-            viewModel.refresh(modelContext: modelContext)
-        }
-        .onChange(of: scenePhase) { _, new in
-            if new == .active {
-                viewModel.refresh(modelContext: modelContext)
-            }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .drinkLogSheetDismissed)) { _ in
-            viewModel.refresh(modelContext: modelContext)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .userProfileDidChange)) { _ in
-            viewModel.refresh(modelContext: modelContext)
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .sessionDidChange)) { _ in
-            viewModel.refresh(modelContext: modelContext)
-        }
-        .sheet(isPresented: $showFavoriteManager, onDismiss: {
-            viewModel.refresh(modelContext: modelContext)
-        }) {
+        .accessibilityIdentifier("home.root")
+        .sheet(isPresented: $showFavoriteManager) {
             QuickDrinkManagerView()
                 .environmentObject(appState)
         }
-        .fullScreenCover(item: $presentedSession, onDismiss: {
-            viewModel.refresh(modelContext: modelContext)
-        }) { session in
+        .fullScreenCover(item: $presentedSession) { session in
             ActiveSessionView(session: session)
                 .environmentObject(appState)
         }
+    }
+
+    private var heroSection: some View {
+        VStack(spacing: 8) {
+            Text(AppCopy.homePureAlcoholLabel(appState.currentLanguage))
+                .font(AppFonts.heroSubtitle())
+                .foregroundStyle(AppColors.pureWhite.opacity(0.85))
+                .multilineTextAlignment(.center)
+
+            Text(AppCopy.homeGreeting(appState.currentLanguage))
+                .font(AppFonts.heroTitle())
+                .foregroundStyle(AppColors.pureWhite)
+                .multilineTextAlignment(.center)
+                .accessibilityIdentifier("home.greeting")
+
+            AlcoholMeterView(
+                consumed: viewModel.todayConsumed,
+                dailyGoal: viewModel.dailyGoal
+            )
+
+            Text(viewModel.meterSubtext(language: appState.currentLanguage))
+                .font(AppFonts.heroSubtitle())
+                .foregroundStyle(AppColors.pureWhite.opacity(0.95))
+                .multilineTextAlignment(.center)
+                .shadow(color: .black.opacity(0.25), radius: 3, x: 0, y: 1)
+        }
+        .padding(.horizontal, AppSpacing.lg)
+        .padding(.vertical, AppSpacing.xl)
+        .frame(maxWidth: .infinity)
+        .background(AppGradients.heroHome)
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
     }
 
     private var coachSection: some View {
@@ -270,7 +242,7 @@ struct HomeView: View {
             guard !Task.isCancelled else { return }
             undoRecord = nil
         }
-        viewModel.refresh(modelContext: modelContext)
+        viewModel.applyQuickRecord(record)
         NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
     }
 
@@ -280,7 +252,7 @@ struct HomeView: View {
         modelContext.delete(record)
         try? modelContext.save()
         undoRecord = nil
-        viewModel.refresh(modelContext: modelContext)
+        viewModel.removeQuickRecord(record)
         NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
     }
 
@@ -301,7 +273,7 @@ struct HomeView: View {
             )
         }
         presentedSession = session
-        viewModel.refresh(modelContext: modelContext)
+        viewModel.setActiveSession(session)
         NotificationCenter.default.post(name: .sessionDidChange, object: nil)
     }
 

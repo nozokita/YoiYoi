@@ -1,6 +1,5 @@
 import Foundation
 import Observation
-import SwiftData
 
 /// ホーム集計（SwiftData の `DrinkRecord` + `UserProfile`）。
 @Observable
@@ -46,17 +45,43 @@ final class HomeViewModel {
 
     private(set) var todaysDrinkRecords: [DrinkRecord] = []
 
-    func refresh(modelContext: ModelContext) {
+    func applyQuickRecord(_ record: DrinkRecord, calendar: Calendar = .current) {
+        let now = Date()
+        if calendar.isDate(record.loggedAt, inSameDayAs: now) {
+            todayConsumed += record.pureAlcoholGrams
+            todaysDrinkRecords.insert(record, at: 0)
+        }
+        if calendar.isDate(record.loggedAt, equalTo: now, toGranularity: .weekOfYear) {
+            weeklyConsumed += record.pureAlcoholGrams
+        }
+        recentRecords = QuickDrinkService.recentUnique(from: [record] + recentRecords)
+    }
+
+    func removeQuickRecord(_ record: DrinkRecord, calendar: Calendar = .current) {
+        let now = Date()
+        if calendar.isDate(record.loggedAt, inSameDayAs: now) {
+            todayConsumed = max(0, todayConsumed - record.pureAlcoholGrams)
+            todaysDrinkRecords.removeAll { $0.id == record.id }
+        }
+        if calendar.isDate(record.loggedAt, equalTo: now, toGranularity: .weekOfYear) {
+            weeklyConsumed = max(0, weeklyConsumed - record.pureAlcoholGrams)
+        }
+        recentRecords.removeAll { $0.id == record.id }
+    }
+
+    func setActiveSession(_ session: DrinkingSession?) {
+        activeSession = session
+    }
+
+    func refresh(
+        records allRecords: [DrinkRecord],
+        profiles: [UserProfile],
+        presets quickPresets: [QuickDrinkPreset],
+        sessions: [DrinkingSession]
+    ) {
         let calendar = Calendar.current
         let now = Date()
 
-        let recordDescriptor = FetchDescriptor<DrinkRecord>(
-            sortBy: [SortDescriptor(\.loggedAt, order: .reverse)]
-        )
-        let allRecords = (try? modelContext.fetch(recordDescriptor)) ?? []
-
-        let profileDescriptor = FetchDescriptor<UserProfile>()
-        let profiles = (try? modelContext.fetch(profileDescriptor)) ?? []
         if let p = profiles.first {
             dailyGoal = p.dailyGoalGrams
             weeklyGoal = p.weeklyGoalGrams
@@ -65,15 +90,9 @@ final class HomeViewModel {
             lastOrderReminderEnabled = p.lastOrderReminderEnabled
         }
 
-        presets = (try? modelContext.fetch(
-            FetchDescriptor<QuickDrinkPreset>(sortBy: [SortDescriptor(\.sortOrder)])
-        )) ?? []
+        presets = quickPresets
         recentRecords = QuickDrinkService.recentUnique(from: allRecords)
-        activeSession = SessionManager.activeSession(
-            in: (try? modelContext.fetch(
-                FetchDescriptor<DrinkingSession>(sortBy: [SortDescriptor(\.startTime, order: .reverse)])
-            )) ?? []
-        )
+        activeSession = SessionManager.activeSession(in: sessions)
 
         todayConsumed = AlcoholCalculator.dailyTotal(gramsFrom: allRecords, on: now, calendar: calendar)
         weeklyConsumed = AlcoholCalculator.weeklyTotal(gramsFrom: allRecords, inWeekOf: now, calendar: calendar)

@@ -40,6 +40,7 @@ struct AICoachBubbleView: View {
                 personality: personality,
                 language: language
             )
+            guard !ProcessInfo.processInfo.arguments.contains("-YoiYoiUITesting") else { return }
             message = await LocalAICoachService.message(
                 context: context,
                 personality: personality,

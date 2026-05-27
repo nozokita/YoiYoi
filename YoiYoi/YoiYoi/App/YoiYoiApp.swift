@@ -29,7 +29,12 @@ struct YoiYoiApp: App {
             DrinkingSession.self,
             QuickDrinkPreset.self,
         ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        #if DEBUG
+        let isUITesting = ProcessInfo.processInfo.arguments.contains("-YoiYoiUITesting")
+        #else
+        let isUITesting = false
+        #endif
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: isUITesting)
         do {
             let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
             AppLaunchDiagnostics.log("YoiYoiApp.init — ModelContainer 作成成功")

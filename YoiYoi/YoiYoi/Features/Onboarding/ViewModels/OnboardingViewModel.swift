@@ -1,7 +1,6 @@
 import Foundation
 import Observation
 import SwiftData
-import SwiftUI
 
 enum OnboardingCompletionError: LocalizedError {
     case languageNotSelected
@@ -75,12 +74,10 @@ final class OnboardingViewModel {
         profile.onboardingCompleted = true
 
         try modelContext.save()
+        AppLaunchDiagnostics.log("OnboardingViewModel.completeOnboarding — profile save succeeded")
         appState.currentLanguage = lang
-        DispatchQueue.main.async {
-            withAnimation(.easeInOut(duration: 0.25)) {
-                appState.completeOnboarding()
-            }
-        }
+        appState.completeOnboarding()
+        AppLaunchDiagnostics.log("OnboardingViewModel.completeOnboarding — switched to home")
     }
 }
 

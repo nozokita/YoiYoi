@@ -56,6 +56,7 @@ struct GenderGoalView: View {
                 PuffyButton(title: AppCopy.commonNext(language), isEnabled: true) {
                     onContinue()
                 }
+                .accessibilityIdentifier("onboarding.goal.next")
             }
             .padding(AppSpacing.lg)
         }

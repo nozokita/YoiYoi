@@ -33,7 +33,9 @@ struct AppRootView: View {
             #if DEBUG
             DebugOnboarding.applyLaunchArgumentIfNeeded(modelContext: modelContext, appState: appState)
             #endif
-            syncOnboardingFromSavedProfileIfNeeded()
+            if !appState.onboardingCompleted {
+                syncOnboardingFromSavedProfileIfNeeded()
+            }
             NotificationService.applyCurrentSettings()
         }
     }
