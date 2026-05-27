@@ -9,25 +9,21 @@ struct GenderGoalView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                HStack {
-                    Button(AppCopy.commonBack(language), action: onBack)
-                        .font(AppFonts.body(for: language, size: 16))
-                        .foregroundStyle(AppColors.coralRed)
-                    Spacer()
-                }
+            VStack(alignment: .leading, spacing: AppSpacing.xl) {
+                OnboardingBackButton(title: AppCopy.commonBack(language), action: onBack)
 
-                SVGIcon(icon: .goal, size: 48, color: AppColors.coralRed)
-                    .frame(maxWidth: .infinity)
-
-                Text(AppCopy.onboardingGoalTitle(language))
-                    .font(AppFonts.screenTitle())
-                    .foregroundStyle(AppColors.charcoal)
-                    .frame(maxWidth: .infinity)
+                OnboardingHeroHeader(
+                    stepText: "2 / 3",
+                    title: AppCopy.onboardingGoalTitle(language),
+                    detail: AppCopy.onboardingGenderAutoHint(language),
+                    language: language
+                )
 
                 Text(AppCopy.onboardingGenderLabel(language))
                     .font(AppFonts.sublabel(for: language, size: 13))
                     .foregroundStyle(AppColors.greyText)
+                    .textCase(.uppercase)
+                    .tracking(0.8)
 
                 HStack(spacing: AppSpacing.sm) {
                     genderPill(.male, title: AppCopy.onboardingGenderMale(language))
@@ -57,7 +53,9 @@ struct GenderGoalView: View {
                 }
                 .accessibilityIdentifier("onboarding.goal.next")
             }
-            .padding(AppSpacing.lg)
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.top, AppSpacing.xxl)
+            .padding(.bottom, AppSpacing.lg)
         }
     }
 
@@ -68,53 +66,58 @@ struct GenderGoalView: View {
         } label: {
             Text(title)
                 .font(.system(size: 14, weight: .medium, design: .rounded))
-                .foregroundStyle(selected ? AppColors.pureWhite : AppColors.charcoal)
+                .foregroundStyle(selected ? AppColors.charcoal : AppColors.greyText)
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.md)
-                .background(selected ? AppColors.coralRed : AppColors.pureWhite)
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(selected ? AppColors.pureWhite : AppColors.pureWhite.opacity(0.58))
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .overlay {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .stroke(selected ? Color.clear : AppColors.greyText.opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(selected ? AppColors.coralRed.opacity(0.85) : AppColors.charcoal.opacity(0.06), lineWidth: selected ? 1.5 : 1)
                 }
+                .shadow(color: selected ? AppColors.coralRed.opacity(0.10) : .clear, radius: 12, y: 6)
         }
         .buttonStyle(.plain)
     }
 
     private var guidelineCard: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.md) {
-            HStack(spacing: AppSpacing.sm) {
-                SVGIcon(icon: .chart, size: 24, color: AppColors.mintGreen)
-                Text(AppCopy.onboardingGuidelinesTitle(language))
-                    .font(AppFonts.cardTitle())
-                    .foregroundStyle(AppColors.charcoal)
+        VStack(alignment: .leading, spacing: AppSpacing.lg) {
+            Text(AppCopy.onboardingGuidelinesTitle(language))
+                .font(AppFonts.cardTitle())
+                .foregroundStyle(AppColors.charcoal)
+
+            HStack(spacing: AppSpacing.md) {
+                goalMetric(
+                    label: AppCopy.onboardingDailyGuide(language),
+                    value: "\(Int(vm.dailyGoal))g"
+                )
+                goalMetric(
+                    label: AppCopy.onboardingWeeklyGuide(language),
+                    value: "\(Int(vm.weeklyGoal))g"
+                )
             }
-            HStack {
-                Text(AppCopy.onboardingDailyGuide(language))
-                    .font(AppFonts.body(for: language, size: 15))
-                    .foregroundStyle(AppColors.charcoal)
-                Spacer()
-                Text("\(Int(vm.dailyGoal))g")
-                    .font(AppFonts.statCardValue())
-                    .foregroundStyle(AppColors.mintGreen)
-            }
-            HStack {
-                Text(AppCopy.onboardingWeeklyGuide(language))
-                    .font(AppFonts.body(for: language, size: 15))
-                    .foregroundStyle(AppColors.charcoal)
-                Spacer()
-                Text("\(Int(vm.weeklyGoal))g")
-                    .font(AppFonts.statCardValue())
-                    .foregroundStyle(AppColors.mintGreen)
-            }
-            Text(AppCopy.onboardingGenderAutoHint(language))
-                .font(AppFonts.sublabel(for: language, size: 12))
-                .foregroundStyle(AppColors.greyText)
         }
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .contentCard(themeColor: AppColors.mintGreen)
+        .background(AppColors.pureWhite.opacity(0.86))
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .shadow(color: AppColors.mintGreen.opacity(0.10), radius: 18, y: 8)
+    }
+
+    private func goalMetric(label: String, value: String) -> some View {
+        VStack(alignment: .leading, spacing: AppSpacing.xs) {
+            Text(label)
+                .font(AppFonts.sublabel(for: language, size: 12))
+                .foregroundStyle(AppColors.greyText)
+            Text(value)
+                .font(AppFonts.statCardValue())
+                .foregroundStyle(AppColors.charcoal)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(AppSpacing.md)
+        .background(AppColors.cream.opacity(0.65))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 
     private func stepperRow(title: String, value: Int, decrement: @escaping () -> Void, increment: @escaping () -> Void) -> some View {
@@ -131,8 +134,8 @@ struct GenderGoalView: View {
                 .foregroundStyle(AppColors.coralRed)
         }
         .padding(AppSpacing.md)
-        .background(AppColors.pureWhite)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .background(AppColors.pureWhite.opacity(0.86))
+        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
 }
 

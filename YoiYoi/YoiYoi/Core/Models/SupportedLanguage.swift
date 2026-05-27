@@ -14,13 +14,6 @@ enum SupportedLanguage: String, CaseIterable, Codable, Identifiable, Sendable {
         }
     }
 
-    var flag: String {
-        switch self {
-        case .ja: return "🇯🇵"
-        case .en: return "🇺🇸"
-        }
-    }
-
     var fontFamily: String {
         switch self {
         case .ja: return "Hiragino Sans"

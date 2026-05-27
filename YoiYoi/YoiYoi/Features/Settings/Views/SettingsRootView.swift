@@ -42,7 +42,7 @@ struct SettingsRootView: View {
                     Section {
                         Picker(AppCopy.settingsLanguagePicker(appState.currentLanguage), selection: $appState.currentLanguage) {
                             ForEach(SupportedLanguage.allCases) { lang in
-                                Text("\(lang.flag) \(lang.displayName)")
+                                Text("\(lang.rawValue.uppercased())  \(lang.displayName)")
                                     .tag(lang)
                             }
                         }

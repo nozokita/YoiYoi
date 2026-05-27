@@ -8,24 +8,15 @@ struct CoachPersonalitySelectView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: AppSpacing.lg) {
-                Button(AppCopy.commonBack(language), action: onBack)
-                    .font(AppFonts.body(for: language, size: 16))
-                    .foregroundStyle(AppColors.coralRed)
+            VStack(alignment: .leading, spacing: AppSpacing.xl) {
+                OnboardingBackButton(title: AppCopy.commonBack(language), action: onBack)
 
-                SVGIcon(icon: .coach, size: 48, color: AppColors.coralRed)
-                    .frame(maxWidth: .infinity)
-
-                Text(AppCopy.onboardingCoachTitle(language))
-                    .font(AppFonts.screenTitle())
-                    .foregroundStyle(AppColors.charcoal)
-                    .frame(maxWidth: .infinity)
-
-                Text(AppCopy.onboardingCoachDetail(language))
-                    .font(AppFonts.body(for: language, size: 15))
-                    .foregroundStyle(AppColors.greyText)
-                    .multilineTextAlignment(.center)
-                    .frame(maxWidth: .infinity)
+                OnboardingHeroHeader(
+                    stepText: "3 / 3",
+                    title: AppCopy.onboardingCoachTitle(language),
+                    detail: AppCopy.onboardingCoachDetail(language),
+                    language: language
+                )
 
                 ForEach(CoachPersonality.allCases) { personality in
                     personalityRow(personality)
@@ -36,7 +27,9 @@ struct CoachPersonalitySelectView: View {
                 }
                 .accessibilityIdentifier("onboarding.coach.start")
             }
-            .padding(AppSpacing.lg)
+            .padding(.horizontal, AppSpacing.lg)
+            .padding(.top, AppSpacing.xxl)
+            .padding(.bottom, AppSpacing.lg)
         }
     }
 
@@ -46,30 +39,29 @@ struct CoachPersonalitySelectView: View {
             vm.selectedPersonality = personality
         } label: {
             HStack(alignment: .top, spacing: AppSpacing.md) {
-                SVGIcon(icon: personality.icon, size: 24, color: selected ? AppColors.coralRed : AppColors.charcoal.opacity(0.78))
-                    .frame(width: 40, height: 40)
-                    .background(selected ? AppColors.pureWhite.opacity(0.9) : AppColors.cream)
-                    .clipShape(Circle())
+                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                    .fill(selected ? AppColors.coralRed : AppColors.charcoal.opacity(0.08))
+                    .frame(width: 4)
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     Text(personality.displayName(language))
                         .font(AppFonts.cardTitle())
+                        .foregroundStyle(AppColors.charcoal)
                     Text(personality.sampleMessage(language))
                         .font(AppFonts.body(for: language, size: 13))
                         .foregroundStyle(AppColors.greyText)
                         .multilineTextAlignment(.leading)
                 }
                 Spacer()
-                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(selected ? AppColors.coralRed : AppColors.greyText.opacity(0.4))
+                OnboardingSelectionMark(isSelected: selected)
             }
-            .foregroundStyle(AppColors.charcoal)
-            .padding(AppSpacing.md)
-            .background(selected ? AppColors.coralLight : AppColors.pureWhite)
-            .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .padding(AppSpacing.lg)
+            .background(selected ? AppColors.pureWhite : AppColors.pureWhite.opacity(0.76))
+            .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
             .overlay {
-                RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(selected ? AppColors.coralRed : Color.clear, lineWidth: 1.5)
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .stroke(selected ? AppColors.coralRed.opacity(0.85) : AppColors.charcoal.opacity(0.06), lineWidth: selected ? 1.5 : 1)
             }
+            .shadow(color: selected ? AppColors.coralRed.opacity(0.10) : .black.opacity(0.03), radius: selected ? 16 : 10, y: selected ? 8 : 5)
         }
         .buttonStyle(.plain)
     }
