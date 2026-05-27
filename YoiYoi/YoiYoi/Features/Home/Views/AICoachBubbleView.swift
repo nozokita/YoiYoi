@@ -15,9 +15,12 @@ struct AICoachBubbleView: View {
                     .font(AppFonts.cardTitle())
                     .foregroundStyle(AppColors.charcoal)
                 Spacer()
-                Text("\(personality.emoji) \(personality.displayName(language))")
-                    .font(AppFonts.sublabel(for: language, size: 11))
-                    .foregroundStyle(AppColors.greyText)
+                HStack(spacing: 4) {
+                    SVGIcon(icon: personality.icon, size: 13, color: AppColors.greyText)
+                    Text(personality.displayName(language))
+                        .font(AppFonts.sublabel(for: language, size: 11))
+                        .foregroundStyle(AppColors.greyText)
+                }
                 Button {
                     refreshID = UUID()
                 } label: {

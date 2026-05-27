@@ -125,18 +125,21 @@ struct DrinkLogSheet: View {
     }
 
     private func reusableButton(type: String, volume: Double, abv: Double, drinks: Int) -> some View {
-        let emoji = DrinkType(rawValue: type)?.emoji ?? "🍺"
+        let drinkType = DrinkType(rawValue: type)
         let name = DrinkType.shortLabel(forRawType: type, language: appState.currentLanguage)
         return Button {
             viewModel.apply(drinkType: type, volumeML: volume, abvFraction: abv, numberOfDrinks: drinks)
         } label: {
-            Text("\(emoji) \(name) \(Int(volume))ml ×\(drinks)")
-                .font(.system(size: 13, weight: .medium, design: .rounded))
-                .foregroundStyle(AppColors.charcoal)
-                .padding(.horizontal, AppSpacing.md)
-                .padding(.vertical, AppSpacing.sm)
-                .background(AppColors.pureWhite)
-                .clipShape(Capsule())
+            HStack(spacing: AppSpacing.xs) {
+                SVGIcon(icon: drinkType?.icon ?? .drinkBeer, size: 16, color: AppColors.coralRed)
+                Text("\(name) \(Int(volume))ml ×\(drinks)")
+                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.charcoal)
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.sm)
+            .background(AppColors.pureWhite)
+            .clipShape(Capsule())
         }
         .buttonStyle(.plain)
     }

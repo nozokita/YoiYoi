@@ -13,7 +13,7 @@ struct QuickDrinkManagerView: View {
             List {
                 ForEach(Array(presets.enumerated()), id: \.element.id) { index, preset in
                     HStack {
-                        Text(label(for: preset))
+                        presetLabel(for: preset)
                         Spacer()
                         Button {
                             editingPreset = preset
@@ -50,9 +50,12 @@ struct QuickDrinkManagerView: View {
         }
     }
 
-    private func label(for preset: QuickDrinkPreset) -> String {
+    private func presetLabel(for preset: QuickDrinkPreset) -> some View {
         let type = DrinkType(rawValue: preset.drinkType)
-        return "\(type?.emoji ?? "🍺") \(type?.shortLabel(for: appState.currentLanguage) ?? preset.displayName) \(Int(preset.volumeML))ml ×\(preset.numberOfDrinks)"
+        return HStack(spacing: AppSpacing.sm) {
+            SVGIcon(icon: type?.icon ?? .drinkBeer, size: 18, color: AppColors.coralRed)
+            Text("\(type?.shortLabel(for: appState.currentLanguage) ?? preset.displayName) \(Int(preset.volumeML))ml ×\(preset.numberOfDrinks)")
+        }
     }
 
     private func delete(at offsets: IndexSet) {
@@ -93,7 +96,7 @@ private struct QuickDrinkPresetEditView: View {
             Form {
                 Picker(AppCopy.drinkLogTitle(appState.currentLanguage), selection: $type) {
                     ForEach(DrinkType.allCases, id: \.self) { option in
-                        Text("\(option.emoji) \(option.shortLabel(for: appState.currentLanguage))").tag(option)
+                        Text(option.shortLabel(for: appState.currentLanguage)).tag(option)
                     }
                 }
                 Stepper(

@@ -4,15 +4,13 @@ import SwiftUI
 struct StatCard: View {
     let title: String
     let value: String
-    let emoji: String
+    let icon: YoiYoiIcon
     let backgroundColor: Color
     var language: SupportedLanguage = .ja
 
     var body: some View {
         HStack(alignment: .center, spacing: AppSpacing.md) {
-            Text(emoji)
-                .font(.system(size: 32))
-                .accessibilityHidden(true)
+            SVGIcon(icon: icon, size: 32, color: AppColors.charcoal.opacity(0.82))
 
             VStack(alignment: .leading, spacing: AppSpacing.xs) {
                 Text(title)
@@ -36,7 +34,7 @@ struct StatCard: View {
     StatCard(
         title: "1日の目安",
         value: "40g",
-        emoji: "📊",
+        icon: .chart,
         backgroundColor: AppColors.mintLight
     )
     .padding()

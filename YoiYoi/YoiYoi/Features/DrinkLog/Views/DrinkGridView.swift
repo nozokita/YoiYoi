@@ -29,8 +29,10 @@ struct DrinkGridView: View {
             }
         } label: {
             VStack(spacing: AppSpacing.sm) {
-                Text(type.emoji)
-                    .font(.system(size: 40))
+                SVGIcon(icon: type.icon, size: 34, color: on ? AppColors.coralRed : AppColors.charcoal.opacity(0.82))
+                    .frame(width: 54, height: 54)
+                    .background((on ? AppColors.coralLight : AppColors.cream).opacity(0.9))
+                    .clipShape(Circle())
                 Text(type.shortLabel(for: appState.currentLanguage))
                     .font(.system(size: 14, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.charcoal)

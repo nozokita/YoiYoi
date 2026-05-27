@@ -161,19 +161,26 @@ struct HomeView: View {
 
     private func quickButton(type: String, volume: Double, abv: Double, drinks: Int) -> some View {
         let label = DrinkType.shortLabel(forRawType: type, language: appState.currentLanguage)
-        let emoji = DrinkType(rawValue: type)?.emoji ?? "🍺"
+        let drinkType = DrinkType(rawValue: type)
         return Button {
             saveQuickRecord(type: type, volume: volume, abv: abv, drinks: drinks)
         } label: {
-            VStack(alignment: .leading, spacing: 3) {
-                Text("\(emoji) \(label)")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
-                Text("\(Int(volume))ml ×\(drinks)")
-                    .font(.system(size: 11, weight: .regular, design: .rounded))
-                    .foregroundStyle(AppColors.greyText)
+            HStack(spacing: AppSpacing.sm) {
+                SVGIcon(icon: drinkType?.icon ?? .drinkBeer, size: 20, color: AppColors.coralRed)
+                    .frame(width: 34, height: 34)
+                    .background(AppColors.pureWhite.opacity(0.8))
+                    .clipShape(Circle())
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(label)
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    Text("\(Int(volume))ml ×\(drinks)")
+                        .font(.system(size: 11, weight: .regular, design: .rounded))
+                        .foregroundStyle(AppColors.greyText)
+                }
             }
             .foregroundStyle(AppColors.charcoal)
-            .padding(.horizontal, AppSpacing.md)
+            .padding(.leading, AppSpacing.sm)
+            .padding(.trailing, AppSpacing.md)
             .padding(.vertical, AppSpacing.sm)
             .background(AppColors.coralLight)
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
@@ -287,21 +294,21 @@ struct HomeView: View {
 
             HStack(alignment: .top, spacing: AppSpacing.sm) {
                 HomeMiniStatCard(
-                    emoji: "🍵",
+                    icon: .rest,
                     title: AppCopy.homeStatRestDays(appState.currentLanguage),
                     value: "\(viewModel.restDaysThisWeek)\(AppCopy.dayCountSuffix(appState.currentLanguage))",
                     language: appState.currentLanguage,
                     background: AppColors.mintLight
                 )
                 HomeMiniStatCard(
-                    emoji: "🔥",
+                    icon: .streak,
                     title: AppCopy.homeStatStreak(appState.currentLanguage),
                     value: "\(viewModel.streakDays)\(AppCopy.dayCountSuffix(appState.currentLanguage))",
                     language: appState.currentLanguage,
                     background: AppColors.yellowLight
                 )
                 HomeMiniStatCard(
-                    emoji: "📊",
+                    icon: .chart,
                     title: AppCopy.homeStatWeekTotal(appState.currentLanguage),
                     value: weekTotalText,
                     language: appState.currentLanguage,
@@ -353,22 +360,25 @@ struct HomeView: View {
 
     private func drinkPill(_ record: DrinkRecord) -> some View {
         let label = DrinkType.shortLabel(forRawType: record.drinkType, language: appState.currentLanguage)
-        let emoji = DrinkType(rawValue: record.drinkType)?.emoji ?? "🍺"
+        let drinkType = DrinkType(rawValue: record.drinkType)
         let grams = Int(round(record.pureAlcoholGrams))
-        return Text("\(emoji) \(label) \(grams)g")
-            .font(.system(size: 14, weight: .medium, design: .rounded))
-            .foregroundStyle(AppColors.charcoal)
-            .padding(.horizontal, AppSpacing.md)
-            .padding(.vertical, AppSpacing.sm)
-            .background(AppColors.coralLight)
-            .clipShape(Capsule())
+        return HStack(spacing: AppSpacing.xs) {
+            SVGIcon(icon: drinkType?.icon ?? .drinkBeer, size: 15, color: AppColors.coralRed)
+            Text("\(label) \(grams)g")
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .foregroundStyle(AppColors.charcoal)
+        }
+        .padding(.horizontal, AppSpacing.md)
+        .padding(.vertical, AppSpacing.sm)
+        .background(AppColors.coralLight)
+        .clipShape(Capsule())
     }
 }
 
 // MARK: - ミニ Stat（今週のまとめ内）
 
 private struct HomeMiniStatCard: View {
-    let emoji: String
+    let icon: YoiYoiIcon
     let title: String
     let value: String
     let language: SupportedLanguage
@@ -376,8 +386,7 @@ private struct HomeMiniStatCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: AppSpacing.xs) {
-            Text(emoji)
-                .font(.system(size: 22))
+            SVGIcon(icon: icon, size: 22, color: AppColors.charcoal.opacity(0.78))
             Text(title)
                 .font(AppFonts.sublabel(for: language, size: 12))
                 .foregroundStyle(AppColors.greyText)

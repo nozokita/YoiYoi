@@ -18,7 +18,7 @@ struct CoachSettingsView: View {
                 Section(AppCopy.settingsCoachPersonality(appState.currentLanguage)) {
                     Picker(AppCopy.settingsCoachPersonality(appState.currentLanguage), selection: $personality) {
                         ForEach(CoachPersonality.allCases) { option in
-                            Text("\(option.emoji) \(option.displayName(appState.currentLanguage))").tag(option)
+                            Text(option.displayName(appState.currentLanguage)).tag(option)
                         }
                     }
                     Text(personality.sampleMessage(appState.currentLanguage))

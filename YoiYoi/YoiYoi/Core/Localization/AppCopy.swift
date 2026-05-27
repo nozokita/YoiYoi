@@ -79,7 +79,7 @@ enum AppCopy {
     }
 
     static func onboardingGenderCustom(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "カスタム ⚙"; case .en: "Custom ⚙" }
+        switch l { case .ja: "カスタム"; case .en: "Custom" }
     }
 
     static func onboardingGuidelinesTitle(_ l: SupportedLanguage) -> String {
@@ -134,7 +134,7 @@ enum AppCopy {
     // MARK: - Home
 
     static func homeGreeting(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "おつかれさま！🍺"; case .en: "Cheers! 🍺" }
+        switch l { case .ja: "おつかれさま"; case .en: "Cheers" }
     }
 
     static func homeWeeklySummary(_ l: SupportedLanguage) -> String {
@@ -268,7 +268,7 @@ enum AppCopy {
     // MARK: - Calendar
 
     static func calendarHeroTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "📅 カレンダー"; case .en: "📅 Calendar" }
+        switch l { case .ja: "カレンダー"; case .en: "Calendar" }
     }
 
     static func calendarMonthBlurb(_ monthTitle: String, _ l: SupportedLanguage) -> String {
@@ -462,20 +462,20 @@ enum AppCopy {
     static func settingsMedicalDisclaimer(_ l: SupportedLanguage) -> String {
         switch l {
         case .ja:
-            "⚠️ 本アプリは医療アドバイスや診断を提供するものではありません。表示される数値は目安であり、健康上の判断は医師等の専門家にご相談ください。"
+            "本アプリは医療アドバイスや診断を提供するものではありません。表示される数値は目安であり、健康上の判断は医師等の専門家にご相談ください。"
         case .en:
-            "⚠️ This app is not medical advice or a diagnostic tool. Numbers are for reference only; consult a qualified professional for health decisions."
+            "This app is not medical advice or a diagnostic tool. Numbers are for reference only; consult a qualified professional for health decisions."
         }
     }
 
     // MARK: - Drink log sheet
 
     static func drinkLogTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "🍺 のみものを記録"; case .en: "🍺 Log a drink" }
+        switch l { case .ja: "のみものを記録"; case .en: "Log a drink" }
     }
 
     static func drinkLogSave(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "🍺 記録する！"; case .en: "🍺 Save" }
+        switch l { case .ja: "記録する"; case .en: "Save" }
     }
 
     static func drinkLogClose(_ l: SupportedLanguage) -> String {

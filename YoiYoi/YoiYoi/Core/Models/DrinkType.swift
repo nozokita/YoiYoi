@@ -9,14 +9,14 @@ enum DrinkType: String, CaseIterable, Codable, Sendable {
     case cocktail
     case sour
 
-    var emoji: String {
+    var icon: YoiYoiIcon {
         switch self {
-        case .beer: return "🍺"
-        case .wine: return "🍷"
-        case .sake: return "🍶"
-        case .whisky: return "🥃"
-        case .cocktail: return "🍸"
-        case .sour: return "🍹"
+        case .beer: return .drinkBeer
+        case .wine: return .drinkWine
+        case .sake: return .drinkSake
+        case .whisky: return .drinkWhisky
+        case .cocktail: return .drinkCocktail
+        case .sour: return .drinkSour
         }
     }
 

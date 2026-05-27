@@ -165,14 +165,18 @@ struct SettingsRootView: View {
                     }
 
                     Section {
-                        Text(AppCopy.settingsMedicalDisclaimer(appState.currentLanguage))
-                            .font(AppFonts.sublabel(for: appState.currentLanguage, size: 12))
-                            .foregroundStyle(AppColors.greyText)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, AppSpacing.sm)
-                            .listRowBackground(AppColors.cream)
-                            .listRowSeparator(.hidden)
+                        HStack(alignment: .top, spacing: AppSpacing.sm) {
+                            SVGIcon(icon: .alert, size: 16, color: AppColors.greyText)
+                                .padding(.top, 1)
+                            Text(AppCopy.settingsMedicalDisclaimer(appState.currentLanguage))
+                                .font(AppFonts.sublabel(for: appState.currentLanguage, size: 12))
+                                .foregroundStyle(AppColors.greyText)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.vertical, AppSpacing.sm)
+                        .listRowBackground(AppColors.cream)
+                        .listRowSeparator(.hidden)
                     }
 
                     #if DEBUG
@@ -183,7 +187,7 @@ struct SettingsRootView: View {
                                 appState: appState,
                             )
                         } label: {
-                            Text("🔧 DEBUG: オンボを再表示")
+                            Text("DEBUG: オンボを再表示")
                                 .font(.subheadline)
                                 .foregroundStyle(AppColors.warmCoral)
                                 .frame(maxWidth: .infinity, alignment: .leading)

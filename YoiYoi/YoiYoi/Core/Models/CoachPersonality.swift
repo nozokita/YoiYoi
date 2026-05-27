@@ -8,12 +8,12 @@ enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
 
     var id: String { rawValue }
 
-    var emoji: String {
+    var icon: YoiYoiIcon {
         switch self {
-        case .strict: "🧭"
-        case .gentle: "🌿"
-        case .friendly: "😊"
-        case .sarcastic: "😏"
+        case .strict: .coachDirect
+        case .gentle: .coachGentle
+        case .friendly: .coachFriendly
+        case .sarcastic: .coachWry
         }
     }
 

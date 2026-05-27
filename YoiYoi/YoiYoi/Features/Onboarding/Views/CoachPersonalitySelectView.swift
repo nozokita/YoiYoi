@@ -13,8 +13,7 @@ struct CoachPersonalitySelectView: View {
                     .font(AppFonts.body(for: language, size: 16))
                     .foregroundStyle(AppColors.coralRed)
 
-                Text("💬")
-                    .font(.system(size: 48))
+                SVGIcon(icon: .coach, size: 48, color: AppColors.coralRed)
                     .frame(maxWidth: .infinity)
 
                 Text(AppCopy.onboardingCoachTitle(language))
@@ -47,8 +46,10 @@ struct CoachPersonalitySelectView: View {
             vm.selectedPersonality = personality
         } label: {
             HStack(alignment: .top, spacing: AppSpacing.md) {
-                Text(personality.emoji)
-                    .font(.system(size: 28))
+                SVGIcon(icon: personality.icon, size: 24, color: selected ? AppColors.coralRed : AppColors.charcoal.opacity(0.78))
+                    .frame(width: 40, height: 40)
+                    .background(selected ? AppColors.pureWhite.opacity(0.9) : AppColors.cream)
+                    .clipShape(Circle())
                 VStack(alignment: .leading, spacing: AppSpacing.xs) {
                     Text(personality.displayName(language))
                         .font(AppFonts.cardTitle())

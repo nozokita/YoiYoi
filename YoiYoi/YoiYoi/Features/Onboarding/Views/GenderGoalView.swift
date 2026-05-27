@@ -17,8 +17,7 @@ struct GenderGoalView: View {
                     Spacer()
                 }
 
-                Text("🍺")
-                    .font(.system(size: 48))
+                SVGIcon(icon: .goal, size: 48, color: AppColors.coralRed)
                     .frame(maxWidth: .infinity)
 
                 Text(AppCopy.onboardingGoalTitle(language))
@@ -86,8 +85,7 @@ struct GenderGoalView: View {
     private var guidelineCard: some View {
         VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack(spacing: AppSpacing.sm) {
-                Text("📊")
-                    .font(.system(size: 24))
+                SVGIcon(icon: .chart, size: 24, color: AppColors.mintGreen)
                 Text(AppCopy.onboardingGuidelinesTitle(language))
                     .font(AppFonts.cardTitle())
                     .foregroundStyle(AppColors.charcoal)

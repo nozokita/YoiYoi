@@ -77,18 +77,21 @@ struct CalendarView: View {
         )
         let suf = AppCopy.dayCountSuffix(appState.currentLanguage)
         return HStack(spacing: AppSpacing.md) {
-            heroBadge(emoji: "🍵", value: "\(counts.rest)\(suf)", label: AppCopy.calendarStatRest(appState.currentLanguage))
-            heroBadge(emoji: "✅", value: "\(counts.inGoal)\(suf)", label: AppCopy.calendarStatInGoal(appState.currentLanguage))
-            heroBadge(emoji: "⚠️", value: "\(counts.over)\(suf)", label: AppCopy.calendarStatOver(appState.currentLanguage))
+            heroBadge(icon: .rest, value: "\(counts.rest)\(suf)", label: AppCopy.calendarStatRest(appState.currentLanguage))
+            heroBadge(icon: .check, value: "\(counts.inGoal)\(suf)", label: AppCopy.calendarStatInGoal(appState.currentLanguage))
+            heroBadge(icon: .alert, value: "\(counts.over)\(suf)", label: AppCopy.calendarStatOver(appState.currentLanguage))
         }
         .padding(.bottom, AppSpacing.sm)
     }
 
-    private func heroBadge(emoji: String, value: String, label: String) -> some View {
+    private func heroBadge(icon: YoiYoiIcon, value: String, label: String) -> some View {
         VStack(spacing: 4) {
-            Text("\(emoji) \(value)")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.pureWhite)
+            HStack(spacing: AppSpacing.xs) {
+                SVGIcon(icon: icon, size: 18, color: AppColors.pureWhite)
+                Text(value)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.pureWhite)
+            }
             Text(label)
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(AppColors.pureWhite.opacity(0.7))

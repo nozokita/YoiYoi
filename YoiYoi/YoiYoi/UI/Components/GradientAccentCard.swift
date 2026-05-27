@@ -1,10 +1,10 @@
 import SwiftUI
 
-/// DESIGN.md「② グラデーションアクセントカード」— 高さ 72pt、左テキスト + 右 32pt 絵文字。
+/// DESIGN.md「② グラデーションアクセントカード」— 高さ 72pt、左テキスト + 右 SVG アイコン。
 struct GradientAccentCard: View {
     let title: String
     var subtitle: String?
-    let emoji: String
+    let icon: YoiYoiIcon
     let gradientColors: [Color]
 
     private var shadowColor: Color {
@@ -25,9 +25,7 @@ struct GradientAccentCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            Text(emoji)
-                .font(.system(size: 32))
-                .accessibilityHidden(true)
+            SVGIcon(icon: icon, size: 32, color: AppColors.pureWhite)
         }
         .padding(.horizontal, AppSpacing.lg)
         .padding(.vertical, AppSpacing.md)
@@ -48,7 +46,7 @@ struct GradientAccentCard: View {
     GradientAccentCard(
         title: "今日の記録",
         subtitle: "あと 12g",
-        emoji: "🍺",
+        icon: .drinkBeer,
         gradientColors: [AppColors.coralLight, AppColors.coralRed]
     )
     .padding()
