@@ -49,7 +49,7 @@ struct SettingsRootView: View {
                         .pickerStyle(.menu)
                         .foregroundStyle(AppColors.charcoal)
                         .tint(AppColors.coralRed)
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsLanguageSection(appState.currentLanguage))
                             .font(.caption)
@@ -70,7 +70,7 @@ struct SettingsRootView: View {
                                 .font(.subheadline.monospacedDigit())
                                 .foregroundStyle(AppColors.greyText)
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsAppInfo(appState.currentLanguage))
                             .font(.caption)
@@ -91,7 +91,7 @@ struct SettingsRootView: View {
                                     .foregroundStyle(AppColors.greyText.opacity(0.7))
                             }
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsCoachSection(appState.currentLanguage))
                             .font(.caption)
@@ -112,7 +112,7 @@ struct SettingsRootView: View {
                                     .foregroundStyle(AppColors.greyText.opacity(0.7))
                             }
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsSectionGoalsProfile(appState.currentLanguage))
                             .font(.caption)
@@ -133,7 +133,7 @@ struct SettingsRootView: View {
                                     .foregroundStyle(AppColors.greyText.opacity(0.7))
                             }
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsNotificationsSection(appState.currentLanguage))
                             .font(.caption)
@@ -152,7 +152,7 @@ struct SettingsRootView: View {
                                     .foregroundStyle(AppColors.greyText.opacity(0.7))
                             }
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsDataPrivacySection(appState.currentLanguage))
                             .font(.caption)
@@ -175,7 +175,7 @@ struct SettingsRootView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
                         .padding(.vertical, AppSpacing.sm)
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                         .listRowSeparator(.hidden)
                     }
 
@@ -192,7 +192,7 @@ struct SettingsRootView: View {
                                 .foregroundStyle(AppColors.warmCoral)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text("Debug")
                             .font(.caption)

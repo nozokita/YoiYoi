@@ -15,8 +15,12 @@ struct OnboardingHeroHeader: View {
                 .textCase(.uppercase)
                 .padding(.horizontal, AppSpacing.md)
                 .padding(.vertical, AppSpacing.sm)
-                .background(AppColors.pureWhite.opacity(0.74))
+                .background(AppColors.surfaceElevated.opacity(0.88))
                 .clipShape(Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(AppColors.hairline, lineWidth: 1)
+                }
 
             Text(title)
                 .font(AppFonts.heroTitle())
@@ -46,8 +50,12 @@ struct OnboardingBackButton: View {
                 .foregroundStyle(AppColors.charcoal)
                 .padding(.horizontal, AppSpacing.md)
                 .padding(.vertical, AppSpacing.sm)
-                .background(AppColors.pureWhite.opacity(0.72))
+                .background(AppColors.surfaceElevated.opacity(0.88))
                 .clipShape(Capsule())
+                .overlay {
+                    Capsule()
+                        .stroke(AppColors.hairline, lineWidth: 1)
+                }
         }
         .buttonStyle(.plain)
     }

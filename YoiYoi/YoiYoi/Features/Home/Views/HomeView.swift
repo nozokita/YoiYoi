@@ -104,6 +104,11 @@ struct HomeView: View {
         .frame(maxWidth: .infinity)
         .background(AppGradients.heroHome)
         .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(AppColors.pureWhite.opacity(0.16), lineWidth: 1)
+        }
+        .shadow(color: AppColors.darkBg.opacity(0.14), radius: 22, y: 10)
     }
 
     private var coachSection: some View {
@@ -224,8 +229,12 @@ struct HomeView: View {
             .padding(.leading, AppSpacing.sm)
             .padding(.trailing, AppSpacing.md)
             .padding(.vertical, AppSpacing.sm)
-            .background(AppColors.coralLight)
+            .background(AppColors.coralLight.opacity(0.82))
             .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .stroke(AppColors.coralRed.opacity(0.12), lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
     }
@@ -248,7 +257,13 @@ struct HomeView: View {
                 .foregroundStyle(.white)
                 .frame(maxWidth: .infinity)
                 .padding(AppSpacing.md)
-                .background(AppColors.mintGreen)
+                .background(
+                    LinearGradient(
+                        colors: [AppColors.successDeep, AppColors.mintGreen],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
             .buttonStyle(.plain)
@@ -442,8 +457,12 @@ struct HomeView: View {
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.vertical, AppSpacing.sm)
-            .background(AppColors.coralLight)
+            .background(AppColors.coralLight.opacity(0.82))
             .clipShape(Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(AppColors.coralRed.opacity(0.12), lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
     }
@@ -474,6 +493,10 @@ private struct HomeMiniStatCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(background)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppColors.pureWhite.opacity(0.55), lineWidth: 1)
+        }
     }
 }
 

@@ -37,8 +37,12 @@ struct GradientAccentCard: View {
                 endPoint: .trailing
             )
         )
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .themedShadow(themeColor: shadowColor, opacity: 0.20, radius: 12, y: 4)
+        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 22, style: .continuous)
+                .stroke(AppColors.pureWhite.opacity(0.16), lineWidth: 1)
+        }
+        .themedShadow(themeColor: shadowColor, opacity: 0.14, radius: 14, y: 6)
     }
 }
 

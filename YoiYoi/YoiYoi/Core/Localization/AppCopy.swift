@@ -212,7 +212,7 @@ enum AppCopy {
     }
 
     static func homeCoachTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "今日のひとこと"; case .en: "Coach note" }
+        switch l { case .ja: "相棒コメント"; case .en: "Companion note" }
     }
 
     static func homeCoachReload(_ l: SupportedLanguage) -> String {

@@ -59,13 +59,13 @@ struct LanguageSelectView: View {
             }
             .padding(AppSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(selected ? AppColors.pureWhite : AppColors.pureWhite.opacity(0.78))
+            .background(selected ? AppColors.surfaceElevated : AppColors.surfaceElevated.opacity(0.74))
             .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .stroke(selected ? AppColors.coralRed.opacity(0.85) : AppColors.charcoal.opacity(0.06), lineWidth: selected ? 1.5 : 1)
+                    .stroke(selected ? AppColors.coralRed.opacity(0.85) : AppColors.hairline, lineWidth: selected ? 1.5 : 1)
             }
-            .shadow(color: selected ? AppColors.coralRed.opacity(0.12) : .black.opacity(0.035), radius: selected ? 16 : 10, y: selected ? 8 : 5)
+            .themedShadow(themeColor: selected ? AppColors.coralRed : AppColors.hairline, opacity: selected ? 0.11 : 0.06, radius: selected ? 16 : 10, y: selected ? 8 : 5)
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("onboarding.language.\(lang.rawValue)")

@@ -58,10 +58,11 @@ struct ContentView: View {
                 Color.clear
                     .frame(height: TabChrome.fabSlotHeight)
                 Divider()
-                    .background(AppColors.greyText.opacity(0.25))
+                    .background(AppColors.hairline)
                 bottomBar
             }
-            .background(AppColors.cream)
+            .background(AppColors.surfaceElevated)
+            .shadow(color: AppColors.darkBg.opacity(0.06), radius: 18, y: -4)
         }
         /// `GeometryReader` が提案サイズを食い潰して子の `ScrollView` に縦 0 が渡る事例への対策で、オーバーレイ全体を親と同じ無限領域に固定する。
         .overlay {
@@ -110,16 +111,21 @@ struct ContentView: View {
             Circle()
                 .fill(
                     LinearGradient(
-                        colors: [AppColors.coralLight, AppColors.coralRed],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        colors: [AppColors.coralRed, AppColors.coralDeep],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
-                .frame(width: 56, height: 56)
-                .shadow(color: AppColors.coralDeep.opacity(0.3), radius: 12, y: 4)
+                .frame(width: 58, height: 58)
+                .overlay {
+                    Circle()
+                        .stroke(AppColors.pureWhite.opacity(0.45), lineWidth: 1)
+                }
+                .shadow(color: AppColors.darkBg.opacity(0.16), radius: 18, y: 8)
+                .shadow(color: AppColors.coralDeep.opacity(0.20), radius: 12, y: 4)
                 .overlay(
                     Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .bold))
+                        .font(.system(size: 23, weight: .semibold))
                         .foregroundStyle(.white)
                 )
         }
@@ -129,28 +135,33 @@ struct ContentView: View {
 
     private var bottomBar: some View {
         HStack(spacing: 0) {
-            barItem(index: 0, title: AppCopy.tabHome(appState.currentLanguage), systemImage: "house.fill")
-            barItem(index: 1, title: AppCopy.tabCalendar(appState.currentLanguage), systemImage: "calendar")
-            barItem(index: 2, title: AppCopy.tabSettings(appState.currentLanguage), systemImage: "gearshape.fill")
+            barItem(index: 0, title: AppCopy.tabHome(appState.currentLanguage), icon: .chart)
+            barItem(index: 1, title: AppCopy.tabCalendar(appState.currentLanguage), icon: .calendar)
+            barItem(index: 2, title: AppCopy.tabSettings(appState.currentLanguage), icon: .settings)
         }
         .padding(.top, 10)
         .padding(.bottom, 8)
-        .background(AppColors.cream)
+        .background(AppColors.surfaceElevated)
     }
 
-    private func barItem(index: Int, title: String, systemImage: String) -> some View {
+    private func barItem(index: Int, title: String, icon: YoiYoiIcon) -> some View {
         let on = selectedTab == index
         return Button {
             selectedTab = index
         } label: {
             VStack(spacing: 4) {
-                Image(systemName: systemImage)
-                    .font(.system(size: 20, weight: on ? .semibold : .regular))
+                SVGIcon(icon: icon, size: 20, color: on ? AppColors.coralRed : AppColors.greyText)
                 Text(title)
                     .font(.system(size: 11, weight: on ? .semibold : .regular))
             }
-            .frame(maxWidth: .infinity)
             .foregroundStyle(on ? AppColors.coralRed : AppColors.greyText)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 6)
+            .background(
+                Capsule(style: .continuous)
+                    .fill(on ? AppColors.coralLight.opacity(0.65) : Color.clear)
+            )
+            .frame(maxWidth: .infinity)
         }
         .buttonStyle(.plain)
     }

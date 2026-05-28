@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// DESIGN.md「ぷっくりボタン仕様」。無効時は opacity 0.5・シャドウなし。
+/// DESIGN.md「主要アクション」。大人向けに厚みを抑え、押しやすさと信頼感を優先する。
 struct PuffyButton: View {
     let title: String
     var isEnabled: Bool = true
@@ -15,16 +15,16 @@ struct PuffyButton: View {
                 .padding(.vertical, AppSpacing.md)
                 .background(
                     LinearGradient(
-                        colors: [AppColors.coralLight, AppColors.coralRed],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        colors: [AppColors.coralRed, AppColors.coralDeep],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
-                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .shadow(
-                    color: isEnabled ? AppColors.coralDeep.opacity(0.3) : .clear,
-                    radius: 12,
-                    y: 6
+                    color: isEnabled ? AppColors.coralDeep.opacity(0.22) : .clear,
+                    radius: 14,
+                    y: 7
                 )
                 .opacity(isEnabled ? 1 : 0.5)
         }

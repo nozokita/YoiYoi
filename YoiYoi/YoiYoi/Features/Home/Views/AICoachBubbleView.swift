@@ -9,7 +9,7 @@ struct AICoachBubbleView: View {
     @State private var refreshID = UUID()
 
     var body: some View {
-        VStack(alignment: .leading, spacing: AppSpacing.sm) {
+        VStack(alignment: .leading, spacing: AppSpacing.md) {
             HStack {
                 Text(AppCopy.homeCoachTitle(language))
                     .font(AppFonts.cardTitle())
@@ -21,6 +21,10 @@ struct AICoachBubbleView: View {
                         .font(AppFonts.sublabel(for: language, size: 11))
                         .foregroundStyle(AppColors.greyText)
                 }
+                .padding(.horizontal, AppSpacing.sm)
+                .padding(.vertical, 5)
+                .background(AppColors.mintLight.opacity(0.72))
+                .clipShape(Capsule())
                 Button {
                     refreshID = UUID()
                 } label: {
@@ -32,6 +36,7 @@ struct AICoachBubbleView: View {
             Text(message.isEmpty ? personality.sampleMessage(language) : message)
                 .font(AppFonts.body(for: language, size: 15))
                 .foregroundStyle(AppColors.charcoal)
+                .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(AppSpacing.lg)

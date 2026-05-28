@@ -35,8 +35,12 @@ struct DrinkLogSheet: View {
                     }
                     .padding(AppSpacing.md)
                     .frame(maxWidth: .infinity)
-                    .background(AppColors.pureWhite)
+                    .background(AppColors.surfaceElevated)
                     .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .stroke(AppColors.hairline.opacity(0.85), lineWidth: 1)
+                    }
                     .themedShadow(themeColor: AppColors.coralRed, opacity: 0.10, radius: 16, y: 6)
 
                     if !isEditing {
@@ -71,7 +75,7 @@ struct DrinkLogSheet: View {
             }
             .background(
                 LinearGradient(
-                    colors: [AppColors.pureWhite, AppColors.cream],
+                    colors: [AppColors.surfaceElevated, AppColors.cream],
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -155,8 +159,12 @@ struct DrinkLogSheet: View {
             }
             .padding(.horizontal, AppSpacing.md)
             .padding(.vertical, AppSpacing.sm)
-            .background(AppColors.pureWhite)
+            .background(AppColors.surfaceElevated)
             .clipShape(Capsule())
+            .overlay {
+                Capsule()
+                    .stroke(AppColors.hairline, lineWidth: 1)
+            }
         }
         .buttonStyle(.plain)
     }
@@ -218,8 +226,12 @@ struct DrinkLogSheet: View {
                                 .foregroundStyle(selected ? AppColors.pureWhite : AppColors.charcoal)
                                 .padding(.horizontal, AppSpacing.md)
                                 .padding(.vertical, AppSpacing.sm)
-                                .background(selected ? AppColors.coralRed : AppColors.coralLight)
+                                .background(selected ? AppColors.coralRed : AppColors.coralLight.opacity(0.82))
                                 .clipShape(Capsule())
+                                .overlay {
+                                    Capsule()
+                                        .stroke(selected ? Color.clear : AppColors.coralRed.opacity(0.10), lineWidth: 1)
+                                }
                         }
                         .buttonStyle(.plain)
                     }

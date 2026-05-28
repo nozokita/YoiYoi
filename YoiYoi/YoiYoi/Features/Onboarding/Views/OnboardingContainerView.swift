@@ -64,11 +64,12 @@ struct OnboardingContainerView: View {
     private var pageIndicator: some View {
         HStack(spacing: AppSpacing.sm) {
             ForEach(0..<3, id: \.self) { index in
-                Circle()
-                    .fill(index == currentStep ? AppColors.coralRed : AppColors.greyText.opacity(0.35))
-                    .frame(width: 8, height: 8)
+                Capsule(style: .continuous)
+                    .fill(index == currentStep ? AppColors.coralRed : AppColors.greyText.opacity(0.24))
+                    .frame(width: index == currentStep ? 22 : 7, height: 7)
             }
         }
+        .animation(.easeInOut(duration: 0.2), value: currentStep)
     }
 
     private func finishOnboarding() {

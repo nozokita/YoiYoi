@@ -36,9 +36,11 @@ struct DayCellView: View {
         }
         .overlay(alignment: .topTrailing) {
             if achievedLastOrder {
-                Text("🏆")
-                    .font(.system(size: 10))
-                    .offset(x: 3, y: -3)
+                SVGIcon(icon: .check, size: 8, color: AppColors.pureWhite)
+                    .frame(width: 14, height: 14)
+                    .background(AppColors.mintGreen)
+                    .clipShape(Circle())
+                    .offset(x: 4, y: -4)
                     .accessibilityLabel(achievementLabel)
             }
         }

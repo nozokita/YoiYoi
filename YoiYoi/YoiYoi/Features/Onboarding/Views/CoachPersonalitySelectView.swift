@@ -55,13 +55,13 @@ struct CoachPersonalitySelectView: View {
                 OnboardingSelectionMark(isSelected: selected)
             }
             .padding(AppSpacing.lg)
-            .background(selected ? AppColors.pureWhite : AppColors.pureWhite.opacity(0.76))
+            .background(selected ? AppColors.surfaceElevated : AppColors.surfaceElevated.opacity(0.76))
             .clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 26, style: .continuous)
-                    .stroke(selected ? AppColors.coralRed.opacity(0.85) : AppColors.charcoal.opacity(0.06), lineWidth: selected ? 1.5 : 1)
+                    .stroke(selected ? AppColors.coralRed.opacity(0.85) : AppColors.hairline, lineWidth: selected ? 1.5 : 1)
             }
-            .shadow(color: selected ? AppColors.coralRed.opacity(0.10) : .black.opacity(0.03), radius: selected ? 16 : 10, y: selected ? 8 : 5)
+            .themedShadow(themeColor: selected ? AppColors.coralRed : AppColors.hairline, opacity: selected ? 0.10 : 0.05, radius: selected ? 16 : 10, y: selected ? 8 : 5)
         }
         .buttonStyle(.plain)
     }

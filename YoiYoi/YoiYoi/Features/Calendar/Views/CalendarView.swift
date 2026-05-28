@@ -98,8 +98,12 @@ struct CalendarView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.sm)
-        .background(AppColors.pureWhite.opacity(0.2))
+        .background(AppColors.pureWhite.opacity(0.16))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppColors.pureWhite.opacity(0.16), lineWidth: 1)
+        }
     }
 
     private var monthCard: some View {
@@ -196,7 +200,7 @@ struct CalendarView: View {
                 ForEach(Array(bars.enumerated()), id: \.offset) { _, item in
                     VStack(spacing: 6) {
                         RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .fill(item.over ? AppColors.warmCoral : AppColors.mintGreen)
+                            .fill(item.over ? AppColors.warmCoral : AppColors.successDeep)
                             .frame(width: 32, height: barHeight(grams: item.grams, scaleMax: scaleMax))
                         Text(item.label)
                             .font(.system(size: 10, weight: .medium, design: .rounded))

@@ -70,13 +70,13 @@ struct GenderGoalView: View {
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, AppSpacing.md)
-                .background(selected ? AppColors.pureWhite : AppColors.pureWhite.opacity(0.58))
+                .background(selected ? AppColors.surfaceElevated : AppColors.surfaceElevated.opacity(0.62))
                 .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
                 .overlay {
                     RoundedRectangle(cornerRadius: 18, style: .continuous)
-                        .stroke(selected ? AppColors.coralRed.opacity(0.85) : AppColors.charcoal.opacity(0.06), lineWidth: selected ? 1.5 : 1)
+                        .stroke(selected ? AppColors.coralRed.opacity(0.85) : AppColors.hairline, lineWidth: selected ? 1.5 : 1)
                 }
-                .shadow(color: selected ? AppColors.coralRed.opacity(0.10) : .clear, radius: 12, y: 6)
+                .themedShadow(themeColor: AppColors.coralRed, opacity: selected ? 0.10 : 0.0, radius: 12, y: 6)
         }
         .buttonStyle(.plain)
     }
@@ -100,9 +100,13 @@ struct GenderGoalView: View {
         }
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(AppColors.pureWhite.opacity(0.86))
+        .background(AppColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .shadow(color: AppColors.mintGreen.opacity(0.10), radius: 18, y: 8)
+        .overlay {
+            RoundedRectangle(cornerRadius: 28, style: .continuous)
+                .stroke(AppColors.hairline.opacity(0.85), lineWidth: 1)
+        }
+        .themedShadow(themeColor: AppColors.mintGreen, opacity: 0.10, radius: 18, y: 8)
     }
 
     private func goalMetric(label: String, value: String) -> some View {
@@ -134,8 +138,12 @@ struct GenderGoalView: View {
                 .foregroundStyle(AppColors.coralRed)
         }
         .padding(AppSpacing.md)
-        .background(AppColors.pureWhite.opacity(0.86))
+        .background(AppColors.surfaceElevated)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(AppColors.hairline, lineWidth: 1)
+        }
     }
 }
 

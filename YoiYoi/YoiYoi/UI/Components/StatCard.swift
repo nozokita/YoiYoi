@@ -27,6 +27,10 @@ struct StatCard: View {
         .padding(AppSpacing.lg)
         .background(backgroundColor)
         .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(AppColors.pureWhite.opacity(0.55), lineWidth: 1)
+        }
     }
 }
 
