@@ -54,4 +54,26 @@ struct QuickDrinkPresetTests {
         #expect(record.sessionID == sessionID)
         #expect(record.pureAlcoholGrams == 28)
     }
+
+    @MainActor
+    @Test func homeRefreshReflectsRecordsInTodayTotalAndRecent() {
+        let record = QuickDrinkService.makeRecord(
+            drinkType: "beer",
+            volumeML: 350,
+            abvFraction: 0.05,
+            numberOfDrinks: 1
+        )
+        let viewModel = HomeViewModel()
+
+        viewModel.refresh(
+            records: [record],
+            profiles: [UserProfile()],
+            presets: [],
+            sessions: []
+        )
+
+        #expect(abs(viewModel.todayConsumed - record.pureAlcoholGrams) < 0.0001)
+        #expect(viewModel.todaysDrinkRecords.map(\.id) == [record.id])
+        #expect(viewModel.recentRecords.map(\.id) == [record.id])
+    }
 }

@@ -4,6 +4,7 @@ import SwiftUI
 /// DESIGN.md「ホーム画面」— ウェーブヒーロー + ローカルの振り返りカード群。
 struct HomeView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @EnvironmentObject private var appState: AppState
 
     @State private var viewModel = HomeViewModel()
@@ -11,6 +12,7 @@ struct HomeView: View {
     @State private var showFavoriteManager = false
     @State private var undoRecord: DrinkRecord?
     @State private var undoTask: Task<Void, Never>?
+    @State private var reloadTask: Task<Void, Never>?
 
     /// 縦 `ScrollView` 内の横 `ScrollView` は高さ未確定だと全体レイアウトが潰れて真っ白になることがある（`docs/DEBUG_WHITE_SCREEN.md`）。
     private var drinkPillRowHeight: CGFloat { 44 }
@@ -47,6 +49,21 @@ struct HomeView: View {
         .fullScreenCover(item: $presentedSession) { session in
             ActiveSessionView(session: session)
                 .environmentObject(appState)
+        }
+        .onAppear(perform: scheduleReloadFromStore)
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                scheduleReloadFromStore()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .drinkLogSheetDismissed)) { _ in
+            scheduleReloadFromStore()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .userProfileDidChange)) { _ in
+            scheduleReloadFromStore()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .sessionDidChange)) { _ in
+            scheduleReloadFromStore()
         }
     }
 
@@ -282,6 +299,33 @@ struct HomeView: View {
         presentedSession = session
         viewModel.setActiveSession(session)
         NotificationCenter.default.post(name: .sessionDidChange, object: nil)
+    }
+
+    private func scheduleReloadFromStore() {
+        reloadTask?.cancel()
+        reloadTask = Task { @MainActor in
+            await Task.yield()
+            guard !Task.isCancelled else { return }
+            reloadFromStore()
+        }
+    }
+
+    private func reloadFromStore() {
+        let recordDescriptor = FetchDescriptor<DrinkRecord>(
+            sortBy: [SortDescriptor(\.loggedAt, order: .reverse)]
+        )
+        let presetDescriptor = FetchDescriptor<QuickDrinkPreset>(
+            sortBy: [SortDescriptor(\.sortOrder)]
+        )
+        let sessionDescriptor = FetchDescriptor<DrinkingSession>(
+            sortBy: [SortDescriptor(\.startTime, order: .reverse)]
+        )
+        viewModel.refresh(
+            records: (try? modelContext.fetch(recordDescriptor)) ?? [],
+            profiles: (try? modelContext.fetch(FetchDescriptor<UserProfile>())) ?? [],
+            presets: (try? modelContext.fetch(presetDescriptor)) ?? [],
+            sessions: (try? modelContext.fetch(sessionDescriptor)) ?? []
+        )
     }
 
     // MARK: - 今週のまとめ
