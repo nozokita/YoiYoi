@@ -1,5 +1,5 @@
 # YoiYoi 仕様書 v2.0 — Lean MVP 実装合意候補
-> 最終更新: 2026.05.26
+> 最終更新: 2026.05.29
 >
 > ステータス: Lean MVP の旧機能整理、日英対応、クイック記録、飲み会モード、水分通知、ローカルコーチを実装済み。
 
@@ -34,6 +34,8 @@
 - 記録は負担にしない。飲んでいる場面でも数秒で残せるショートカットを中心にする。
 - 目安はユーザーが自分で調整できる基準として扱い、安全量や追加で飲んでよい量とは表現しない。
 - 記録内容は端末内に保存され、アカウントやクラウド共有なしで使える安心感を初回体験とストア表示で伝える。
+- AI は「ユーザーの記録とペースに寄り添う相棒」であることを最上位のガードレールとする。飲酒を勧めず、医療・健康上の断定をせず、罪悪感・人格否定・羞恥を与えない。
+- AI は今日の一言だけに限定せず、昨日の飲み過ぎ、今週のペース、休肝日提案、酒種ごとの傾向を踏まえた提案を行う。
 
 ### 完全オフラインの定義
 
@@ -151,19 +153,32 @@ final class UserProfile {
 
 > **削除フィールド**: `firebaseUID`, `nicknameFlag`, `nicknameEmoji`, `nicknameAdjective`, `nicknameNoun`, `eulaAccepted`, `eulaAcceptedAt`, `blockedUIDsData`。`language` は JA/EN 設定保持のため維持する。
 
-### CoachPersonality (新規)
+### CoachPersonality (AI相棒モード)
 ```swift
 enum CoachPersonality: String, CaseIterable, Codable, Identifiable {
-    case strict    = "strict"     // 🔥 スパルタ
-    case gentle    = "gentle"     // 🌸 やさしめ
-    case friendly  = "friendly"   // 😎 フレンドリー
-    case sarcastic = "sarcastic"  // 😏 毒舌
+    case friendly  = "friendly"   // 相棒: 標準。友達風で自然に寄り添う
+    case gentle    = "gentle"     // やさしい見守り: 罪悪感を与えない
+    case gyaru     = "gyaru"      // ギャル: 明るく楽しいが飲酒は勧めない
+    case tsundere  = "tsundere"   // ツンデレ: 遊び心。依存的・過度な親密さは禁止
+    case strict    = "strict"     // 鬼コーチ: 厳しいが人格否定しない
+    case sMode     = "s_mode"     // ドS風: 羞恥・罵倒なしの強め口調
+    case sweetheart = "sweetheart" // 恋人風: 甘やかし寄り。過度な依存表現は禁止
+    case sarcastic = "sarcastic"  // 少し辛口: 軽い皮肉。攻撃的にしない
 
     var id: String { rawValue }
     var displayName: String { ... }
-    var personalityInstruction: String { ... }  // LLM の System Prompt に組み込む性格文
+    var safetyInstruction: String { ... }  // LLM の System Prompt に組み込むガードレール + 文体
 }
 ```
+
+**AI相棒の発話ルール**:
+- 常に「ユーザーの記録とペースに寄り添う相棒」として振る舞う。
+- 「安全」「飲んでいい」「まだ飲める」「健康上問題ない」など、医療・安全・許容量の断定をしない。
+- 昨日の純アルコール量が日次目安を超えていて、今日の記録がまだない場合は「今日は休肝日にする？」という提案を優先する。
+- 今週の純アルコール量が週次目安に近い場合は「今日は控えめにする」「先に量を決める」提案を行う。
+- 過去記録から酒種別の平均純アルコール量を見て、特定の酒種で多くなりやすい場合は「その酒種は量を先に決めよう」と提案する。
+- ビール・ワイン・日本酒などの傾向は、ユーザーの保存済み記録だけから算出する。
+- 生成AIが利用できない端末では、同じガードレールに沿ったローカルテンプレートで発話する。
 
 ### DrinkingSession (SwiftData — 新規)
 ```swift

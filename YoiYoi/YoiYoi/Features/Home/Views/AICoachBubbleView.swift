@@ -37,7 +37,7 @@ struct AICoachBubbleView: View {
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentCard(themeColor: AppColors.yellowLight)
-        .task(id: refreshID) {
+        .task(id: taskID) {
             message = LocalAICoachService.fallbackMessage(
                 context: context,
                 personality: personality,
@@ -50,5 +50,9 @@ struct AICoachBubbleView: View {
                 language: language
             )
         }
+    }
+
+    private var taskID: String {
+        "\(refreshID.uuidString)|\(context.fingerprint)|\(personality.rawValue)|\(language.rawValue)"
     }
 }

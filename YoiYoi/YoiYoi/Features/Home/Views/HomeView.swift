@@ -112,7 +112,14 @@ struct HomeView: View {
                 todayConsumed: viewModel.todayConsumed,
                 dailyGoal: viewModel.dailyGoal,
                 isSessionActive: viewModel.activeSession != nil,
-                hydrationCount: viewModel.activeSession?.hydrationCount ?? 0
+                hydrationCount: viewModel.activeSession?.hydrationCount ?? 0,
+                weeklyConsumed: viewModel.weeklyConsumed,
+                weeklyGoal: viewModel.weeklyGoal,
+                yesterdayConsumed: viewModel.yesterdayConsumed,
+                steadyDrinkRawType: viewModel.coachDrinkTrend.steadyRawType,
+                steadyDrinkAverageGrams: viewModel.coachDrinkTrend.steadyAverageGrams,
+                riskyDrinkRawType: viewModel.coachDrinkTrend.riskyRawType,
+                riskyDrinkAverageGrams: viewModel.coachDrinkTrend.riskyAverageGrams
             ),
             personality: viewModel.coachPersonality,
             language: appState.currentLanguage

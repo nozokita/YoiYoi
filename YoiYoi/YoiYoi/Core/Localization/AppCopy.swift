@@ -117,13 +117,13 @@ enum AppCopy {
     }
 
     static func onboardingCoachTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "ひとことの文体を選択"; case .en: "Choose your note tone" }
+        switch l { case .ja: "AI相棒モードを選択"; case .en: "Choose your AI companion mode" }
     }
 
     static func onboardingCoachDetail(_ l: SupportedLanguage) -> String {
         switch l {
-        case .ja: "記録をもとに、端末内で短いひとことを表示します。"
-        case .en: "Short, on-device notes based on your logs."
+        case .ja: "記録とペースに寄り添う相棒として、端末内で短い提案を表示します。"
+        case .en: "On-device suggestions from a companion tuned to your logs and pace."
         }
     }
 
@@ -382,15 +382,15 @@ enum AppCopy {
     }
 
     static func settingsCoachRow(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "ひとこと・水分通知"; case .en: "Coach note and water reminders" }
+        switch l { case .ja: "AI相棒・水分通知"; case .en: "AI companion and water reminders" }
     }
 
     static func settingsCoachTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "ひとこと設定"; case .en: "Coach note settings" }
+        switch l { case .ja: "AI相棒設定"; case .en: "AI companion settings" }
     }
 
     static func settingsCoachPersonality(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "文体"; case .en: "Tone" }
+        switch l { case .ja: "AIモード"; case .en: "AI mode" }
     }
 
     static func settingsHydrationInterval(_ l: SupportedLanguage) -> String {
