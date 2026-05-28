@@ -1,5 +1,20 @@
 import Foundation
 
+struct DrinkVolumeOption: Identifiable, Equatable, Sendable {
+    let labelJA: String
+    let labelEN: String
+    let volumeML: Double
+
+    var id: String { "\(labelEN)-\(Int(volumeML))" }
+
+    func label(for language: SupportedLanguage) -> String {
+        switch language {
+        case .ja: "\(labelJA) \(Int(volumeML))ml"
+        case .en: "\(labelEN) \(Int(volumeML))ml"
+        }
+    }
+}
+
 /// SPEC.md ドリンク初期データ。`rawValue` は SwiftData `DrinkRecord.drinkType` と一致。
 enum DrinkType: String, CaseIterable, Codable, Sendable {
     case beer
@@ -67,6 +82,46 @@ enum DrinkType: String, CaseIterable, Codable, Sendable {
         case .whisky: return 30
         case .cocktail: return 200
         case .sour: return 350
+        }
+    }
+
+    var volumeOptions: [DrinkVolumeOption] {
+        switch self {
+        case .beer:
+            [
+                DrinkVolumeOption(labelJA: "小", labelEN: "Small draft", volumeML: 300),
+                DrinkVolumeOption(labelJA: "生中", labelEN: "Medium draft", volumeML: 400),
+                DrinkVolumeOption(labelJA: "缶", labelEN: "Can", volumeML: 350),
+                DrinkVolumeOption(labelJA: "生大", labelEN: "Large draft", volumeML: 700),
+            ]
+        case .wine:
+            [
+                DrinkVolumeOption(labelJA: "少なめ", labelEN: "Small pour", volumeML: 100),
+                DrinkVolumeOption(labelJA: "標準", labelEN: "Standard pour", volumeML: 125),
+                DrinkVolumeOption(labelJA: "多め", labelEN: "Large pour", volumeML: 150),
+            ]
+        case .sake:
+            [
+                DrinkVolumeOption(labelJA: "半合", labelEN: "Half go", volumeML: 90),
+                DrinkVolumeOption(labelJA: "1合", labelEN: "One go", volumeML: 180),
+            ]
+        case .whisky:
+            [
+                DrinkVolumeOption(labelJA: "シングル", labelEN: "Single", volumeML: 30),
+                DrinkVolumeOption(labelJA: "ダブル", labelEN: "Double", volumeML: 60),
+            ]
+        case .cocktail:
+            [
+                DrinkVolumeOption(labelJA: "小さめ", labelEN: "Small", volumeML: 150),
+                DrinkVolumeOption(labelJA: "標準", labelEN: "Standard", volumeML: 200),
+                DrinkVolumeOption(labelJA: "大きめ", labelEN: "Large", volumeML: 300),
+            ]
+        case .sour:
+            [
+                DrinkVolumeOption(labelJA: "中", labelEN: "Medium", volumeML: 350),
+                DrinkVolumeOption(labelJA: "大", labelEN: "Large", volumeML: 500),
+                DrinkVolumeOption(labelJA: "メガ", labelEN: "Mega", volumeML: 700),
+            ]
         }
     }
 

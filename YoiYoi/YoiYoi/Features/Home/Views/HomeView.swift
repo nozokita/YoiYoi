@@ -10,6 +10,7 @@ struct HomeView: View {
     @State private var viewModel = HomeViewModel()
     @State private var presentedSession: DrinkingSession?
     @State private var showFavoriteManager = false
+    @State private var editingRecord: DrinkRecord?
     @State private var undoRecord: DrinkRecord?
     @State private var undoTask: Task<Void, Never>?
     @State private var reloadTask: Task<Void, Never>?
@@ -45,6 +46,18 @@ struct HomeView: View {
         .sheet(isPresented: $showFavoriteManager) {
             QuickDrinkManagerView()
                 .environmentObject(appState)
+        }
+        .sheet(isPresented: Binding(
+            get: { editingRecord != nil },
+            set: { if !$0 { editingRecord = nil } }
+        ), onDismiss: {
+            scheduleReloadFromStore()
+        }) {
+            if let editingRecord {
+                DrinkLogSheet(editingRecord: editingRecord)
+                    .environmentObject(appState)
+                    .presentationDetents([.large])
+            }
         }
         .fullScreenCover(item: $presentedSession) { session in
             ActiveSessionView(session: session)
@@ -401,16 +414,21 @@ struct HomeView: View {
         let label = DrinkType.shortLabel(forRawType: record.drinkType, language: appState.currentLanguage)
         let drinkType = DrinkType(rawValue: record.drinkType)
         let grams = Int(round(record.pureAlcoholGrams))
-        return HStack(spacing: AppSpacing.xs) {
-            SVGIcon(icon: drinkType?.icon ?? .drinkBeer, size: 15, color: AppColors.coralRed)
-            Text("\(label) \(grams)g")
-                .font(.system(size: 14, weight: .medium, design: .rounded))
-                .foregroundStyle(AppColors.charcoal)
+        return Button {
+            editingRecord = record
+        } label: {
+            HStack(spacing: AppSpacing.xs) {
+                SVGIcon(icon: drinkType?.icon ?? .drinkBeer, size: 15, color: AppColors.coralRed)
+                Text("\(label) \(grams)g")
+                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .foregroundStyle(AppColors.charcoal)
+            }
+            .padding(.horizontal, AppSpacing.md)
+            .padding(.vertical, AppSpacing.sm)
+            .background(AppColors.coralLight)
+            .clipShape(Capsule())
         }
-        .padding(.horizontal, AppSpacing.md)
-        .padding(.vertical, AppSpacing.sm)
-        .background(AppColors.coralLight)
-        .clipShape(Capsule())
+        .buttonStyle(.plain)
     }
 }
 

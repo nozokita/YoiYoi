@@ -37,4 +37,17 @@ final class DrinkRecord {
         self.weekNumber = calendar.component(.weekOfYear, from: at)
         self.yearNumber = calendar.component(.yearForWeekOfYear, from: at)
     }
+
+    func update(
+        drinkType: String,
+        volumeML: Double,
+        abv: AlcoholByVolume,
+        numberOfDrinks: Int
+    ) {
+        self.drinkType = drinkType
+        self.volumeML = volumeML
+        self.abvFraction = abv.fraction
+        self.numberOfDrinks = numberOfDrinks
+        self.pureAlcoholGrams = volumeML * abv.fraction * 0.8 * Double(numberOfDrinks)
+    }
 }

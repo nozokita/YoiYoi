@@ -470,8 +470,20 @@ enum AppCopy {
         switch l { case .ja: "飲み物を記録"; case .en: "Log a drink" }
     }
 
+    static func drinkLogEditTitle(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "記録を編集"; case .en: "Edit drink log" }
+    }
+
     static func drinkLogSave(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "記録する"; case .en: "Log drink" }
+    }
+
+    static func drinkLogUpdate(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "変更を保存"; case .en: "Save changes" }
+    }
+
+    static func drinkLogDeleteRecord(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "この記録を削除"; case .en: "Delete this log" }
     }
 
     static func drinkLogClose(_ l: SupportedLanguage) -> String {
@@ -484,6 +496,10 @@ enum AppCopy {
 
     static func drinkLogAdjust(_ l: SupportedLanguage) -> String {
         switch l { case .ja: "内容を調整"; case .en: "Details" }
+    }
+
+    static func drinkLogVolume(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "1杯の量"; case .en: "Volume per drink" }
     }
 
     static func drinkLogDrinksCount(_ l: SupportedLanguage) -> String {

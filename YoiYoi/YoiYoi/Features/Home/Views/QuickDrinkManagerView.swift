@@ -88,6 +88,7 @@ private struct QuickDrinkPresetEditView: View {
     let preset: QuickDrinkPreset
 
     @State private var type: DrinkType = .beer
+    @State private var volumeML: Double = 350
     @State private var abvPercent: Double = 5
     @State private var drinks = 1
 
@@ -99,6 +100,12 @@ private struct QuickDrinkPresetEditView: View {
                         Text(option.shortLabel(for: appState.currentLanguage)).tag(option)
                     }
                 }
+                Stepper(
+                    "\(AppCopy.drinkLogVolume(appState.currentLanguage)): \(Int(volumeML))ml",
+                    value: $volumeML,
+                    in: 10...2000,
+                    step: 10
+                )
                 Stepper(
                     "\(AppCopy.drinkLogAbv(appState.currentLanguage)): \(abvPercent, specifier: "%.1f")",
                     value: $abvPercent,
@@ -121,7 +128,7 @@ private struct QuickDrinkPresetEditView: View {
                     Button(AppCopy.settingsSave(appState.currentLanguage)) {
                         preset.displayName = type.rawValue
                         preset.drinkType = type.rawValue
-                        preset.volumeML = type.defaultVolumeML
+                        preset.volumeML = volumeML
                         preset.abvFraction = AlcoholByVolume.fromPercentage(abvPercent).fraction
                         preset.numberOfDrinks = drinks
                         try? modelContext.save()
@@ -133,6 +140,7 @@ private struct QuickDrinkPresetEditView: View {
         }
         .onAppear {
             type = DrinkType(rawValue: preset.drinkType) ?? .beer
+            volumeML = preset.volumeML
             abvPercent = AlcoholByVolume.fromFraction(preset.abvFraction).percentage
             drinks = preset.numberOfDrinks
         }

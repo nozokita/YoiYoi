@@ -37,6 +37,18 @@ final class DrinkLogViewModel {
         self.numberOfDrinks = numberOfDrinks
     }
 
+    func setVolume(_ ml: Double) {
+        volumeML = ml.clamped(to: 10...2000)
+    }
+
+    func incrementVolume() {
+        setVolume(volumeML + 10)
+    }
+
+    func decrementVolume() {
+        setVolume(volumeML - 10)
+    }
+
     func incrementDrinks() {
         numberOfDrinks = min(numberOfDrinks + 1, 99)
     }
@@ -51,5 +63,11 @@ final class DrinkLogViewModel {
 
     func decrementAbv() {
         abvPercent = max(abvPercent - 0.5, 0)
+    }
+}
+
+private extension Comparable {
+    func clamped(to range: ClosedRange<Self>) -> Self {
+        min(max(self, range.lowerBound), range.upperBound)
     }
 }
