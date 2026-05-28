@@ -68,17 +68,12 @@ struct HomeView: View {
     }
 
     private var heroSection: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: AppSpacing.md) {
             Text(AppCopy.homePureAlcoholLabel(appState.currentLanguage))
-                .font(AppFonts.heroSubtitle())
-                .foregroundStyle(AppColors.pureWhite.opacity(0.85))
-                .multilineTextAlignment(.center)
-
-            Text(AppCopy.homeGreeting(appState.currentLanguage))
                 .font(AppFonts.heroTitle())
                 .foregroundStyle(AppColors.pureWhite)
                 .multilineTextAlignment(.center)
-                .accessibilityIdentifier("home.greeting")
+                .accessibilityIdentifier("home.heroTitle")
 
             AlcoholMeterView(
                 consumed: viewModel.todayConsumed,

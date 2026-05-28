@@ -24,22 +24,22 @@ final class HomeViewModel {
         switch language {
         case .ja:
             if p >= 100 {
-                return "今日はオーバー…でも大丈夫！"
+                return "今日の目安を超えています"
             }
             if p >= 80 {
-                return "そろそろ気をつけて！"
+                return "目安に近づいています"
             }
             let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoal))
-            return "設定した目安まであと \(remaining)g"
+            return "設定した目安まであと\(remaining)g"
         case .en:
             if p >= 100 {
-                return "Past today's goal—you're OK!"
+                return "Over today’s guide"
             }
             if p >= 80 {
-                return "Easy does it—you're close to the limit."
+                return "Close to today’s guide"
             }
             let remaining = Int(AlcoholCalculator.remainingToday(consumed: todayConsumed, dailyGoal: dailyGoal))
-            return "\(remaining)g until your set guide."
+            return "\(remaining)g until today’s guide"
         }
     }
 
