@@ -8,6 +8,19 @@ struct CoachDrinkTrend: Equatable {
     let riskyAverageGrams: Int
 }
 
+struct CoachBehaviorContext: Equatable {
+    var todaysRecordCount = 0
+    var latestDrinkGrams = 0
+    var minutesSinceLastDrink: Int?
+    var recentLogGapMinutes: Int?
+    var loggingStreakDays = 0
+    var plannedDrinkRawType: String?
+    var plannedDrinkCount = 1
+    var plannedDrinkVolumeML = 0
+    var riskyWeekday: Int?
+    var riskyTimeSlot: String?
+}
+
 /// ホーム集計（SwiftData の `DrinkRecord` + `UserProfile`）。
 @Observable
 @MainActor
@@ -20,6 +33,7 @@ final class HomeViewModel {
     var streakDays: Int = 0
     var restDaysThisWeek: Int = 0
     var coachDrinkTrend = CoachDrinkTrend(steadyRawType: nil, steadyAverageGrams: 0, riskyRawType: nil, riskyAverageGrams: 0)
+    var coachBehavior = CoachBehaviorContext()
     var coachPersonality: CoachPersonality = .friendly
     var hydrationIntervalMinutes: Int = 30
     var lastOrderReminderEnabled = true
@@ -111,6 +125,7 @@ final class HomeViewModel {
         }
         weeklyConsumed = AlcoholCalculator.weeklyTotal(gramsFrom: allRecords, inWeekOf: now, calendar: calendar)
         coachDrinkTrend = makeDrinkTrend(from: allRecords, calendar: calendar, now: now)
+        coachBehavior = makeBehaviorContext(from: allRecords, calendar: calendar, now: now)
         streakDays = AlcoholCalculator.streakDays(
             gramsFrom: allRecords,
             dailyGoalGrams: dailyGoal,
@@ -153,5 +168,93 @@ final class HomeViewModel {
             riskyRawType: risky?.rawType,
             riskyAverageGrams: risky?.average ?? 0
         )
+    }
+
+    private func makeBehaviorContext(from records: [DrinkRecord], calendar: Calendar, now: Date) -> CoachBehaviorContext {
+        let startOfToday = calendar.startOfDay(for: now)
+        let todaysRecords = records
+            .filter { calendar.isDate($0.loggedAt, inSameDayAs: startOfToday) }
+            .sorted { $0.loggedAt > $1.loggedAt }
+        let latest = todaysRecords.first
+        let second = todaysRecords.dropFirst().first
+        let pastRecords = records.filter { $0.loggedAt < startOfToday }
+        let plan = commonPlan(from: pastRecords)
+
+        return CoachBehaviorContext(
+            todaysRecordCount: todaysRecords.count,
+            latestDrinkGrams: latest.map { Int($0.pureAlcoholGrams.rounded()) } ?? 0,
+            minutesSinceLastDrink: latest.map { max(0, Int(now.timeIntervalSince($0.loggedAt) / 60)) },
+            recentLogGapMinutes: latest.flatMap { latest in
+                second.map { max(0, Int(latest.loggedAt.timeIntervalSince($0.loggedAt) / 60)) }
+            },
+            loggingStreakDays: loggingStreakDays(from: records, endingOn: now, calendar: calendar),
+            plannedDrinkRawType: plan?.rawType,
+            plannedDrinkCount: plan?.count ?? 1,
+            plannedDrinkVolumeML: plan?.volumeML ?? 0,
+            riskyWeekday: riskyWeekday(from: records, calendar: calendar, now: now),
+            riskyTimeSlot: riskyTimeSlot(from: records, calendar: calendar, now: now)
+        )
+    }
+
+    private func commonPlan(from records: [DrinkRecord]) -> (rawType: String, count: Int, volumeML: Int)? {
+        let recent = records
+            .sorted { $0.loggedAt > $1.loggedAt }
+            .prefix(30)
+        let grouped = Dictionary(grouping: recent) { record in
+            "\(record.drinkType)|\(Int(record.volumeML.rounded()))"
+        }
+        guard let group = grouped.values.max(by: { $0.count < $1.count }),
+              let sample = group.first else {
+            return nil
+        }
+        let averageCount = group.reduce(0) { $0 + $1.numberOfDrinks } / max(group.count, 1)
+        return (
+            rawType: sample.drinkType,
+            count: min(max(averageCount, 1), 3),
+            volumeML: Int(sample.volumeML.rounded())
+        )
+    }
+
+    private func loggingStreakDays(from records: [DrinkRecord], endingOn end: Date, calendar: Calendar) -> Int {
+        var streak = 0
+        var cursor = calendar.startOfDay(for: end)
+        while true {
+            let hasRecord = records.contains { calendar.isDate($0.loggedAt, inSameDayAs: cursor) }
+            if hasRecord {
+                streak += 1
+            } else {
+                break
+            }
+            guard let previous = calendar.date(byAdding: .day, value: -1, to: cursor) else { break }
+            cursor = calendar.startOfDay(for: previous)
+        }
+        return streak
+    }
+
+    private func riskyWeekday(from records: [DrinkRecord], calendar: Calendar, now: Date) -> Int? {
+        let currentWeekday = calendar.component(.weekday, from: now)
+        let startOfToday = calendar.startOfDay(for: now)
+        let dayBuckets = Dictionary(grouping: records.filter { $0.loggedAt < startOfToday }) {
+            calendar.startOfDay(for: $0.loggedAt)
+        }
+        let matchingDays = dayBuckets.compactMap { day, dayRecords -> Double? in
+            guard calendar.component(.weekday, from: day) == currentWeekday else { return nil }
+            return dayRecords.reduce(0) { $0 + $1.pureAlcoholGrams }
+        }
+        guard matchingDays.count >= 2 else { return nil }
+        let average = matchingDays.reduce(0, +) / Double(matchingDays.count)
+        return average >= dailyGoal * 0.8 ? currentWeekday : nil
+    }
+
+    private func riskyTimeSlot(from records: [DrinkRecord], calendar: Calendar, now: Date) -> String? {
+        let currentHour = calendar.component(.hour, from: now)
+        guard currentHour >= 21 else { return nil }
+        let lateRecords = records.filter {
+            $0.loggedAt < calendar.startOfDay(for: now)
+                && calendar.component(.hour, from: $0.loggedAt) >= 21
+        }
+        guard lateRecords.count >= 3 else { return nil }
+        let average = lateRecords.reduce(0) { $0 + $1.pureAlcoholGrams } / Double(lateRecords.count)
+        return average >= dailyGoal * 0.4 ? "lateNight" : nil
     }
 }

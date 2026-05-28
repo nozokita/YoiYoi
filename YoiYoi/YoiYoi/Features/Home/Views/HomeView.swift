@@ -119,7 +119,17 @@ struct HomeView: View {
                 steadyDrinkRawType: viewModel.coachDrinkTrend.steadyRawType,
                 steadyDrinkAverageGrams: viewModel.coachDrinkTrend.steadyAverageGrams,
                 riskyDrinkRawType: viewModel.coachDrinkTrend.riskyRawType,
-                riskyDrinkAverageGrams: viewModel.coachDrinkTrend.riskyAverageGrams
+                riskyDrinkAverageGrams: viewModel.coachDrinkTrend.riskyAverageGrams,
+                todaysRecordCount: viewModel.coachBehavior.todaysRecordCount,
+                latestDrinkGrams: viewModel.coachBehavior.latestDrinkGrams,
+                minutesSinceLastDrink: viewModel.coachBehavior.minutesSinceLastDrink,
+                recentLogGapMinutes: viewModel.coachBehavior.recentLogGapMinutes,
+                loggingStreakDays: viewModel.coachBehavior.loggingStreakDays,
+                plannedDrinkRawType: viewModel.coachBehavior.plannedDrinkRawType,
+                plannedDrinkCount: viewModel.coachBehavior.plannedDrinkCount,
+                plannedDrinkVolumeML: viewModel.coachBehavior.plannedDrinkVolumeML,
+                riskyWeekday: viewModel.coachBehavior.riskyWeekday,
+                riskyTimeSlot: viewModel.coachBehavior.riskyTimeSlot
             ),
             personality: viewModel.coachPersonality,
             language: appState.currentLanguage

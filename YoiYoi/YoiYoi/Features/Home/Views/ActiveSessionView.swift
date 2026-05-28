@@ -48,7 +48,8 @@ struct ActiveSessionView: View {
                             todayConsumed: sessionTotal,
                             dailyGoal: profile.dailyGoalGrams,
                             isSessionActive: true,
-                            hydrationCount: session.hydrationCount
+                            hydrationCount: session.hydrationCount,
+                            sessionElapsedMinutes: max(0, Int(Date().timeIntervalSince(session.startTime) / 60))
                         ),
                         personality: personality,
                         language: appState.currentLanguage
