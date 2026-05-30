@@ -20,7 +20,7 @@ struct CalendarView: View {
     /// `HomeView` と同型。ヒーローを `ScrollView` の外に置き、タブシェル＋`safeAreaInset` 下でも潰れにくくする。
     var body: some View {
         VStack(spacing: 0) {
-            WaveHeroView(height: heroHeight, gradient: AppGradients.heroCalendar) {
+            WaveHeroView(height: heroHeight, gradient: AppGradients.heroCalendar, topBleedColor: AppColors.successDeep) {
                 VStack(spacing: AppSpacing.md) {
                     Text(AppCopy.calendarHeroTitle(appState.currentLanguage))
                         .font(AppFonts.heroTitle())

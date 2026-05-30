@@ -21,7 +21,7 @@ struct SettingsRootView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                WaveHeroView(height: heroHeight, gradient: AppGradients.heroSettings) {
+                WaveHeroView(height: heroHeight, gradient: AppGradients.heroSettings, topBleedColor: AppColors.darkBg) {
                     VStack(spacing: AppSpacing.sm) {
                         Text(AppCopy.settingsTitle(appState.currentLanguage))
                             .font(AppFonts.heroTitle())
