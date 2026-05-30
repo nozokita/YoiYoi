@@ -80,6 +80,10 @@ struct HomeView: View {
         }
     }
 
+    private var heroStyle: HomeHeroStyle {
+        HomeHeroStyle(consumed: viewModel.todayConsumed, dailyGoal: viewModel.dailyGoal)
+    }
+
     private var heroSection: some View {
         VStack(spacing: AppSpacing.md) {
             Text(AppCopy.homePureAlcoholLabel(appState.currentLanguage))
@@ -102,13 +106,14 @@ struct HomeView: View {
         .padding(.horizontal, AppSpacing.lg)
         .padding(.vertical, AppSpacing.xl)
         .frame(maxWidth: .infinity)
-        .background(AppGradients.heroHome)
+        .background(heroStyle.gradient)
         .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 28, style: .continuous)
                 .stroke(AppColors.pureWhite.opacity(0.16), lineWidth: 1)
         }
-        .shadow(color: AppColors.darkBg.opacity(0.14), radius: 22, y: 10)
+        .shadow(color: heroStyle.shadowColor.opacity(0.16), radius: 22, y: 10)
+        .animation(.easeInOut(duration: 0.35), value: heroStyle.band)
     }
 
     private var coachSection: some View {
@@ -465,6 +470,51 @@ struct HomeView: View {
             }
         }
         .buttonStyle(.plain)
+    }
+}
+
+private struct HomeHeroStyle {
+    let band: Band
+    let gradient: LinearGradient
+    let shadowColor: Color
+
+    init(consumed: Double, dailyGoal: Double) {
+        let ratio = dailyGoal > 0 ? consumed / dailyGoal : 0
+
+        switch ratio {
+        case ..<0.4:
+            band = .light
+            gradient = Self.makeGradient([AppColors.successDeep, AppColors.mintGreen])
+            shadowColor = AppColors.mintGreen
+        case ..<0.8:
+            band = .steady
+            gradient = Self.makeGradient([AppColors.navy, AppColors.successDeep])
+            shadowColor = AppColors.successDeep
+        case ..<1.1:
+            band = .nearGuide
+            gradient = Self.makeGradient([AppColors.amber80, AppColors.warmCoral])
+            shadowColor = AppColors.amber80
+        case ..<1.35:
+            band = .overGuide
+            gradient = Self.makeGradient([AppColors.warmCoral, AppColors.coralRed])
+            shadowColor = AppColors.coralDeep
+        default:
+            band = .wellOverGuide
+            gradient = Self.makeGradient([AppColors.darkBg, AppColors.coralDeep])
+            shadowColor = AppColors.darkBg
+        }
+    }
+
+    private static func makeGradient(_ colors: [Color]) -> LinearGradient {
+        LinearGradient(colors: colors, startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+
+    enum Band: Equatable {
+        case light
+        case steady
+        case nearGuide
+        case overGuide
+        case wellOverGuide
     }
 }
 
