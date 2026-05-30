@@ -53,6 +53,11 @@ struct ContentView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
+        .background(alignment: .top) {
+            topSafeAreaColor
+                .frame(height: 180)
+                .ignoresSafeArea(edges: .top)
+        }
         .safeAreaInset(edge: .bottom, spacing: 0) {
             VStack(spacing: 0) {
                 Color.clear
@@ -98,6 +103,17 @@ struct ContentView: View {
             DispatchQueue.main.async {
                 showDrinkLogSheet = true
             }
+        }
+    }
+
+    private var topSafeAreaColor: Color {
+        switch selectedTab {
+        case 1:
+            AppColors.successDeep
+        case 2:
+            AppColors.darkBg
+        default:
+            AppColors.cream
         }
     }
 
