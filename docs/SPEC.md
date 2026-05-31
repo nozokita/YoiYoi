@@ -1,7 +1,7 @@
 # YoiYoi 仕様書 v2.0 — Lean MVP 実装合意候補
 > 最終更新: 2026.06.01
 >
-> ステータス: Lean MVP の旧機能整理、日英対応、クイック記録、飲み会モード、水分通知、ローカルコーチ、ローカル telemetry を実装済み。Phase 3 では任意同意の匿名 analytics とキャラクター/解禁設計を追加する。
+> ステータス: Lean MVP の旧機能整理、日英対応、クイック記録、飲み会モード、水分通知、ローカルコーチを実装済み。公開初期の利用傾向確認は App Store Connect の標準指標のみを使う。
 
 ## 概要
 
@@ -38,37 +38,25 @@
 - AI は今日の一言だけに限定せず、昨日の飲み過ぎ、今週のペース、休肝日提案、酒種ごとの傾向を踏まえた提案を行う。
 - AI は開始前、記録直後、短時間の連続記録、飲み会モード中、時間帯・曜日の傾向、連続記録の継続に応じて、場面に合う短いコメントを出す。
 - 50〜70代でも読める文字サイズ、タップしやすい操作面積、Dynamic Type 対応を維持する。
-- データドリブンな改善は行うが、飲酒記録の生データ、自由入力、AIコメント全文、詳細な飲酒日時を外部送信しない。
+- データドリブンな改善は App Store Connect の標準指標、レビュー、TestFlight フィードバック、手元のQAで行う。
 
-### プライバシーと telemetry 方針
+### プライバシーと分析方針
 
 - アカウント作成、Firebase、独自サーバー、分析 SDK、広告 SDK、クラウド同期を含めない。
 - 飲酒記録、プロフィール、セッション履歴、お気に入りドリンク設定は `SwiftData` に端末内保存する。
-- Phase 1 の UX 改善用 telemetry は `SwiftData` に端末内保存するローカルイベントに限定する。
-- Phase 2 以降は、ユーザーが明示的に許可した場合のみ、匿名・粗粒度の analytics イベントを送信する。
-- Phase 3 では外部分析 SDK ではなく、自前の最小 analytics エンドポイントに限定イベントを送信する。
 - 通知は `UNUserNotificationCenter` のローカル通知だけを使用する。
 - Foundation Models 利用時も、入力する集計値は端末内で処理される Apple のオンデバイスモデル向けに限定する。
 - Apple Intelligence のモデル取得や利用可否は OS が管理するため、アプリは利用不可状態を正常系として扱い、常にテンプレートへフォールバックする。
-
-**送信してよいデータ**:
-- app_open、screen_view、drink_log_saved、quick_record_saved、ai_comment_rendered、ai_comment_refreshed、onboarding_completed、paywall_viewed、purchase_completed、character_unlocked などのイベント名。
-- app_version、language、region、device_family、days_since_install、selected_tab、personality、character_id、grams_band、today_ratio_band などの粗い属性。
-- DAU/MAU 算出用のランダムな `analyticsInstallID`。アカウント、広告ID、IDFA、連絡先、位置情報とは紐付けない。
-
-**送信しないデータ**:
-- 生の飲酒記録、正確な飲酒日時、自由入力、AIコメント全文、医療・健康状態、位置情報、連絡先、IDFA、端末内の詳細履歴。
-- 目安値や純アルコール量は原則バンド化し、数値そのものを送らない。
-
-詳細仕様と実装タスクは [PHASE3_ANALYTICS_AND_GROWTH.md](./PHASE3_ANALYTICS_AND_GROWTH.md) を正とする。
+- 公開初期のデータ確認は App Store Connect の標準指標（インストール、クラッシュ、セッション、継続など）だけを使う。
+- アプリ独自の利用イベント記録、外部分析SDK、自前サーバーへの利用イベント送信は実装しない。
 
 ### ❌ 持たないもの（意図的な不採用）
 
 | 不採用機能 | 理由 |
 |-----------|------|
 | SNS / フィード / リアクション | ソーシャル全面廃止。サーバー運用コスト・UGC審査リスクがゼロに |
-| Firebase（Auth / Firestore） | 認証・個人データ同期は不要。Phase 3 analytics も外部SDKではなく最小APIで制御する |
-| 外部分析SDK | 飲酒記録アプリの信頼性を優先し、Phase 3 でも自前の最小 analytics を使う |
+| Firebase（Auth / Firestore） | 認証・個人データ同期は不要 |
+| アプリ独自の利用イベント記録 / 外部分析SDK / 自前分析サーバー | 公開初期は App Store Connect の標準指標だけを見る |
 | 広告 / AdMob | プライバシー訴求、アルコール関連広告、健康データ文脈との相性が悪いため採用しない |
 | EULA 同意フロー | SNSがないため初回同意画面は設けない。免責とプライバシーポリシー導線は設定に残す |
 | ニックネームシステム（国旗+絵文字+形容詞+名詞） | ソーシャルでの匿名ID用だった。パーソナルアプリには不要 |
@@ -117,9 +105,8 @@
 ### 維持する法務導線
 
 - App Store Connect ではプライバシーポリシー URL が必須で、アプリ内にも容易に到達できるリンクを置く。
-- `Core/Legal/AppLegalLinks.swift` と `docs/legal/privacy.html` は、飲酒記録の端末内保存と任意analytics方針に文面を更新した上で維持する。
-- App Store のプライバシー回答では、現行版は telemetry を含めて端末外へ送信しないため「開発者または第三者がアクセスできる収集データなし」を前提に回答する。
-- Phase 3 の匿名 analytics を公開するリリースでは、送信される Usage Data / Identifiers / Diagnostics の有無を App Privacy Details に正しく申告し、Privacy Choices URL またはアプリ内設定でオプトアウト導線を提供する。
+- `Core/Legal/AppLegalLinks.swift` と `docs/legal/privacy.html` は、飲酒記録の端末内保存方針に文面を更新した上で維持する。
+- App Store のプライバシー回答では、現行版は端末外へユーザーデータを送信しないため「開発者または第三者がアクセスできる収集データなし」を前提に回答する。
 - 初回の EULA 同意 UI と、旧ソーシャル機能を前提にした利用規約本文は撤去する。
 
 ---
@@ -238,25 +225,6 @@ final class DrinkingSession {
     var isActive: Bool { endTime == nil }
 }
 ```
-
-### TelemetryEvent (SwiftData — 新規)
-```swift
-@Model
-final class TelemetryEvent {
-    var id: UUID
-    var name: String
-    var screen: String?
-    var attributesJSON: String
-    var createdAt: Date
-}
-```
-
-**ローカル telemetry ルール**:
-- データドリブンな UI/UX 改善のため、画面表示、タブ選択、記録開始、記録保存、クイック記録、AIコメント表示・更新、AIコメント設定変更などをイベントとして保存する。
-- telemetry は端末内の `SwiftData` に最大 1,000 件だけ保持し、古いイベントから削除する。
-- 属性は `grams_band`、`today_ratio`、`mode`、`screen` などの粗いカテゴリに限定し、自由入力テキストや生の飲酒履歴全文は保存しない。
-- telemetry を外部サーバー、広告 SDK、分析 SDK、クラウドへ送信しない。
-- 将来、外部分析や広告効果測定を導入する場合は、端末内保存の訴求と矛盾しないよう、同意・オプトアウト・プライバシー表示・App Store Connect の回答を先に更新する。
 
 ### QuickDrinkPreset (SwiftData — 新規)
 ```swift
@@ -640,7 +608,6 @@ LLM が使えない場合はルールベーステンプレートで代替:
 ## App Store 審査対策
 
 - 飲酒記録は端末内に保存し、開発者または第三者へ送信しない設計とする
-- Phase 3 の匿名 analytics は、明示的に同意したユーザーのみ、粗粒度イベントだけを送信する
 - SNSなし → ユーザー投稿のモデレーション機能は対象外
 - HealthKit 未使用 → HealthKit の権限・データ取扱いは対象外。ただし飲酒を扱うため安全な表現と免責は維持する
 - 免責: 設定画面に「本アプリは医療アドバイスを提供するものではありません」
@@ -653,10 +620,10 @@ LLM が使えない場合はルールベーステンプレートで代替:
 > 楽しく飲みながら、無理しないペースを見つけよう。
 
 **紹介文案**:
-> YoiYoi は、純アルコール量の記録、水分補給リマインド、やさしい声かけで、飲み会のペース管理を支えるアプリです。よく飲むドリンクや最近の記録をワンタップで残せます。飲酒記録はあなたの端末内だけに保存されます。任意で許可した場合のみ、匿名の利用状況データを改善のために送信できます。
+> YoiYoi は、純アルコール量の記録、水分補給リマインド、やさしい声かけで、飲み会のペース管理を支えるアプリです。よく飲むドリンクや最近の記録をワンタップで残せます。飲酒記録はあなたの端末内だけに保存され、アカウント登録やクラウド送信はありません。
 
 **English description draft**:
-> YoiYoi helps you enjoy drinking at your own comfortable pace with alcohol tracking, hydration reminders, and gentle coaching. Log favorite drinks or recent entries with one tap. Your drinking records stay only on your device. If you choose to allow it, anonymous usage data can be sent to help improve the app.
+> YoiYoi helps you enjoy drinking at your own comfortable pace with alcohol tracking, hydration reminders, and gentle coaching. Log favorite drinks or recent entries with one tap. Your drinking records stay only on your device, with no account or cloud upload required.
 
 **スクリーンショット／オンボーディングで必ず見せる訴求**:
 - 「記録は端末だけに保存」 / "Records stay on your device"

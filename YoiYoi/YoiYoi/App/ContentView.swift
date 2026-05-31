@@ -2,7 +2,7 @@ import SwiftData
 import SwiftUI
 
 extension Notification.Name {
-    /// 記録シートを閉じたあとホーム等が SwiftData を取り直すためのフック（Phase 6）。
+    /// 記録シートを閉じたあとホーム等が SwiftData を取り直すためのフック。
     static let drinkLogSheetDismissed = Notification.Name("YoiYoi.drinkLogSheetDismissed")
     /// 子ビューから飲酒記録シートを開く。
     static let openDrinkLogSheet = Notification.Name("YoiYoi.openDrinkLogSheet")
@@ -21,7 +21,6 @@ extension Notification.Name {
 /// **慎重に増やす**: 4タブ＋FAB へ一気に変えた環境で `HomeView` の下段 `ScrollView` が潰れた事例あり。
 /// タブやバー構成を変えるときは **1変更ずつ** 入れ、毎回ホームでカードが表示されるか確認すること。
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var appState: AppState
     @State private var selectedTab = 0
     @State private var showDrinkLogSheet = false
@@ -98,16 +97,9 @@ struct ContentView: View {
         }
         .onAppear {
             AppLaunchDiagnostics.log("ContentView.onAppear（3tabs+FAB overlay） selectedTab=\(selectedTab)")
-            TelemetryService.track(.screenViewed, screen: .home, modelContext: modelContext)
         }
         .onReceive(NotificationCenter.default.publisher(for: .openDrinkLogSheet)) { _ in
             // 同一ランループで `sheet` を立ち上げるとメインスレッドで固まる事例への回避（次フレームで表示）。
-            TelemetryService.track(
-                .drinkLogOpened,
-                screen: currentScreen,
-                attributes: ["source": "notification"],
-                modelContext: modelContext
-            )
             DispatchQueue.main.async {
                 showDrinkLogSheet = true
             }
@@ -125,32 +117,9 @@ struct ContentView: View {
         }
     }
 
-    private var currentScreen: TelemetryService.Screen {
-        switch selectedTab {
-        case 1:
-            .calendar
-        case 2:
-            .settings
-        default:
-            .home
-        }
-    }
-
     /// DESIGN.md「中央 FAB」— 記録シートを開く（`openDrinkLogSheet` と同じく次フレームで表示）。
     private var drinkLogFAB: some View {
         Button {
-            TelemetryService.track(
-                .fabTapped,
-                screen: currentScreen,
-                attributes: ["opens": "drink_log"],
-                modelContext: modelContext
-            )
-            TelemetryService.track(
-                .drinkLogOpened,
-                screen: currentScreen,
-                attributes: ["source": "fab"],
-                modelContext: modelContext
-            )
             DispatchQueue.main.async {
                 showDrinkLogSheet = true
             }
@@ -195,12 +164,6 @@ struct ContentView: View {
         let on = selectedTab == index
         return Button {
             selectedTab = index
-            TelemetryService.track(
-                .tabSelected,
-                screen: currentScreen,
-                attributes: ["tab_index": "\(index)", "tab_title": title],
-                modelContext: modelContext
-            )
         } label: {
             VStack(spacing: 4) {
                 SVGIcon(icon: icon, size: 20, color: on ? AppColors.coralRed : AppColors.greyText)
@@ -223,5 +186,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environmentObject(AppState())
-        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self, TelemetryEvent.self], inMemory: true)
+        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
 }

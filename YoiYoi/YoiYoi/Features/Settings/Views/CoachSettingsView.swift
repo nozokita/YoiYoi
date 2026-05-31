@@ -130,16 +130,6 @@ struct CoachSettingsView: View {
         profile.hydrationIntervalMinutes = hydrationIntervalMinutes
         profile.lastOrderReminderEnabled = lastOrderReminderEnabled
         try? modelContext.save()
-        TelemetryService.track(
-            .aiCommentStyleSaved,
-            screen: .aiCommentSettings,
-            attributes: [
-                "personality": personality.rawValue,
-                "hydration_interval": "\(hydrationIntervalMinutes)",
-                "last_order": lastOrderReminderEnabled ? "true" : "false",
-            ],
-            modelContext: modelContext
-        )
         NotificationCenter.default.post(name: .userProfileDidChange, object: nil)
     }
 }
@@ -147,5 +137,5 @@ struct CoachSettingsView: View {
 #Preview {
     CoachSettingsView()
         .environmentObject(AppState())
-        .modelContainer(for: [UserProfile.self, TelemetryEvent.self], inMemory: true)
+        .modelContainer(for: [UserProfile.self], inMemory: true)
 }

@@ -56,7 +56,6 @@ struct CalendarView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
         .onAppear {
-            TelemetryService.track(.screenViewed, screen: .calendar, modelContext: modelContext)
             reload()
         }
         .onChange(of: scenePhase) { _, new in
@@ -252,5 +251,5 @@ struct CalendarView: View {
 #Preview {
     CalendarView()
         .environmentObject(AppState())
-        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self, TelemetryEvent.self], inMemory: true)
+        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
 }

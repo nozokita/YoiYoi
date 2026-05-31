@@ -219,9 +219,6 @@ struct SettingsRootView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(AppColors.cream)
             .toolbar(.hidden, for: .navigationBar)
-            .onAppear {
-                TelemetryService.track(.screenViewed, screen: .settings, modelContext: modelContext)
-            }
             .onChange(of: appState.currentLanguage) { _, new in
                 syncLanguageToProfile(new)
             }
@@ -251,5 +248,5 @@ struct SettingsRootView: View {
 #Preview {
     SettingsRootView()
         .environmentObject(AppState())
-        .modelContainer(for: [UserProfile.self, DrinkRecord.self, DrinkingSession.self, QuickDrinkPreset.self, TelemetryEvent.self], inMemory: true)
+        .modelContainer(for: [UserProfile.self, DrinkRecord.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
 }
