@@ -67,6 +67,27 @@ enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
         }
     }
 
+    func description(_ language: SupportedLanguage) -> String {
+        switch (self, language) {
+        case (.friendly, .ja): "標準。友達のように自然にペースを整えます。"
+        case (.gentle, .ja): "やわらかめ。責めずに休む選択も後押しします。"
+        case (.gyaru, .ja): "明るく軽快。楽しく記録を続けたい人向けです。"
+        case (.tsundere, .ja): "少し照れた言い方で、水や休憩を促します。"
+        case (.strict, .ja): "はっきり短く。飲みすぎそうな時に区切りを作ります。"
+        case (.sMode, .ja): "強め。ただし罵倒せず、行動だけを促します。"
+        case (.sweetheart, .ja): "甘め。寄り添いながらゆっくり整えます。"
+        case (.sarcastic, .ja): "少し辛口。軽いユーモアで気づきを作ります。"
+        case (.friendly, .en): "Default. Keeps your pace steady like a supportive friend."
+        case (.gentle, .en): "Soft and reassuring. Encourages breaks without guilt."
+        case (.gyaru, .en): "Bright and playful. Good if you want logging to feel fun."
+        case (.tsundere, .en): "A little coy. Nudges water and pauses with playful distance."
+        case (.strict, .en): "Clear and brief. Helps create a stopping point."
+        case (.sMode, .en): "Firm, but never insulting. Focuses on the next action."
+        case (.sweetheart, .en): "Warm and sweet. Helps you slow down gently."
+        case (.sarcastic, .en): "Lightly wry. Uses mild humor to keep you aware."
+        }
+    }
+
     func safetyInstruction(_ language: SupportedLanguage) -> String {
         switch language {
         case .ja:

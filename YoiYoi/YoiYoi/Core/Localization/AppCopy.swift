@@ -385,19 +385,34 @@ enum AppCopy {
     }
 
     static func settingsCoachSection(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "ひとことと飲み会モード"; case .en: "Coach notes and sessions" }
+        switch l { case .ja: "AIコメント"; case .en: "AI comments" }
     }
 
     static func settingsCoachRow(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "AI相棒・水分通知"; case .en: "AI companion and water reminders" }
+        switch l { case .ja: "AIコメントのスタイル"; case .en: "AI comment style" }
     }
 
     static func settingsCoachTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "AI相棒設定"; case .en: "AI companion settings" }
+        switch l { case .ja: "AIコメント設定"; case .en: "AI comment settings" }
     }
 
     static func settingsCoachPersonality(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "AIモード"; case .en: "AI mode" }
+        switch l { case .ja: "コメントの雰囲気"; case .en: "Comment tone" }
+    }
+
+    static func settingsCoachIntro(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "記録とペースに合わせて表示されるAIコメントの雰囲気を選べます。飲酒を勧めるものではありません。"
+        case .en: "Choose the tone for AI comments based on your logs and pace. It will not encourage drinking."
+        }
+    }
+
+    static func settingsCoachSampleLabel(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "例"; case .en: "Example" }
+    }
+
+    static func settingsCoachSupportSection(_ l: SupportedLanguage) -> String {
+        switch l { case .ja: "飲み会サポート"; case .en: "Session support" }
     }
 
     static func settingsHydrationInterval(_ l: SupportedLanguage) -> String {
