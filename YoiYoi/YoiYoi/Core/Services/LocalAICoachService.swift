@@ -26,6 +26,9 @@ struct LocalCoachContext: Sendable {
     var plannedDrinkVolumeML: Int = 0
     var riskyWeekday: Int?
     var riskyTimeSlot: String?
+    var monthlyRestDays: Int = 0
+    var monthlyInGoalDays: Int = 0
+    var monthlyOverDays: Int = 0
 
     var remainingGrams: Int {
         Int(max(dailyGoal - todayConsumed, 0).rounded(.down))
@@ -55,6 +58,9 @@ struct LocalCoachContext: Sendable {
             plannedDrinkVolumeML.description,
             riskyWeekday?.description ?? "",
             riskyTimeSlot ?? "",
+            monthlyRestDays.description,
+            monthlyInGoalDays.description,
+            monthlyOverDays.description,
         ].joined(separator: "|")
     }
 }
@@ -85,11 +91,19 @@ enum LocalAICoachService {
         if let elapsed = context.sessionElapsedMinutes, elapsed >= 60 {
             return styled(base: .sessionPace(elapsed: elapsed), personality: personality, language: language)
         }
+        if let minutes = context.minutesSinceLastDrink, minutes <= 10, context.latestDrinkGrams > 0 {
+            return styled(
+                base: .afterLog(
+                    latest: context.latestDrinkGrams,
+                    today: Int(context.todayConsumed.rounded()),
+                    remaining: context.remainingGrams
+                ),
+                personality: personality,
+                language: language
+            )
+        }
         if let gap = context.recentLogGapMinutes, gap <= 45, context.todaysRecordCount >= 2 {
             return styled(base: .paceGap(minutes: gap), personality: personality, language: language)
-        }
-        if let minutes = context.minutesSinceLastDrink, minutes <= 10, context.latestDrinkGrams > 0 {
-            return styled(base: .afterLog(today: Int(context.todayConsumed.rounded()), remaining: context.remainingGrams), personality: personality, language: language)
         }
         if context.yesterdayConsumed > context.dailyGoal, context.todayConsumed == 0 {
             return styled(
@@ -101,6 +115,18 @@ enum LocalAICoachService {
         if context.weeklyGoal > 0, context.weeklyConsumed >= context.weeklyGoal * 0.8, context.todayConsumed < context.dailyGoal * 0.5 {
             return styled(
                 base: .lighterToday(weekly: Int(context.weeklyConsumed.rounded())),
+                personality: personality,
+                language: language
+            )
+        }
+        let monthlyCount = context.monthlyRestDays + context.monthlyInGoalDays + context.monthlyOverDays
+        if monthlyCount >= 5, context.todayConsumed == 0, context.monthlyRestDays + context.monthlyOverDays > 0 {
+            return styled(
+                base: .monthlySummary(
+                    rest: context.monthlyRestDays,
+                    inGoal: context.monthlyInGoalDays,
+                    over: context.monthlyOverDays
+                ),
                 personality: personality,
                 language: language
             )
@@ -171,11 +197,11 @@ enum LocalAICoachService {
         switch language {
         case .ja:
             prompt = """
-            今日の純アルコール量は\(Int(context.todayConsumed))g、昨日は\(Int(context.yesterdayConsumed))g、今週は\(Int(context.weeklyConsumed))g、設定した目安まであと\(context.remainingGrams)g。水分記録は\(context.hydrationCount)回。状況: \(contextPrompt(context, language: language))。傾向: \(trendPrompt(context, language: language))。飲酒を勧めず、必要なら休肝日・今日は控えめ・水分補給・先に量を決める提案をする。自然な日本語で70文字以内の一言。
+            今日の純アルコール量は\(Int(context.todayConsumed))g、昨日は\(Int(context.yesterdayConsumed))g、今週は\(Int(context.weeklyConsumed))g、設定した目安まであと\(context.remainingGrams)g。今月は休肝日\(context.monthlyRestDays)日、目安内\(context.monthlyInGoalDays)日、超過\(context.monthlyOverDays)日。水分記録は\(context.hydrationCount)回。状況: \(contextPrompt(context, language: language))。傾向: \(trendPrompt(context, language: language))。飲酒を勧めず、必要なら休肝日・今日は控えめ・水分補給・先に量を決める提案をする。自然な日本語で70文字以内の一言。
             """
         case .en:
             prompt = """
-            Today’s pure alcohol is \(Int(context.todayConsumed))g, yesterday was \(Int(context.yesterdayConsumed))g, this week is \(Int(context.weeklyConsumed))g, with \(context.remainingGrams)g until today’s guide. Water logged \(context.hydrationCount) times. Context: \(contextPrompt(context, language: language)). Trend: \(trendPrompt(context, language: language)). Do not encourage drinking. Suggest a rest day, lighter day, water, or setting an amount first if useful. Reply in natural English, 100 characters or fewer.
+            Today’s pure alcohol is \(Int(context.todayConsumed))g, yesterday was \(Int(context.yesterdayConsumed))g, this week is \(Int(context.weeklyConsumed))g, with \(context.remainingGrams)g until today’s guide. This month has \(context.monthlyRestDays) rest days, \(context.monthlyInGoalDays) in-guide days, and \(context.monthlyOverDays) over-guide days. Water logged \(context.hydrationCount) times. Context: \(contextPrompt(context, language: language)). Trend: \(trendPrompt(context, language: language)). Do not encourage drinking. Suggest a rest day, lighter day, water, or setting an amount first if useful. Reply in natural English, 100 characters or fewer.
             """
         }
         do {
@@ -191,11 +217,12 @@ enum LocalAICoachService {
 
 private enum CoachBaseMessage {
     case preDrink(rawType: String?, count: Int, volumeML: Int)
-    case afterLog(today: Int, remaining: Int)
+    case afterLog(latest: Int, today: Int, remaining: Int)
     case paceGap(minutes: Int)
     case restDay(yesterday: Int)
     case lighterToday(weekly: Int)
     case drinkTrend(steadyRawType: String?, steadyAverage: Int, riskyRawType: String, riskyAverage: Int)
+    case monthlySummary(rest: Int, inGoal: Int, over: Int)
     case timeRisk(slot: String)
     case weekdayRisk(weekday: Int)
     case loggingStreak(days: Int)
@@ -209,10 +236,10 @@ private extension LocalAICoachService {
         switch (base, personality, language) {
         case (.preDrink(let rawType, let count, let volumeML), _, .ja):
             preDrinkMessage(rawType: rawType, count: count, volumeML: volumeML, language: language)
-        case (.afterLog(let today, let remaining), _, .ja):
+        case (.afterLog(let latest, let today, let remaining), _, .ja):
             remaining > 0
-                ? "記録できました。今の時点で今日は\(today)g、目安まであと\(remaining)gです。"
-                : "記録できました。今日はここで水を挟んで、ペースを整えよう。"
+                ? "今の記録で\(latest)g。今日は\(today)g、目安まであと\(remaining)gです。次は水がちょうどよさそう。"
+                : "今の記録で\(latest)g。今日はここで水を挟んで、ペースを整えよう。"
         case (.paceGap(let minutes), _, .ja):
             "短い時間で続けて記録されています。\(minutes)分間隔なので、少し間を空けてもよさそう。"
         case (.restDay(let yesterday), .friendly, .ja):
@@ -249,6 +276,8 @@ private extension LocalAICoachService {
             "今週の数字、少し主張が強いです。今日は控えめがよさそう。"
         case (.drinkTrend(let steady, let steadyAverage, let risky, let riskyAverage), _, .ja):
             drinkTrendMessage(steadyRawType: steady, steadyAverage: steadyAverage, riskyRawType: risky, riskyAverage: riskyAverage, language: language)
+        case (.monthlySummary(let rest, let inGoal, let over), _, .ja):
+            monthlySummaryMessage(rest: rest, inGoal: inGoal, over: over, language: language)
         case (.timeRisk(let slot), _, .ja):
             timeRiskMessage(slot: slot, language: language)
         case (.weekdayRisk(let weekday), _, .ja):
@@ -277,10 +306,10 @@ private extension LocalAICoachService {
             "今日の目安には到着済みです。次の目的地は水でどうでしょう。"
         case (.preDrink(let rawType, let count, let volumeML), _, .en):
             preDrinkMessage(rawType: rawType, count: count, volumeML: volumeML, language: language)
-        case (.afterLog(let today, let remaining), _, .en):
+        case (.afterLog(let latest, let today, let remaining), _, .en):
             remaining > 0
-                ? "Logged. You’re at \(today)g today, with \(remaining)g until your guide."
-                : "Logged. You’ve reached today’s guide; water would help reset the pace."
+                ? "Logged \(latest)g. You’re at \(today)g today, with \(remaining)g left. Water would fit nicely."
+                : "Logged \(latest)g. You’ve reached today’s guide; water would help reset the pace."
         case (.paceGap(let minutes), _, .en):
             "Several logs are close together, about \(minutes) minutes apart. A pause could help."
         case (.restDay(let yesterday), _, .en):
@@ -289,6 +318,8 @@ private extension LocalAICoachService {
             "This week is \(weekly)g. Keeping today lighter could help your pace."
         case (.drinkTrend(let steady, let steadyAverage, let risky, let riskyAverage), _, .en):
             drinkTrendMessage(steadyRawType: steady, steadyAverage: steadyAverage, riskyRawType: risky, riskyAverage: riskyAverage, language: language)
+        case (.monthlySummary(let rest, let inGoal, let over), _, .en):
+            monthlySummaryMessage(rest: rest, inGoal: inGoal, over: over, language: language)
         case (.timeRisk(let slot), _, .en):
             timeRiskMessage(slot: slot, language: language)
         case (.weekdayRisk(let weekday), _, .en):
@@ -347,6 +378,27 @@ private extension LocalAICoachService {
                 return "\(steady) averages \(steadyAverage)g; \(risky) tends toward \(riskyAverage)g. Set a limit first."
             }
             return "\(risky) tends toward \(riskyAverage)g. Set your amount before you start."
+        }
+    }
+
+    static func monthlySummaryMessage(rest: Int, inGoal: Int, over: Int, language: SupportedLanguage) -> String {
+        switch language {
+        case .ja:
+            if over > 0, rest > 0 {
+                return "今月は休肝日\(rest)日、超過\(over)日。休めている日もあるので、今日は先に量を決めると整えやすいです。"
+            }
+            if over > 0 {
+                return "今月は超過が\(over)日あります。今日は最初に「ここまで」を決めておくとよさそう。"
+            }
+            return "今月は休肝日\(rest)日、目安内\(inGoal)日。無理なく整えられている流れです。"
+        case .en:
+            if over > 0, rest > 0 {
+                return "This month: \(rest) rest days and \(over) over-guide days. Setting an amount first could help today."
+            }
+            if over > 0 {
+                return "This month has \(over) over-guide days. Setting a clear stopping point first could help."
+            }
+            return "This month: \(rest) rest days and \(inGoal) in-guide days. Your pace is getting easier to see."
         }
     }
 
@@ -412,6 +464,15 @@ private extension LocalAICoachService {
         }
         if let slot = context.riskyTimeSlot {
             parts.append(timeRiskMessage(slot: slot, language: language))
+        }
+        let monthlyCount = context.monthlyRestDays + context.monthlyInGoalDays + context.monthlyOverDays
+        if monthlyCount >= 5 {
+            switch language {
+            case .ja:
+                parts.append("今月は休肝日\(context.monthlyRestDays)日、超過\(context.monthlyOverDays)日")
+            case .en:
+                parts.append("this month has \(context.monthlyRestDays) rest days and \(context.monthlyOverDays) over-guide days")
+            }
         }
         if parts.isEmpty {
             return language == .ja ? "開始前の量決めが有効" : "setting an amount first may help"

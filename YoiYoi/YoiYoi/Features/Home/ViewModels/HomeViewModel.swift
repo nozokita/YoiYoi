@@ -8,6 +8,12 @@ struct CoachDrinkTrend: Equatable {
     let riskyAverageGrams: Int
 }
 
+struct CoachMonthSummary: Equatable {
+    var restDays = 0
+    var inGoalDays = 0
+    var overDays = 0
+}
+
 struct CoachBehaviorContext: Equatable {
     var todaysRecordCount = 0
     var latestDrinkGrams = 0
@@ -40,6 +46,7 @@ final class HomeViewModel {
     private(set) var presets: [QuickDrinkPreset] = []
     private(set) var recentRecords: [DrinkRecord] = []
     private(set) var activeSession: DrinkingSession?
+    var coachMonthSummary = CoachMonthSummary()
 
     /// メーター下サブテキスト（状態別表現）
     func meterSubtext(language: SupportedLanguage) -> String {
@@ -73,6 +80,9 @@ final class HomeViewModel {
         if calendar.isDate(record.loggedAt, inSameDayAs: now) {
             todayConsumed += record.pureAlcoholGrams
             todaysDrinkRecords.insert(record, at: 0)
+            coachBehavior.todaysRecordCount += 1
+            coachBehavior.latestDrinkGrams = Int(record.pureAlcoholGrams.rounded())
+            coachBehavior.minutesSinceLastDrink = 0
         }
         if calendar.isDate(record.loggedAt, equalTo: now, toGranularity: .weekOfYear) {
             weeklyConsumed += record.pureAlcoholGrams
@@ -125,6 +135,7 @@ final class HomeViewModel {
         }
         weeklyConsumed = AlcoholCalculator.weeklyTotal(gramsFrom: allRecords, inWeekOf: now, calendar: calendar)
         coachDrinkTrend = makeDrinkTrend(from: allRecords, calendar: calendar, now: now)
+        coachMonthSummary = makeMonthSummary(from: allRecords, profiles: profiles, calendar: calendar, now: now)
         coachBehavior = makeBehaviorContext(from: allRecords, calendar: calendar, now: now)
         streakDays = AlcoholCalculator.streakDays(
             gramsFrom: allRecords,
@@ -194,6 +205,46 @@ final class HomeViewModel {
             riskyWeekday: riskyWeekday(from: records, calendar: calendar, now: now),
             riskyTimeSlot: riskyTimeSlot(from: records, calendar: calendar, now: now)
         )
+    }
+
+    private func makeMonthSummary(
+        from records: [DrinkRecord],
+        profiles: [UserProfile],
+        calendar: Calendar,
+        now: Date
+    ) -> CoachMonthSummary {
+        let components = calendar.dateComponents([.year, .month], from: now)
+        guard let monthStart = calendar.date(from: components),
+              let range = calendar.range(of: .day, in: .month, for: monthStart) else {
+            return CoachMonthSummary()
+        }
+        let startToday = calendar.startOfDay(for: now)
+        let trackingStart = [
+            profiles.first?.createdAt,
+            records.map(\.loggedAt).min(),
+        ]
+        .compactMap(\.self)
+        .min()
+        .map { calendar.startOfDay(for: $0) }
+
+        var summary = CoachMonthSummary()
+        for day in range {
+            guard let date = calendar.date(byAdding: .day, value: day - 1, to: monthStart) else { continue }
+            let dayStart = calendar.startOfDay(for: date)
+            if dayStart > startToday { continue }
+            if trackingStart.map({ dayStart < $0 }) == true { continue }
+            let total = AlcoholCalculator.dailyTotal(gramsFrom: records, on: date, calendar: calendar)
+            if total == 0 {
+                if !calendar.isDate(date, inSameDayAs: now) {
+                    summary.restDays += 1
+                }
+            } else if dailyGoal > 0, total > dailyGoal {
+                summary.overDays += 1
+            } else {
+                summary.inGoalDays += 1
+            }
+        }
+        return summary
     }
 
     private func commonPlan(from records: [DrinkRecord]) -> (rawType: String, count: Int, volumeML: Int)? {

@@ -14,6 +14,7 @@ struct HomeView: View {
     @State private var undoRecord: DrinkRecord?
     @State private var undoTask: Task<Void, Never>?
     @State private var reloadTask: Task<Void, Never>?
+    @State private var coachRefreshID = UUID()
 
     /// 縦 `ScrollView` 内の横 `ScrollView` は高さ未確定だと全体レイアウトが潰れて真っ白になることがある（`docs/DEBUG_WHITE_SCREEN.md`）。
     private var drinkPillRowHeight: CGFloat { 44 }
@@ -139,10 +140,14 @@ struct HomeView: View {
                 plannedDrinkCount: viewModel.coachBehavior.plannedDrinkCount,
                 plannedDrinkVolumeML: viewModel.coachBehavior.plannedDrinkVolumeML,
                 riskyWeekday: viewModel.coachBehavior.riskyWeekday,
-                riskyTimeSlot: viewModel.coachBehavior.riskyTimeSlot
+                riskyTimeSlot: viewModel.coachBehavior.riskyTimeSlot,
+                monthlyRestDays: viewModel.coachMonthSummary.restDays,
+                monthlyInGoalDays: viewModel.coachMonthSummary.inGoalDays,
+                monthlyOverDays: viewModel.coachMonthSummary.overDays
             ),
             personality: viewModel.coachPersonality,
-            language: appState.currentLanguage
+            language: appState.currentLanguage,
+            refreshTrigger: coachRefreshID.uuidString
         )
     }
 
@@ -371,6 +376,7 @@ struct HomeView: View {
             presets: (try? modelContext.fetch(presetDescriptor)) ?? [],
             sessions: (try? modelContext.fetch(sessionDescriptor)) ?? []
         )
+        coachRefreshID = UUID()
     }
 
     // MARK: - 今週のまとめ

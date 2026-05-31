@@ -4,6 +4,7 @@ struct AICoachBubbleView: View {
     let context: LocalCoachContext
     let personality: CoachPersonality
     let language: SupportedLanguage
+    var refreshTrigger: String = ""
 
     @State private var message = ""
     @State private var refreshID = UUID()
@@ -62,6 +63,6 @@ struct AICoachBubbleView: View {
     }
 
     private var taskID: String {
-        "\(refreshID.uuidString)|\(context.fingerprint)|\(personality.rawValue)|\(language.rawValue)"
+        "\(refreshID.uuidString)|\(refreshTrigger)|\(context.fingerprint)|\(personality.rawValue)|\(language.rawValue)"
     }
 }
