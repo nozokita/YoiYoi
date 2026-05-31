@@ -32,6 +32,32 @@ final class YoiYoiUITests: XCTestCase {
     }
 
     @MainActor
+    func testOnboardingStartTransitionsToHome() throws {
+        let app = XCUIApplication()
+        app.launchArguments.append("-YoiYoiOnboarding")
+        app.launchArguments.append("-YoiYoiUITesting")
+        app.launch()
+
+        let japanese = app.buttons["onboarding.language.ja"]
+        XCTAssertTrue(japanese.waitForExistence(timeout: 5))
+        japanese.tap()
+
+        let languageNext = app.buttons["onboarding.language.next"]
+        XCTAssertTrue(languageNext.isEnabled)
+        languageNext.tap()
+
+        let goalNext = app.buttons["onboarding.goal.next"]
+        XCTAssertTrue(goalNext.waitForExistence(timeout: 5))
+        goalNext.tap()
+
+        let start = app.buttons["onboarding.coach.start"]
+        XCTAssertTrue(start.waitForExistence(timeout: 5))
+        start.tap()
+
+        XCTAssertTrue(app.descendants(matching: .any)["home.root"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {

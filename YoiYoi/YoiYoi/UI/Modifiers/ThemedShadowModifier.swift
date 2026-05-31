@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// 影はテーマ色からのみ派生する（DESIGN.md「影ルール」）。
+/// 影はニュートラルな奥行きを主役にし、テーマ色は薄い気配として添える。
 struct ThemedShadowModifier: ViewModifier {
     let themeColor: Color
     let opacity: Double
@@ -8,7 +8,9 @@ struct ThemedShadowModifier: ViewModifier {
     let y: CGFloat
 
     func body(content: Content) -> some View {
-        content.shadow(color: themeColor.opacity(opacity), radius: radius, x: 0, y: y)
+        content
+            .shadow(color: AppColors.darkBg.opacity(opacity * 0.42), radius: radius, x: 0, y: y)
+            .shadow(color: themeColor.opacity(opacity * 0.32), radius: radius * 0.7, x: 0, y: y * 0.5)
     }
 }
 

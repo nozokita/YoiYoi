@@ -6,16 +6,11 @@ struct SettingsRootView: View {
     @Environment(\.modelContext) private var modelContext
     @EnvironmentObject private var appState: AppState
 
-    @Query private var profiles: [UserProfile]
-
     @State private var showGoalsEditor = false
-    @State private var showNicknameEditor = false
     @State private var showNotificationsEditor = false
-    @State private var showDataExport = false
+    @State private var showCoachSettings = false
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
-
-    private var profile: UserProfile? { profiles.first }
 
     private var appVersionLine: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "—"
@@ -35,9 +30,6 @@ struct SettingsRootView: View {
                             .font(AppFonts.heroSubtitle())
                             .foregroundStyle(AppColors.pureWhite.opacity(0.85))
 
-                        if let p = profile {
-                            settingsProfileCard(p)
-                        }
                     }
                     .frame(maxWidth: .infinity)
                     .multilineTextAlignment(.center)
@@ -50,14 +42,14 @@ struct SettingsRootView: View {
                     Section {
                         Picker(AppCopy.settingsLanguagePicker(appState.currentLanguage), selection: $appState.currentLanguage) {
                             ForEach(SupportedLanguage.allCases) { lang in
-                                Text("\(lang.flag) \(lang.displayName)")
+                                Text("\(lang.rawValue.uppercased())  \(lang.displayName)")
                                     .tag(lang)
                             }
                         }
                         .pickerStyle(.menu)
                         .foregroundStyle(AppColors.charcoal)
                         .tint(AppColors.coralRed)
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsLanguageSection(appState.currentLanguage))
                             .font(.caption)
@@ -78,9 +70,30 @@ struct SettingsRootView: View {
                                 .font(.subheadline.monospacedDigit())
                                 .foregroundStyle(AppColors.greyText)
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsAppInfo(appState.currentLanguage))
+                            .font(.caption)
+                            .foregroundStyle(AppColors.greyText)
+                            .textCase(nil)
+                    }
+
+                    Section {
+                        Button {
+                            showCoachSettings = true
+                        } label: {
+                            HStack {
+                                Text(AppCopy.settingsCoachRow(appState.currentLanguage))
+                                    .foregroundStyle(AppColors.charcoal)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
+                            }
+                        }
+                        .listRowBackground(AppColors.surfaceElevated)
+                    } header: {
+                        Text(AppCopy.settingsCoachSection(appState.currentLanguage))
                             .font(.caption)
                             .foregroundStyle(AppColors.greyText)
                             .textCase(nil)
@@ -99,21 +112,7 @@ struct SettingsRootView: View {
                                     .foregroundStyle(AppColors.greyText.opacity(0.7))
                             }
                         }
-                        .listRowBackground(AppColors.cream)
-
-                        Button {
-                            showNicknameEditor = true
-                        } label: {
-                            HStack {
-                                Text(AppCopy.settingsNicknameRow(appState.currentLanguage))
-                                    .foregroundStyle(AppColors.charcoal)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
-                            }
-                        }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsSectionGoalsProfile(appState.currentLanguage))
                             .font(.caption)
@@ -134,7 +133,7 @@ struct SettingsRootView: View {
                                     .foregroundStyle(AppColors.greyText.opacity(0.7))
                             }
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsNotificationsSection(appState.currentLanguage))
                             .font(.caption)
@@ -143,32 +142,6 @@ struct SettingsRootView: View {
                     }
 
                     Section {
-                        Button {
-                            showDataExport = true
-                        } label: {
-                            HStack {
-                                Text(AppCopy.settingsExportRow(appState.currentLanguage))
-                                    .foregroundStyle(AppColors.charcoal)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 13, weight: .semibold))
-                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
-                            }
-                        }
-                        .listRowBackground(AppColors.cream)
-
-                        Link(destination: AppLegalLinks.termsOfServiceURL) {
-                            HStack {
-                                Text(AppCopy.settingsTermsOfServiceRow(appState.currentLanguage))
-                                    .foregroundStyle(AppColors.charcoal)
-                                Spacer()
-                                Image(systemName: "arrow.up.right.square")
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(AppColors.greyText.opacity(0.7))
-                            }
-                        }
-                        .listRowBackground(AppColors.cream)
-
                         Link(destination: AppLegalLinks.privacyPolicyURL) {
                             HStack {
                                 Text(AppCopy.settingsPrivacyPolicyRow(appState.currentLanguage))
@@ -179,7 +152,7 @@ struct SettingsRootView: View {
                                     .foregroundStyle(AppColors.greyText.opacity(0.7))
                             }
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text(AppCopy.settingsDataPrivacySection(appState.currentLanguage))
                             .font(.caption)
@@ -192,14 +165,18 @@ struct SettingsRootView: View {
                     }
 
                     Section {
-                        Text(AppCopy.settingsMedicalDisclaimer(appState.currentLanguage))
-                            .font(AppFonts.sublabel(for: appState.currentLanguage, size: 12))
-                            .foregroundStyle(AppColors.greyText)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, AppSpacing.sm)
-                            .listRowBackground(AppColors.cream)
-                            .listRowSeparator(.hidden)
+                        HStack(alignment: .top, spacing: AppSpacing.sm) {
+                            SVGIcon(icon: .alert, size: 16, color: AppColors.greyText)
+                                .padding(.top, 1)
+                            Text(AppCopy.settingsMedicalDisclaimer(appState.currentLanguage))
+                                .font(AppFonts.sublabel(for: appState.currentLanguage, size: 12))
+                                .foregroundStyle(AppColors.greyText)
+                                .multilineTextAlignment(.leading)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                        .padding(.vertical, AppSpacing.sm)
+                        .listRowBackground(AppColors.surfaceElevated)
+                        .listRowSeparator(.hidden)
                     }
 
                     #if DEBUG
@@ -208,15 +185,14 @@ struct SettingsRootView: View {
                             DebugOnboarding.resetForReplay(
                                 modelContext: modelContext,
                                 appState: appState,
-                                fromEULA: true
                             )
                         } label: {
-                            Text("🔧 DEBUG: オンボを再表示（EULA から）")
+                            Text("DEBUG: オンボを再表示")
                                 .font(.subheadline)
                                 .foregroundStyle(AppColors.warmCoral)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                        .listRowBackground(AppColors.cream)
+                        .listRowBackground(AppColors.surfaceElevated)
                     } header: {
                         Text("Debug")
                             .font(.caption)
@@ -250,50 +226,15 @@ struct SettingsRootView: View {
                 SettingsGoalsEditView()
                     .environmentObject(appState)
             }
-            .sheet(isPresented: $showNicknameEditor) {
-                SettingsNicknameEditView()
-                    .environmentObject(appState)
-            }
             .sheet(isPresented: $showNotificationsEditor) {
                 SettingsNotificationsView()
                     .environmentObject(appState)
             }
-            .sheet(isPresented: $showDataExport) {
-                SettingsDataExportView()
+            .sheet(isPresented: $showCoachSettings) {
+                CoachSettingsView()
                     .environmentObject(appState)
             }
         }
-    }
-
-    /// DESIGN.md「プロフィールカード（フロスト）」— ニックネーム + 変更ボタン
-    private func settingsProfileCard(_ p: UserProfile) -> some View {
-        VStack(spacing: 4) {
-            Text("\(p.nicknameFlag)\(p.nicknameEmoji)")
-                .font(.system(size: 32))
-
-            Text("\(p.nicknameAdjective)\(p.nicknameNoun)")
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.pureWhite)
-
-            Button {
-                showNicknameEditor = true
-            } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "pencil")
-                        .font(.system(size: 12, weight: .semibold))
-                    Text(AppCopy.settingsNicknameRow(appState.currentLanguage))
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
-                }
-                .foregroundStyle(AppColors.pureWhite.opacity(0.7))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.horizontal, AppSpacing.lg)
-        .padding(.vertical, AppSpacing.md)
-        .frame(maxWidth: .infinity)
-        .background(.ultraThinMaterial.opacity(0.6))
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .padding(.horizontal, AppSpacing.xl)
     }
 
     private func syncLanguageToProfile(_ lang: SupportedLanguage) {
@@ -307,5 +248,5 @@ struct SettingsRootView: View {
 #Preview {
     SettingsRootView()
         .environmentObject(AppState())
-        .modelContainer(for: [UserProfile.self, DrinkRecord.self], inMemory: true)
+        .modelContainer(for: [UserProfile.self, DrinkRecord.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
 }

@@ -3,6 +3,7 @@ import SwiftUI
 /// DESIGN.md 飲酒記録シート: 2×3 グリッド。選択時 coral 枠 2.5pt + 背景 + scale 1.03。
 struct DrinkGridView: View {
     @Binding var selection: DrinkType?
+    var onSelect: ((DrinkType) -> Void)?
     @EnvironmentObject private var appState: AppState
 
     private let columns = [
@@ -21,11 +22,17 @@ struct DrinkGridView: View {
     private func drinkCell(_ type: DrinkType) -> some View {
         let on = selection == type
         return Button {
-            selection = type
+            if let onSelect {
+                onSelect(type)
+            } else {
+                selection = type
+            }
         } label: {
             VStack(spacing: AppSpacing.sm) {
-                Text(type.emoji)
-                    .font(.system(size: 40))
+                SVGIcon(icon: type.icon, size: 34, color: on ? AppColors.coralRed : AppColors.charcoal.opacity(0.78))
+                    .frame(width: 54, height: 54)
+                    .background((on ? AppColors.coralLight : AppColors.surface).opacity(0.92))
+                    .clipShape(Circle())
                 Text(type.shortLabel(for: appState.currentLanguage))
                     .font(.system(size: 14, weight: .medium, design: .rounded))
                     .foregroundStyle(AppColors.charcoal)
@@ -38,13 +45,13 @@ struct DrinkGridView: View {
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, AppSpacing.md)
-            .background(on ? AppColors.coralRed.opacity(0.08) : AppColors.pureWhite)
+            .background(on ? AppColors.coralLight.opacity(0.62) : AppColors.surfaceElevated)
             .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
             .overlay {
                 RoundedRectangle(cornerRadius: 20, style: .continuous)
-                    .stroke(on ? AppColors.coralRed : Color.clear, lineWidth: 2.5)
+                    .stroke(on ? AppColors.coralRed.opacity(0.78) : AppColors.hairline, lineWidth: on ? 1.8 : 1)
             }
-            .scaleEffect(on ? 1.03 : 1)
+            .scaleEffect(on ? 1.015 : 1)
         }
         .buttonStyle(.plain)
     }

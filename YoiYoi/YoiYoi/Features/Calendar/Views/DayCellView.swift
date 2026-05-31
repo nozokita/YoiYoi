@@ -5,6 +5,8 @@ struct DayCellView: View {
     let dayNumber: Int
     let visual: CalendarDayVisualState
     let isToday: Bool
+    var achievedLastOrder: Bool = false
+    var achievementLabel: String = "Stopped at last order"
 
     var body: some View {
         ZStack {
@@ -32,6 +34,16 @@ struct DayCellView: View {
                     .stroke(AppColors.coralRed, lineWidth: 2)
             }
         }
+        .overlay(alignment: .topTrailing) {
+            if achievedLastOrder {
+                SVGIcon(icon: .check, size: 8, color: AppColors.pureWhite)
+                    .frame(width: 14, height: 14)
+                    .background(AppColors.mintGreen)
+                    .clipShape(Circle())
+                    .offset(x: 4, y: -4)
+                    .accessibilityLabel(achievementLabel)
+            }
+        }
     }
 
     private var backgroundFill: Color {
@@ -48,7 +60,7 @@ struct DayCellView: View {
     HStack {
         DayCellView(dayNumber: 3, visual: .underGoal, isToday: false)
         DayCellView(dayNumber: 4, visual: .restDay, isToday: false)
-        DayCellView(dayNumber: 5, visual: .overGoal, isToday: true)
+        DayCellView(dayNumber: 5, visual: .overGoal, isToday: true, achievedLastOrder: true)
     }
     .padding()
     .background(AppColors.cream)

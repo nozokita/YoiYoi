@@ -8,7 +8,9 @@ struct CalendarView: View {
     @EnvironmentObject private var appState: AppState
     @State private var viewModel = CalendarViewModel()
     @State private var records: [DrinkRecord] = []
+    @State private var sessions: [DrinkingSession] = []
     @State private var dailyGoal: Double = 40
+    @State private var trackingStartDate: Date?
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
@@ -53,7 +55,9 @@ struct CalendarView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(AppColors.cream)
-        .onAppear { reload() }
+        .onAppear {
+            reload()
+        }
         .onChange(of: scenePhase) { _, new in
             if new == .active { reload() }
         }
@@ -63,36 +67,47 @@ struct CalendarView: View {
         .onReceive(NotificationCenter.default.publisher(for: .userProfileDidChange)) { _ in
             reload()
         }
+        .onReceive(NotificationCenter.default.publisher(for: .sessionDidChange)) { _ in
+            reload()
+        }
     }
 
     private var heroBadgesRow: some View {
         let counts = viewModel.monthSummaryCounts(
             records: records,
             dailyGoal: dailyGoal,
+            trackingStartDate: trackingStartDate,
             today: Date()
         )
         let suf = AppCopy.dayCountSuffix(appState.currentLanguage)
         return HStack(spacing: AppSpacing.md) {
-            heroBadge(emoji: "🍵", value: "\(counts.rest)\(suf)", label: AppCopy.calendarStatRest(appState.currentLanguage))
-            heroBadge(emoji: "✅", value: "\(counts.inGoal)\(suf)", label: AppCopy.calendarStatInGoal(appState.currentLanguage))
-            heroBadge(emoji: "⚠️", value: "\(counts.over)\(suf)", label: AppCopy.calendarStatOver(appState.currentLanguage))
+            heroBadge(icon: .rest, value: "\(counts.rest)\(suf)", label: AppCopy.calendarStatRest(appState.currentLanguage))
+            heroBadge(icon: .check, value: "\(counts.inGoal)\(suf)", label: AppCopy.calendarStatInGoal(appState.currentLanguage))
+            heroBadge(icon: .alert, value: "\(counts.over)\(suf)", label: AppCopy.calendarStatOver(appState.currentLanguage))
         }
         .padding(.bottom, AppSpacing.sm)
     }
 
-    private func heroBadge(emoji: String, value: String, label: String) -> some View {
+    private func heroBadge(icon: YoiYoiIcon, value: String, label: String) -> some View {
         VStack(spacing: 4) {
-            Text("\(emoji) \(value)")
-                .font(.system(size: 20, weight: .bold, design: .rounded))
-                .foregroundStyle(AppColors.pureWhite)
+            HStack(spacing: AppSpacing.xs) {
+                SVGIcon(icon: icon, size: 18, color: AppColors.pureWhite)
+                Text(value)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundStyle(AppColors.pureWhite)
+            }
             Text(label)
                 .font(.system(size: 11, weight: .medium, design: .rounded))
                 .foregroundStyle(AppColors.pureWhite.opacity(0.7))
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, AppSpacing.sm)
-        .background(AppColors.pureWhite.opacity(0.2))
+        .background(AppColors.pureWhite.opacity(0.16))
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .stroke(AppColors.pureWhite.opacity(0.16), lineWidth: 1)
+        }
     }
 
     private var monthCard: some View {
@@ -122,13 +137,25 @@ struct CalendarView: View {
 
             weekdayHeader
 
-            let cells = viewModel.monthCells(records: records, dailyGoal: dailyGoal, today: Date())
+            let cells = viewModel.monthCells(
+                records: records,
+                sessions: sessions,
+                dailyGoal: dailyGoal,
+                trackingStartDate: trackingStartDate,
+                today: Date()
+            )
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7), spacing: 6) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, cell in
                     if cell.isPlaceholder {
                         Color.clear.frame(width: 44, height: 44)
                     } else if let _ = cell.date {
-                        DayCellView(dayNumber: cell.dayNumber, visual: cell.visual, isToday: cell.isToday)
+                        DayCellView(
+                            dayNumber: cell.dayNumber,
+                            visual: cell.visual,
+                            isToday: cell.isToday,
+                            achievedLastOrder: cell.achievedLastOrder,
+                            achievementLabel: AppCopy.calendarLastOrderAchievement(appState.currentLanguage)
+                        )
                     }
                 }
             }
@@ -183,7 +210,7 @@ struct CalendarView: View {
                 ForEach(Array(bars.enumerated()), id: \.offset) { _, item in
                     VStack(spacing: 6) {
                         RoundedRectangle(cornerRadius: 4, style: .continuous)
-                            .fill(item.over ? AppColors.warmCoral : AppColors.mintGreen)
+                            .fill(item.over ? AppColors.warmCoral : AppColors.successDeep)
                             .frame(width: 32, height: barHeight(grams: item.grams, scaleMax: scaleMax))
                         Text(item.label)
                             .font(.system(size: 10, weight: .medium, design: .rounded))
@@ -208,13 +235,21 @@ struct CalendarView: View {
     private func reload() {
         let desc = FetchDescriptor<DrinkRecord>()
         records = (try? modelContext.fetch(desc)) ?? []
+        sessions = (try? modelContext.fetch(FetchDescriptor<DrinkingSession>())) ?? []
         let profiles = (try? modelContext.fetch(FetchDescriptor<UserProfile>())) ?? []
         dailyGoal = profiles.first?.dailyGoalGrams ?? 40
+        trackingStartDate = [
+            profiles.first?.createdAt,
+            records.map(\.loggedAt).min(),
+            sessions.map(\.startTime).min(),
+        ]
+        .compactMap(\.self)
+        .min()
     }
 }
 
 #Preview {
     CalendarView()
         .environmentObject(AppState())
-        .modelContainer(for: [DrinkRecord.self, UserProfile.self], inMemory: true)
+        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
 }

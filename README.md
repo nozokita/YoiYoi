@@ -1,15 +1,14 @@
 # YoiYoi
 
-ゆるふわ飲酒トラッカー（iOS）。仕様・デザイン・実装計画は **`docs/`** にまとめています。
+楽しく、無理しないペースでアルコール摂取量を記録する iOS アプリです。記録は端末内だけに保存され、日本語・英語に対応します。
 
 ## ドキュメント
 
 | ファイル | 内容 |
 |----------|------|
-| [docs/DESIGN.md](docs/DESIGN.md) | デザインシステム v5.0（ウェーブヒーロー、カード、画面レイアウト） |
-| [docs/SPEC.md](docs/SPEC.md) | 仕様書 v5.0（MVP、アーキテクチャ、データモデル、Firebase） |
-| [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) | Phase 0〜10 の実装手順と Cursor プロンプト例 |
-| [docs/FIREBASE_AND_SIMULATOR_LOGS.md](docs/FIREBASE_AND_SIMULATOR_LOGS.md) | Firebase I-COR000003・`load_eligibility_plist` と白画面の切り分け |
+| [docs/DESIGN.md](docs/DESIGN.md) | デザイン方針 v2.0（3タブ、クイック記録、日英 UI） |
+| [docs/SPEC.md](docs/SPEC.md) | Lean MVP 仕様書 v2.0（端末内保存、日英対応、将来機能） |
+| [docs/IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) | Lean MVP への移行と次期実装手順 |
 | [docs/DEBUG_WHITE_SCREEN.md](docs/DEBUG_WHITE_SCREEN.md) | 真っ白画面のときの DEBUG 診断パネル・ログの読み方 |
 
 Cursor で実装するときは **`@docs/SPEC.md`** と **`@docs/DESIGN.md`** をコンテキストに含めると、ルールと整合しやすいです。

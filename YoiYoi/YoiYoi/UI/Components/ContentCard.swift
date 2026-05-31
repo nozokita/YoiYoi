@@ -1,14 +1,18 @@
 import SwiftUI
 
-/// DESIGN.md「① コンテンツカード」— 白背景 + テーマ色シャドウ（radius 24）。
+/// DESIGN.md「コンテンツカード」— 上質な白背景 + 薄い境界線 + 控えめな影。
 private struct ContentCardModifier: ViewModifier {
     let themeColor: Color
 
     func body(content: Content) -> some View {
         content
-            .background(AppColors.pureWhite)
-            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .themedShadow(themeColor: themeColor, opacity: 0.10, radius: 16, y: 6)
+            .background(AppColors.surfaceElevated)
+            .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 28, style: .continuous)
+                    .stroke(AppColors.hairline.opacity(0.85), lineWidth: 1)
+            }
+            .themedShadow(themeColor: themeColor, opacity: 0.10, radius: 18, y: 8)
     }
 }
 

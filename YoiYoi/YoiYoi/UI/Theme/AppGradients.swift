@@ -3,32 +3,32 @@ import SwiftUI
 /// DESIGN.md のヒーロー配色・オンボーディング用グラデーション。
 enum AppGradients {
     static let heroHome = LinearGradient(
-        colors: [AppColors.coralRed, AppColors.coralLight],
-        startPoint: .top,
-        endPoint: .bottom
+        colors: [AppColors.navy, AppColors.coralDeep, AppColors.coralRed],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
     )
 
     static let heroCalendar = LinearGradient(
-        colors: [AppColors.mintGreen, AppColors.mintLight],
-        startPoint: .top,
-        endPoint: .bottom
+        colors: [AppColors.successDeep, AppColors.mintGreen],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
     )
 
-    static let heroFeed = LinearGradient(
-        colors: [AppColors.sunnyYellow, AppColors.yellowLight],
-        startPoint: .top,
-        endPoint: .bottom
+    static let heroSession = LinearGradient(
+        colors: [AppColors.warmCoral, AppColors.amber80],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
     )
 
     static let heroSettings = LinearGradient(
-        colors: [AppColors.lavender, AppColors.lavenderLight],
-        startPoint: .top,
-        endPoint: .bottom
+        colors: [AppColors.darkBg, AppColors.lavender],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
     )
 
-    /// オンボーディング: coralRed → coralLight → cream（縦・ウェーブなし）。
+    /// オンボーディング: 低彩度の紙色ベース。言語選択を邪魔しない。
     static let onboardingFullScreen = LinearGradient(
-        colors: [AppColors.coralRed, AppColors.coralLight, AppColors.cream],
+        colors: [AppColors.pureWhite, AppColors.cream, AppColors.mintLight.opacity(0.65)],
         startPoint: .top,
         endPoint: .bottom
     )
