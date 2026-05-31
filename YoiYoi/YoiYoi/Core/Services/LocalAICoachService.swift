@@ -246,6 +246,10 @@ private extension LocalAICoachService {
             "昨日は\(yesterday)g。今日は休肝日にするのも、かなりいい相棒ムーブ。"
         case (.restDay(let yesterday), .gentle, .ja):
             "昨日は\(yesterday)gでした。今日は休む選択も、体にやさしい記録です。"
+        case (.restDay(let yesterday), .analyst, .ja):
+            "昨日は\(yesterday)g。今日は記録なしなら、休肝日にすると週のペースを整えやすいです。"
+        case (.restDay(let yesterday), .dataBuddy, .ja):
+            "昨日は\(yesterday)g。数字で見ると、今日は休む選択がペース調整に効きそうです。"
         case (.restDay(let yesterday), .gyaru, .ja):
             "昨日\(yesterday)gいってるね。今日は休肝日にできたらかなり強い。"
         case (.restDay, .tsundere, .ja):
@@ -262,6 +266,10 @@ private extension LocalAICoachService {
             "今週は\(weekly)g。今日は少し控えめにすると、いいペースに戻せそう。"
         case (.lighterToday(let weekly), .gentle, .ja):
             "今週は\(weekly)gです。今日は少なめにするだけでも十分整います。"
+        case (.lighterToday(let weekly), .analyst, .ja):
+            "今週は\(weekly)g。今日は少なめにすると、週全体のバランスを戻しやすいです。"
+        case (.lighterToday(let weekly), .dataBuddy, .ja):
+            "今週は\(weekly)g。数字は少し多めなので、今日は先に量を決めるとよさそうです。"
         case (.lighterToday, .gyaru, .ja):
             "今週ちょい多めかも。今日は控えめにできたら、かなりえらい。"
         case (.lighterToday, .tsundere, .ja):
@@ -292,6 +300,10 @@ private extension LocalAICoachService {
             "今日の目安に達しています。ここで水を挟んで、ペースを整えよう。"
         case (.overGuide, .gentle, .ja):
             "今日の目安に達しています。少し休む選択もちゃんと前進です。"
+        case (.overGuide, .analyst, .ja):
+            "今日の目安に達しています。ここからは水を挟むと、記録上もペースを整えやすいです。"
+        case (.overGuide, .dataBuddy, .ja):
+            "数字では今日の目安に到達しています。次は水でペースを見直すのがよさそうです。"
         case (.overGuide, .gyaru, .ja):
             "今日は目安まで来てる。ここで水いけたら、かなりいい感じ。"
         case (.overGuide, .tsundere, .ja):

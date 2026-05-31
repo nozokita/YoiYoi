@@ -3,6 +3,8 @@ import Foundation
 enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
     case friendly
     case gentle
+    case analyst
+    case dataBuddy = "data_buddy"
     case gyaru
     case tsundere
     case strict
@@ -16,6 +18,8 @@ enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
         switch self {
         case .friendly: .coachFriendly
         case .gentle: .coachGentle
+        case .analyst: .chart
+        case .dataBuddy: .check
         case .gyaru: .coachFriendly
         case .tsundere: .coachWry
         case .strict: .coachDirect
@@ -29,6 +33,8 @@ enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
         switch (self, language) {
         case (.friendly, .ja): "相棒"
         case (.gentle, .ja): "やさしい見守り"
+        case (.analyst, .ja): "アナリスト"
+        case (.dataBuddy, .ja): "データさん"
         case (.gyaru, .ja): "ギャル"
         case (.tsundere, .ja): "ツンデレ"
         case (.strict, .ja): "鬼コーチ"
@@ -37,6 +43,8 @@ enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
         case (.sarcastic, .ja): "少し辛口"
         case (.friendly, .en): "Companion"
         case (.gentle, .en): "Gentle support"
+        case (.analyst, .en): "Analyst"
+        case (.dataBuddy, .en): "Data buddy"
         case (.gyaru, .en): "Gal"
         case (.tsundere, .en): "Tsundere"
         case (.strict, .en): "Tough coach"
@@ -50,6 +58,8 @@ enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
         switch (self, language) {
         case (.friendly, .ja): "今日はここまでいい感じ。次は水を挟むとちょうどよさそう。"
         case (.gentle, .ja): "無理なく記録できています。少し休む選択もちゃんと前進です。"
+        case (.analyst, .ja): "今日のペースは見えています。次は水を挟むと調整しやすそうです。"
+        case (.dataBuddy, .ja): "数字で見ると、今はペースを整えやすいタイミングです。"
         case (.gyaru, .ja): "えらい、ちゃんと記録してるの強い。そろそろ水いっとこ？"
         case (.tsundere, .ja): "別に心配してるわけじゃないけど、水くらい飲んだら？"
         case (.strict, .ja): "今日はここで区切る。水を飲んで、ペースを立て直そう。"
@@ -58,6 +68,8 @@ enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
         case (.sarcastic, .ja): "次の一杯の前に、水の出番かもしれません。"
         case (.friendly, .en): "Good pace so far. Water would fit nicely before the next drink."
         case (.gentle, .en): "You’re logging without forcing it. Taking a break counts too."
+        case (.analyst, .en): "Your pace is visible now. Water next would make it easier to adjust."
+        case (.dataBuddy, .en): "The numbers suggest this is a good moment to steady the pace."
         case (.gyaru, .en): "Nice, you’re actually logging it. Water next? Kind of iconic."
         case (.tsundere, .en): "I’m not worried or anything, but maybe have some water."
         case (.strict, .en): "Pause here. Drink water and reset your pace."
@@ -71,6 +83,8 @@ enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
         switch (self, language) {
         case (.friendly, .ja): "標準。友達のように自然にペースを整えます。"
         case (.gentle, .ja): "やわらかめ。責めずに休む選択も後押しします。"
+        case (.analyst, .ja): "落ち着いたデータ寄り。記録から今のペースを読み解きます。"
+        case (.dataBuddy, .ja): "数字をやわらかく翻訳。堅すぎず状況を見える化します。"
         case (.gyaru, .ja): "明るく軽快。楽しく記録を続けたい人向けです。"
         case (.tsundere, .ja): "少し照れた言い方で、水や休憩を促します。"
         case (.strict, .ja): "はっきり短く。飲みすぎそうな時に区切りを作ります。"
@@ -79,6 +93,8 @@ enum CoachPersonality: String, CaseIterable, Codable, Identifiable, Sendable {
         case (.sarcastic, .ja): "少し辛口。軽いユーモアで気づきを作ります。"
         case (.friendly, .en): "Default. Keeps your pace steady like a supportive friend."
         case (.gentle, .en): "Soft and reassuring. Encourages breaks without guilt."
+        case (.analyst, .en): "Calm and data-oriented. Reads your current pace from the logs."
+        case (.dataBuddy, .en): "Translates numbers gently, making your pace easier to understand."
         case (.gyaru, .en): "Bright and playful. Good if you want logging to feel fun."
         case (.tsundere, .en): "A little coy. Nudges water and pauses with playful distance."
         case (.strict, .en): "Clear and brief. Helps create a stopping point."
