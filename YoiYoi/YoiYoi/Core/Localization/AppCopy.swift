@@ -212,7 +212,14 @@ enum AppCopy {
     }
 
     static func homeCoachTitle(_ l: SupportedLanguage) -> String {
-        switch l { case .ja: "相棒コメント"; case .en: "Companion note" }
+        switch l { case .ja: "AIコメント"; case .en: "AI comment" }
+    }
+
+    static func homeCoachDisclaimer(_ l: SupportedLanguage) -> String {
+        switch l {
+        case .ja: "AIは記録にもとづく目安です。医療上の助言ではありません。"
+        case .en: "AI comments are based on your logs and are not medical advice."
+        }
     }
 
     static func homeCoachReload(_ l: SupportedLanguage) -> String {

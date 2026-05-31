@@ -60,6 +60,7 @@ final class CalendarViewModel {
         records: [DrinkRecord],
         sessions: [DrinkingSession] = [],
         dailyGoal: Double,
+        trackingStartDate: Date? = nil,
         today: Date = Date()
     ) -> [CalendarDayCellData] {
         let monthStart = startOfMonth(containing: visibleMonth)
@@ -71,6 +72,7 @@ final class CalendarViewModel {
         var cells: [CalendarDayCellData] = Array(repeating: .placeholder, count: leading)
 
         let startToday = calendar.startOfDay(for: today)
+        let trackingStart = trackingStartDate.map { calendar.startOfDay(for: $0) }
 
         for day in dayRange {
             guard let date = calendar.date(byAdding: .day, value: day - 1, to: monthStart) else { continue }
@@ -82,7 +84,7 @@ final class CalendarViewModel {
             }
 
             let visual: CalendarDayVisualState
-            if dayStart > startToday {
+            if dayStart > startToday || trackingStart.map({ dayStart < $0 }) == true {
                 visual = .empty
             } else if total == 0 {
                 visual = isToday ? .empty : .restDay
@@ -107,16 +109,24 @@ final class CalendarViewModel {
     }
 
     /// ヒーロー用: 表示中の月の集計（今日より未来の日は除外）。
-    func monthSummaryCounts(records: [DrinkRecord], dailyGoal: Double, today: Date = Date()) -> (rest: Int, inGoal: Int, over: Int) {
+    func monthSummaryCounts(
+        records: [DrinkRecord],
+        dailyGoal: Double,
+        trackingStartDate: Date? = nil,
+        today: Date = Date()
+    ) -> (rest: Int, inGoal: Int, over: Int) {
         let monthStart = startOfMonth(containing: visibleMonth)
         guard let dayRange = calendar.range(of: .day, in: .month, for: monthStart) else { return (0, 0, 0) }
         let startToday = calendar.startOfDay(for: today)
+        let trackingStart = trackingStartDate.map { calendar.startOfDay(for: $0) }
         var rest = 0
         var ok = 0
         var over = 0
         for day in dayRange {
             guard let date = calendar.date(byAdding: .day, value: day - 1, to: monthStart) else { continue }
-            if calendar.startOfDay(for: date) > startToday { continue }
+            let dayStart = calendar.startOfDay(for: date)
+            if dayStart > startToday { continue }
+            if trackingStart.map({ dayStart < $0 }) == true { continue }
             let total = AlcoholCalculator.dailyTotal(gramsFrom: records, on: date, calendar: calendar)
             if total == 0 {
                 if !calendar.isDate(date, inSameDayAs: today) {

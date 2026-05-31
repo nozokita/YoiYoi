@@ -38,6 +38,10 @@ struct AICoachBubbleView: View {
                 .foregroundStyle(AppColors.charcoal)
                 .lineSpacing(4)
                 .fixedSize(horizontal: false, vertical: true)
+            Text(AppCopy.homeCoachDisclaimer(language))
+                .font(AppFonts.sublabel(for: language, size: 11))
+                .foregroundStyle(AppColors.greyText.opacity(0.82))
+                .fixedSize(horizontal: false, vertical: true)
         }
         .padding(AppSpacing.lg)
         .frame(maxWidth: .infinity, alignment: .leading)

@@ -10,6 +10,7 @@ struct CalendarView: View {
     @State private var records: [DrinkRecord] = []
     @State private var sessions: [DrinkingSession] = []
     @State private var dailyGoal: Double = 40
+    @State private var trackingStartDate: Date?
 
     private var heroHeight: CGFloat { WaveHeroLayout.heroHeight() }
 
@@ -73,6 +74,7 @@ struct CalendarView: View {
         let counts = viewModel.monthSummaryCounts(
             records: records,
             dailyGoal: dailyGoal,
+            trackingStartDate: trackingStartDate,
             today: Date()
         )
         let suf = AppCopy.dayCountSuffix(appState.currentLanguage)
@@ -133,7 +135,13 @@ struct CalendarView: View {
 
             weekdayHeader
 
-            let cells = viewModel.monthCells(records: records, sessions: sessions, dailyGoal: dailyGoal, today: Date())
+            let cells = viewModel.monthCells(
+                records: records,
+                sessions: sessions,
+                dailyGoal: dailyGoal,
+                trackingStartDate: trackingStartDate,
+                today: Date()
+            )
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 6), count: 7), spacing: 6) {
                 ForEach(Array(cells.enumerated()), id: \.offset) { _, cell in
                     if cell.isPlaceholder {
@@ -228,6 +236,13 @@ struct CalendarView: View {
         sessions = (try? modelContext.fetch(FetchDescriptor<DrinkingSession>())) ?? []
         let profiles = (try? modelContext.fetch(FetchDescriptor<UserProfile>())) ?? []
         dailyGoal = profiles.first?.dailyGoalGrams ?? 40
+        trackingStartDate = [
+            profiles.first?.createdAt,
+            records.map(\.loggedAt).min(),
+            sessions.map(\.startTime).min(),
+        ]
+        .compactMap(\.self)
+        .min()
     }
 }
 
