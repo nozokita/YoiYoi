@@ -1,5 +1,5 @@
 # YoiYoi 仕様書 v2.0 — Lean MVP 実装合意候補
-> 最終更新: 2026.05.29
+> 最終更新: 2026.05.31
 >
 > ステータス: Lean MVP の旧機能整理、日英対応、クイック記録、飲み会モード、水分通知、ローカルコーチを実装済み。
 
@@ -42,6 +42,7 @@
 
 - アカウント作成、Firebase、独自サーバー、分析 SDK、広告 SDK、クラウド同期を含めない。
 - 飲酒記録、プロフィール、セッション履歴、お気に入りドリンク設定は `SwiftData` に端末内保存する。
+- UX 改善用の telemetry は `SwiftData` に端末内保存するローカルイベントに限定する。外部分析 SDK やサーバー送信は行わない。
 - 通知は `UNUserNotificationCenter` のローカル通知だけを使用する。
 - Foundation Models 利用時も、入力する集計値は端末内で処理される Apple のオンデバイスモデル向けに限定する。
 - Apple Intelligence のモデル取得や利用可否は OS が管理するため、アプリは利用不可状態を正常系として扱い、常にテンプレートへフォールバックする。
@@ -100,6 +101,7 @@
 
 - App Store Connect ではプライバシーポリシー URL が必須で、アプリ内にも容易に到達できるリンクを置く。
 - `Core/Legal/AppLegalLinks.swift` と `docs/legal/privacy.html` は、完全オフライン方針に文面を更新した上で維持する。
+- App Store のプライバシー回答では、現行版は telemetry を含めて端末外へ送信しないため「開発者または第三者がアクセスできる収集データなし」を前提に回答する。将来、広告 SDK や外部分析を入れる場合は、リリース前に明示的な同意設計、プライバシーポリシー、App Privacy Details を更新する。
 - 初回の EULA 同意 UI と、旧ソーシャル機能を前提にした利用規約本文は撤去する。
 
 ---
@@ -199,6 +201,25 @@ final class DrinkingSession {
     var isActive: Bool { endTime == nil }
 }
 ```
+
+### TelemetryEvent (SwiftData — 新規)
+```swift
+@Model
+final class TelemetryEvent {
+    var id: UUID
+    var name: String
+    var screen: String?
+    var attributesJSON: String
+    var createdAt: Date
+}
+```
+
+**ローカル telemetry ルール**:
+- データドリブンな UI/UX 改善のため、画面表示、タブ選択、記録開始、記録保存、クイック記録、AIコメント表示・更新、AIコメント設定変更などをイベントとして保存する。
+- telemetry は端末内の `SwiftData` に最大 1,000 件だけ保持し、古いイベントから削除する。
+- 属性は `grams_band`、`today_ratio`、`mode`、`screen` などの粗いカテゴリに限定し、自由入力テキストや生の飲酒履歴全文は保存しない。
+- telemetry を外部サーバー、広告 SDK、分析 SDK、クラウドへ送信しない。
+- 将来、外部分析や広告効果測定を導入する場合は、端末内保存の訴求と矛盾しないよう、同意・オプトアウト・プライバシー表示・App Store Connect の回答を先に更新する。
 
 ### QuickDrinkPreset (SwiftData — 新規)
 ```swift

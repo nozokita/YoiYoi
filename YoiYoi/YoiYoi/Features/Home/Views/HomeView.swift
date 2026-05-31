@@ -64,7 +64,10 @@ struct HomeView: View {
             ActiveSessionView(session: session)
                 .environmentObject(appState)
         }
-        .onAppear(perform: scheduleReloadFromStore)
+        .onAppear {
+            TelemetryService.track(.screenViewed, screen: .home, modelContext: modelContext)
+            scheduleReloadFromStore()
+        }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 scheduleReloadFromStore()
@@ -309,6 +312,15 @@ struct HomeView: View {
         )
         modelContext.insert(record)
         guard (try? modelContext.save()) != nil else { return }
+        TelemetryService.track(
+            .quickRecordSaved,
+            screen: .home,
+            attributes: [
+                "grams_band": TelemetryService.gramsBand(record.pureAlcoholGrams),
+                "drinks": "\(drinks)",
+            ],
+            modelContext: modelContext
+        )
         undoTask?.cancel()
         undoRecord = record
         undoTask = Task {
@@ -325,6 +337,7 @@ struct HomeView: View {
         undoTask?.cancel()
         modelContext.delete(record)
         try? modelContext.save()
+        TelemetryService.track(.quickRecordUndone, screen: .home, modelContext: modelContext)
         undoRecord = nil
         viewModel.removeQuickRecord(record)
         NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
@@ -332,6 +345,7 @@ struct HomeView: View {
 
     private func openOrStartSession() {
         if let active = viewModel.activeSession {
+            TelemetryService.track(.sessionOpened, screen: .home, modelContext: modelContext)
             presentedSession = active
             return
         }
@@ -348,6 +362,7 @@ struct HomeView: View {
         }
         presentedSession = session
         viewModel.setActiveSession(session)
+        TelemetryService.track(.sessionStarted, screen: .home, modelContext: modelContext)
         NotificationCenter.default.post(name: .sessionDidChange, object: nil)
     }
 
@@ -559,5 +574,5 @@ private struct HomeMiniStatCard: View {
 #Preview {
     HomeView()
         .environmentObject(AppState())
-        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
+        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self, TelemetryEvent.self], inMemory: true)
 }

@@ -95,7 +95,15 @@ struct DrinkLogSheet: View {
         } message: {
             Text(saveError ?? "")
         }
-        .onAppear(perform: loadEditingRecordIfNeeded)
+        .onAppear {
+            TelemetryService.track(
+                .screenViewed,
+                screen: .drinkLog,
+                attributes: ["mode": editingRecord == nil ? "create" : "edit"],
+                modelContext: modelContext
+            )
+            loadEditingRecordIfNeeded()
+        }
     }
 
     @ViewBuilder
@@ -264,6 +272,8 @@ struct DrinkLogSheet: View {
     private func saveRecord() {
         guard let type = viewModel.selectedType else { return }
         do {
+            let wasEditing = editingRecord != nil
+            let savedGrams: Double
             if let editingRecord {
                 editingRecord.update(
                     drinkType: type.rawValue,
@@ -271,6 +281,7 @@ struct DrinkLogSheet: View {
                     abv: viewModel.abv,
                     numberOfDrinks: viewModel.numberOfDrinks
                 )
+                savedGrams = editingRecord.pureAlcoholGrams
             } else {
                 let record = DrinkRecord(
                     drinkType: type.rawValue,
@@ -280,8 +291,19 @@ struct DrinkLogSheet: View {
                     sessionID: sessionID
                 )
                 modelContext.insert(record)
+                savedGrams = record.pureAlcoholGrams
             }
             try modelContext.save()
+            TelemetryService.track(
+                .drinkLogSaved,
+                screen: .drinkLog,
+                attributes: [
+                    "mode": wasEditing ? "edit" : "create",
+                    "grams_band": TelemetryService.gramsBand(savedGrams),
+                    "drinks": "\(viewModel.numberOfDrinks)",
+                ],
+                modelContext: modelContext
+            )
             NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
 
             // `dismiss` と親の `onDismiss`→`reloadFromStore` が同一トランジション内で走るとメインスレッドが詰まることがあるため、次フレームにずらす。
@@ -298,6 +320,7 @@ struct DrinkLogSheet: View {
         do {
             modelContext.delete(editingRecord)
             try modelContext.save()
+            TelemetryService.track(.drinkLogDeleted, screen: .drinkLog, modelContext: modelContext)
             NotificationCenter.default.post(name: .drinkLogSheetDismissed, object: nil)
             DispatchQueue.main.async {
                 dismiss()
@@ -352,5 +375,5 @@ struct DrinkLogSheet: View {
 #Preview {
     DrinkLogSheet()
         .environmentObject(AppState())
-        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self], inMemory: true)
+        .modelContainer(for: [DrinkRecord.self, UserProfile.self, DrinkingSession.self, QuickDrinkPreset.self, TelemetryEvent.self], inMemory: true)
 }

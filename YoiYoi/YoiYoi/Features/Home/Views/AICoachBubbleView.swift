@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct AICoachBubbleView: View {
+    @Environment(\.modelContext) private var modelContext
+
     let context: LocalCoachContext
     let personality: CoachPersonality
     let language: SupportedLanguage
@@ -28,6 +30,12 @@ struct AICoachBubbleView: View {
                 .clipShape(Capsule())
                 Button {
                     refreshID = UUID()
+                    TelemetryService.track(
+                        .aiCommentRefreshed,
+                        screen: .home,
+                        attributes: ["personality": personality.rawValue],
+                        modelContext: modelContext
+                    )
                 } label: {
                     Image(systemName: "arrow.clockwise")
                 }
@@ -58,6 +66,16 @@ struct AICoachBubbleView: View {
                 context: context,
                 personality: personality,
                 language: language
+            )
+            TelemetryService.track(
+                .aiCommentRendered,
+                screen: .home,
+                attributes: [
+                    "personality": personality.rawValue,
+                    "today_ratio": TelemetryService.ratioBand(consumed: context.todayConsumed, goal: context.dailyGoal),
+                    "has_recent_log": context.minutesSinceLastDrink.map { $0 <= 10 } == true ? "true" : "false",
+                ],
+                modelContext: modelContext
             )
         }
     }

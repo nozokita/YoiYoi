@@ -28,6 +28,7 @@ struct YoiYoiApp: App {
             UserProfile.self,
             DrinkingSession.self,
             QuickDrinkPreset.self,
+            TelemetryEvent.self,
         ])
         #if DEBUG
         let isUITesting = ProcessInfo.processInfo.arguments.contains("-YoiYoiUITesting")
