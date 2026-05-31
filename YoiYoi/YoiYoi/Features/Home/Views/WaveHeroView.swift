@@ -6,44 +6,37 @@ import SwiftUI
 struct WaveHeroView<Content: View>: View {
     let height: CGFloat
     let gradient: LinearGradient
-    let topBleedColor: Color
     @ViewBuilder var content: () -> Content
 
     init(
         height: CGFloat,
         gradient: LinearGradient,
-        topBleedColor: Color,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self.height = height
         self.gradient = gradient
-        self.topBleedColor = topBleedColor
         self.content = content
     }
 
     var body: some View {
         ZStack(alignment: .top) {
             Rectangle()
-                .fill(topBleedColor)
-                .frame(height: 140)
-                .offset(y: -140)
-                .ignoresSafeArea(edges: .top)
-
-            Rectangle()
                 .fill(gradient)
                 .clipShape(WaveShape())
             content()
                 .padding(.horizontal, AppSpacing.lg)
                 .padding(.top, AppSpacing.md)
+                .safeAreaPadding(.top)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         }
         .frame(height: height)
         .frame(maxWidth: .infinity)
+        .ignoresSafeArea(edges: .top)
     }
 }
 
 #Preview {
-    WaveHeroView(height: 280, gradient: AppGradients.heroHome, topBleedColor: AppColors.navy) {
+    WaveHeroView(height: 280, gradient: AppGradients.heroHome) {
         Text("プレビュー")
             .font(AppFonts.heroTitle())
             .foregroundStyle(.white)
